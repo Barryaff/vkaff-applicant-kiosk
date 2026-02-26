@@ -61,6 +61,7 @@
 		2B3C4D5E6F7A8B9C0D1E2F3A /* service-account-key.json in Resources */ = {isa = PBXBuildFile; fileRef = 7A8B9C0D1E2F3A4B5C6D7E8F /* service-account-key.json */; };
 		3A4B5C6D7E8F9A0B1C2D3E4F /* ReferenceRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B5C6D7E8F9A0B1C2D3E4F5A /* ReferenceRecord.swift */; };
 		5C6D7E8F9A0B1C2D3E4F5A6B /* CountryCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D7E8F9A0B1C2D3E4F5A6B7C /* CountryCode.swift */; };
+		B1C2D3E4F5A6B7C8D9E0F1A2 /* EmergencyContact.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2D3E4F5A6B7C8D9E0F1A2B3 /* EmergencyContact.swift */; };
 		9A0B1C2D3E4F5A6B7C8D9E0F /* secrets.plist in Resources */ = {isa = PBXBuildFile; fileRef = A0B1C2D3E4F5A6B7C8D9E0F1 /* secrets.plist */; };
 		7E8F9A0B1C2D3E4F5A6B7C8D /* PhoneFieldWithCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F9A0B1C2D3E4F5A6B7C8D9E /* PhoneFieldWithCode.swift */; };
 /* End PBXBuildFile section */
@@ -135,6 +136,7 @@
 		6D7E8F9A0B1C2D3E4F5A6B7C /* CountryCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountryCode.swift; sourceTree = "<group>"; };
 		8F9A0B1C2D3E4F5A6B7C8D9E /* PhoneFieldWithCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneFieldWithCode.swift; sourceTree = "<group>"; };
 		A0B1C2D3E4F5A6B7C8D9E0F1 /* secrets.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = secrets.plist; sourceTree = "<group>"; };
+		C2D3E4F5A6B7C8D9E0F1A2B3 /* EmergencyContact.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmergencyContact.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -194,6 +196,7 @@
 			children = (
 				7F47CADCA9961633A664C30E /* ApplicantData.swift */,
 				6D7E8F9A0B1C2D3E4F5A6B7C /* CountryCode.swift */,
+				C2D3E4F5A6B7C8D9E0F1A2B3 /* EmergencyContact.swift */,
 				84796D9B7C7E159A3FDEA19E /* EmploymentRecord.swift */,
 				DC05F8C52588E0E3DBE863ED /* LanguageProficiency.swift */,
 				FF8B45D4F40AD4BE40714609 /* QualificationRecord.swift */,
@@ -422,6 +425,7 @@
 				5C6D7E8F9A0B1C2D3E4F5A6B /* CountryCode.swift in Sources */,
 				8C2AF886210E8113F4B72BD6 /* DeclarationConsentView.swift in Sources */,
 				BB6639E196DFF56D49085B21 /* EducationView.swift in Sources */,
+				B1C2D3E4F5A6B7C8D9E0F1A2 /* EmergencyContact.swift in Sources */,
 				3E61855EBFCA08BA17134B1A /* EmploymentRecord.swift in Sources */,
 				55F59C7F88F02881FB81EC67 /* EncryptedBackupService.swift in Sources */,
 				979B16FA050B29F00205D4E5 /* FormCard.swift in Sources */,

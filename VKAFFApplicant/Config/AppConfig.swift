@@ -14,4 +14,5 @@ enum AppConfig {
     static let maxQualifications = 5
     static let maxEmploymentRecords = 5
     static let maxReferences = 2
+    static let maxEmergencyContacts = 3
 }

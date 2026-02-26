@@ -170,62 +170,64 @@ struct PersonalDetailsView: View {
                 focusValue: .postalCode
             )
 
-            // Emergency Contact
+            // Emergency Contacts
             Divider().padding(.vertical, 8)
 
-            Text("Emergency Contact")
+            Text("Emergency Contacts")
                 .subheadingStyle()
 
-            FormField(
-                label: "Emergency Contact Name",
-                text: $vm.applicant.emergencyContactName,
-                placeholder: "Full name",
-                errorMessage: vm.fieldErrors["emergencyContactName"],
-                isValid: vm.validFields.contains("emergencyContactName"),
-                focusBinding: $focusedField,
-                focusValue: .emergencyContactName
-            )
+            Text("Please provide at least 1 emergency contact")
+                .font(.system(size: 14))
+                .foregroundColor(.mediumGray)
 
-            HStack(spacing: 16) {
-                PhoneFieldWithCode(
-                    label: "Emergency Contact Number",
-                    countryCode: $vm.applicant.emergencyContactCountryCode,
-                    phoneNumber: $vm.applicant.emergencyContactNumber,
-                    placeholder: "9123 4567",
-                    errorMessage: vm.fieldErrors["emergencyContactNumber"],
-                    isValid: vm.validFields.contains("emergencyContactNumber"),
-                    focusBinding: $focusedField,
-                    focusValue: .emergencyContactNumber
-                )
-
-                FormDropdown(
-                    label: "Relationship",
-                    selection: $vm.applicant.emergencyContactRelationship
-                )
-            }
-
-            if vm.applicant.emergencyContactRelationship == .others {
+            RepeatableCardSection(
+                title: "Emergency Contact",
+                items: $vm.applicant.emergencyContacts,
+                maxItems: AppConfig.maxEmergencyContacts,
+                createNew: { EmergencyContact() }
+            ) { $contact in
                 FormField(
-                    label: "Please specify relationship",
-                    text: $vm.applicant.emergencyContactRelationshipOther,
-                    placeholder: "e.g., Colleague, Roommate"
+                    label: "Full Name",
+                    text: $contact.name,
+                    placeholder: "Emergency contact's full name"
+                )
+
+                HStack(spacing: 16) {
+                    PhoneFieldWithCode(
+                        label: "Phone Number",
+                        countryCode: $contact.countryCode,
+                        phoneNumber: $contact.phoneNumber,
+                        placeholder: "9123 4567"
+                    )
+
+                    FormDropdown(
+                        label: "Relationship",
+                        selection: $contact.relationship
+                    )
+                }
+
+                if contact.relationship == .others {
+                    FormField(
+                        label: "Please specify relationship",
+                        text: $contact.relationshipOther,
+                        placeholder: "e.g., Colleague, Roommate"
+                    )
+                }
+
+                FormField(
+                    label: "Email (optional)",
+                    text: $contact.email,
+                    placeholder: "contact@email.com",
+                    keyboardType: .emailAddress
+                )
+
+                FormField(
+                    label: "Address (optional)",
+                    text: $contact.address,
+                    placeholder: "Block, street, unit number",
+                    isMultiline: true
                 )
             }
-
-            // Emergency contact email & address
-            FormField(
-                label: "Emergency Contact Email (optional)",
-                text: $vm.applicant.emergencyContactEmail,
-                placeholder: "contact@email.com",
-                keyboardType: .emailAddress
-            )
-
-            FormField(
-                label: "Emergency Contact Address (optional)",
-                text: $vm.applicant.emergencyContactAddress,
-                placeholder: "Block, street, unit number",
-                isMultiline: true
-            )
         }
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {

@@ -19,13 +19,7 @@ class ApplicantData: ObservableObject, Codable {
     @Published var postalCode: String = ""
     @Published var passportNumber: String = ""
     @Published var drivingLicenseClass: String = ""
-    @Published var emergencyContactName: String = ""
-    @Published var emergencyContactCountryCode: String = "+65"
-    @Published var emergencyContactNumber: String = ""
-    @Published var emergencyContactEmail: String = ""
-    @Published var emergencyContactAddress: String = ""
-    @Published var emergencyContactRelationship: EmergencyRelationship = .parent
-    @Published var emergencyContactRelationshipOther: String = ""
+    @Published var emergencyContacts: [EmergencyContact] = [EmergencyContact()]
 
     // MARK: - Education & Qualifications
     @Published var highestQualification: HighestQualification = .diploma
@@ -88,9 +82,7 @@ class ApplicantData: ObservableObject, Codable {
         case nationalityOther, hasWorkedInSingapore
         case race, raceOther, contactCountryCode, contactNumber, emailAddress, residentialAddress, postalCode
         case passportNumber, drivingLicenseClass
-        case emergencyContactName, emergencyContactCountryCode, emergencyContactNumber
-        case emergencyContactEmail, emergencyContactAddress
-        case emergencyContactRelationship, emergencyContactRelationshipOther
+        case emergencyContacts
         case highestQualification, highestQualificationOther, fieldOfStudy, institutionName, yearOfGraduation
         case additionalQualifications, professionalCertifications, selectedLanguages
         case totalExperience, employmentHistory, isCurrentlyEmployed, noticePeriod
@@ -126,13 +118,7 @@ class ApplicantData: ObservableObject, Codable {
         postalCode = try container.decode(String.self, forKey: .postalCode)
         passportNumber = try container.decodeIfPresent(String.self, forKey: .passportNumber) ?? ""
         drivingLicenseClass = try container.decodeIfPresent(String.self, forKey: .drivingLicenseClass) ?? ""
-        emergencyContactName = try container.decode(String.self, forKey: .emergencyContactName)
-        emergencyContactCountryCode = try container.decodeIfPresent(String.self, forKey: .emergencyContactCountryCode) ?? "+65"
-        emergencyContactNumber = try container.decode(String.self, forKey: .emergencyContactNumber)
-        emergencyContactEmail = try container.decodeIfPresent(String.self, forKey: .emergencyContactEmail) ?? ""
-        emergencyContactAddress = try container.decodeIfPresent(String.self, forKey: .emergencyContactAddress) ?? ""
-        emergencyContactRelationship = try container.decode(EmergencyRelationship.self, forKey: .emergencyContactRelationship)
-        emergencyContactRelationshipOther = try container.decodeIfPresent(String.self, forKey: .emergencyContactRelationshipOther) ?? ""
+        emergencyContacts = try container.decodeIfPresent([EmergencyContact].self, forKey: .emergencyContacts) ?? [EmergencyContact()]
         highestQualification = try container.decode(HighestQualification.self, forKey: .highestQualification)
         highestQualificationOther = try container.decodeIfPresent(String.self, forKey: .highestQualificationOther) ?? ""
         fieldOfStudy = try container.decode(String.self, forKey: .fieldOfStudy)
@@ -196,13 +182,7 @@ class ApplicantData: ObservableObject, Codable {
         try container.encode(Validators.sanitizePostalCode(postalCode), forKey: .postalCode)
         try container.encode(passportNumber.trimmingCharacters(in: .whitespaces).uppercased(), forKey: .passportNumber)
         try container.encode(Validators.sanitizeInput(drivingLicenseClass), forKey: .drivingLicenseClass)
-        try container.encode(Validators.sanitizeInput(emergencyContactName), forKey: .emergencyContactName)
-        try container.encode(emergencyContactCountryCode, forKey: .emergencyContactCountryCode)
-        try container.encode(Validators.sanitizePhone(emergencyContactNumber), forKey: .emergencyContactNumber)
-        try container.encode(emergencyContactEmail.trimmingCharacters(in: .whitespaces).lowercased(), forKey: .emergencyContactEmail)
-        try container.encode(Validators.sanitizeInput(emergencyContactAddress), forKey: .emergencyContactAddress)
-        try container.encode(emergencyContactRelationship, forKey: .emergencyContactRelationship)
-        try container.encode(Validators.sanitizeInput(emergencyContactRelationshipOther), forKey: .emergencyContactRelationshipOther)
+        try container.encode(emergencyContacts, forKey: .emergencyContacts)
         try container.encode(highestQualification, forKey: .highestQualification)
         try container.encode(Validators.sanitizeInput(highestQualificationOther), forKey: .highestQualificationOther)
         try container.encode(Validators.sanitizeInput(fieldOfStudy), forKey: .fieldOfStudy)
@@ -260,10 +240,13 @@ class ApplicantData: ObservableObject, Codable {
         postalCode = Validators.sanitizePostalCode(postalCode)
         passportNumber = passportNumber.trimmingCharacters(in: .whitespaces).uppercased()
         drivingLicenseClass = Validators.sanitizeInput(drivingLicenseClass)
-        emergencyContactName = Validators.sanitizeInput(emergencyContactName)
-        emergencyContactNumber = Validators.sanitizePhone(emergencyContactNumber)
-        emergencyContactEmail = emergencyContactEmail.trimmingCharacters(in: .whitespaces).lowercased()
-        emergencyContactAddress = Validators.sanitizeInput(emergencyContactAddress)
+        for i in emergencyContacts.indices {
+            emergencyContacts[i].name = Validators.sanitizeInput(emergencyContacts[i].name)
+            emergencyContacts[i].phoneNumber = Validators.sanitizePhone(emergencyContacts[i].phoneNumber)
+            emergencyContacts[i].email = emergencyContacts[i].email.trimmingCharacters(in: .whitespaces).lowercased()
+            emergencyContacts[i].address = Validators.sanitizeInput(emergencyContacts[i].address)
+            emergencyContacts[i].relationshipOther = Validators.sanitizeInput(emergencyContacts[i].relationshipOther)
+        }
         highestQualificationOther = Validators.sanitizeInput(highestQualificationOther)
         fieldOfStudy = Validators.sanitizeInput(fieldOfStudy)
         institutionName = Validators.sanitizeInput(institutionName)
@@ -297,13 +280,7 @@ class ApplicantData: ObservableObject, Codable {
         postalCode = ""
         passportNumber = ""
         drivingLicenseClass = ""
-        emergencyContactName = ""
-        emergencyContactCountryCode = "+65"
-        emergencyContactNumber = ""
-        emergencyContactEmail = ""
-        emergencyContactAddress = ""
-        emergencyContactRelationship = .parent
-        emergencyContactRelationshipOther = ""
+        emergencyContacts = [EmergencyContact()]
         highestQualification = .diploma
         highestQualificationOther = ""
         fieldOfStudy = ""

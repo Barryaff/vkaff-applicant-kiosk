@@ -128,24 +128,6 @@ class RegistrationViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
-        // Emergency Contact Name
-        applicant.$emergencyContactName
-            .dropFirst()
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] value in
-                self?.onFieldChanged("emergencyContactName", isValid: Validators.isNotEmpty(value))
-            }
-            .store(in: &cancellables)
-
-        // Emergency Contact Number
-        applicant.$emergencyContactNumber
-            .dropFirst()
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] value in
-                self?.onFieldChanged("emergencyContactNumber", isValid: Validators.isValidPhone(value))
-            }
-            .store(in: &cancellables)
-
         // Field of Study
         applicant.$fieldOfStudy
             .dropFirst()
@@ -335,15 +317,16 @@ class RegistrationViewModel: ObservableObject {
             validFields.insert("postalCode")
         }
 
-        if !Validators.isNotEmpty(applicant.emergencyContactName) {
-            fieldErrors["emergencyContactName"] = "Emergency contact name is required"
+        // At least one emergency contact with name and phone required
+        if applicant.emergencyContacts.isEmpty || !Validators.isNotEmpty(applicant.emergencyContacts[0].name) {
+            fieldErrors["emergencyContactName"] = "At least one emergency contact is required"
             isValid = false
         } else {
             validFields.insert("emergencyContactName")
         }
 
-        if !Validators.isValidPhone(applicant.emergencyContactNumber) {
-            fieldErrors["emergencyContactNumber"] = "Enter a valid phone number with country code"
+        if applicant.emergencyContacts.isEmpty || !Validators.isValidPhone(applicant.emergencyContacts[0].phoneNumber) {
+            fieldErrors["emergencyContactNumber"] = "Enter a valid phone number"
             isValid = false
         } else {
             validFields.insert("emergencyContactNumber")

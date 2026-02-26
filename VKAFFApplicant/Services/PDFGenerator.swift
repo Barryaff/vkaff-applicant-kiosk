@@ -67,10 +67,6 @@ class PDFGenerator {
             yPosition += 36
         }
 
-        let countEmRelDisplay = applicant.emergencyContactRelationship == .others
-            ? applicant.emergencyContactRelationshipOther.isEmpty ? "Others" : applicant.emergencyContactRelationshipOther
-            : applicant.emergencyContactRelationship.rawValue
-
         var singlePersonal: [(String, String)] = [
             ("Email", applicant.emailAddress),
             ("Address", applicant.residentialAddress),
@@ -85,14 +81,24 @@ class PDFGenerator {
         if !applicant.nationality.isSingaporean {
             singlePersonal.append(("Worked in Singapore Before", applicant.hasWorkedInSingapore ? "Yes" : "No"))
         }
-        singlePersonal.append(contentsOf: [
-            ("Emergency Contact", "\(applicant.emergencyContactName) (\(countEmRelDisplay))"),
-            ("Emergency Phone", applicant.emergencyContactNumber)
-        ])
         for (_, value) in singlePersonal {
             let h = simulateFieldHeight(value: value)
             yPosition = simulateCheckNewPage(y: yPosition, needed: h, pageCount: &pageCount)
             yPosition += h
+        }
+        // Emergency contacts
+        for ec in applicant.emergencyContacts {
+            yPosition = simulateCheckNewPage(y: yPosition, needed: 36, pageCount: &pageCount)
+            yPosition += 36
+            if !ec.email.isEmpty {
+                yPosition = simulateCheckNewPage(y: yPosition, needed: 32, pageCount: &pageCount)
+                yPosition += 32
+            }
+            if !ec.address.isEmpty {
+                let h = simulateFieldHeight(value: ec.address)
+                yPosition = simulateCheckNewPage(y: yPosition, needed: h, pageCount: &pageCount)
+                yPosition += h
+            }
         }
 
         // Education section
@@ -254,10 +260,6 @@ class PDFGenerator {
                 yPosition = drawTwoColumnField(left: left, right: right, at: yPosition)
             }
 
-            let emergencyRelDisplay = applicant.emergencyContactRelationship == .others
-                ? applicant.emergencyContactRelationshipOther.isEmpty ? "Others" : applicant.emergencyContactRelationshipOther
-                : applicant.emergencyContactRelationship.rawValue
-
             var singlePersonal: [(String, String)] = [
                 ("Email", applicant.emailAddress),
                 ("Address", applicant.residentialAddress),
@@ -272,20 +274,33 @@ class PDFGenerator {
             if !applicant.nationality.isSingaporean {
                 singlePersonal.append(("Worked in Singapore Before", applicant.hasWorkedInSingapore ? "Yes" : "No"))
             }
-            let emergencyPhoneDisplay = "\(applicant.emergencyContactCountryCode) \(applicant.emergencyContactNumber)"
-            singlePersonal.append(contentsOf: [
-                ("Emergency Contact", "\(applicant.emergencyContactName) (\(emergencyRelDisplay))"),
-                ("Emergency Phone", emergencyPhoneDisplay)
-            ])
-            if !applicant.emergencyContactEmail.isEmpty {
-                singlePersonal.append(("Emergency Email", applicant.emergencyContactEmail))
-            }
-            if !applicant.emergencyContactAddress.isEmpty {
-                singlePersonal.append(("Emergency Address", applicant.emergencyContactAddress))
-            }
             for (label, value) in singlePersonal {
                 yPosition = checkPageBreak(y: yPosition, needed: 32, context: context)
                 yPosition = drawField(label: label, value: value, at: yPosition)
+            }
+
+            // Emergency Contacts
+            for (index, ec) in applicant.emergencyContacts.enumerated() {
+                yPosition += 4
+                let relDisplay = ec.relationship == .others
+                    ? ec.relationshipOther.isEmpty ? "Others" : ec.relationshipOther
+                    : ec.relationship.rawValue
+                let ecPhoneDisplay = "\(ec.countryCode) \(ec.phoneNumber)"
+                yPosition = checkPageBreak(y: yPosition, needed: 36, context: context)
+                yPosition = drawTwoColumnField(
+                    left: ("Emergency Contact \(index + 1)", "\(ec.name) (\(relDisplay))"),
+                    right: ("Phone", ecPhoneDisplay),
+                    at: yPosition
+                )
+                if !ec.email.isEmpty || !ec.address.isEmpty {
+                    var ecExtra: [(String, String)] = []
+                    if !ec.email.isEmpty { ecExtra.append(("Email", ec.email)) }
+                    if !ec.address.isEmpty { ecExtra.append(("Address", ec.address)) }
+                    for (label, value) in ecExtra {
+                        yPosition = checkPageBreak(y: yPosition, needed: 32, context: context)
+                        yPosition = drawField(label: label, value: value, at: yPosition)
+                    }
+                }
             }
 
             // =====================
