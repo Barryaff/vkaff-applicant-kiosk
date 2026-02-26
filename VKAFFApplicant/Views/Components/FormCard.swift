@@ -21,6 +21,6 @@ struct FormCard<Content: View>: View {
                 )
                 .shadow(color: .black.opacity(0.03), radius: 12, x: 0, y: 4)
         )
-        .frame(maxWidth: 720)
+        .frame(maxWidth: 860)
     }
 }

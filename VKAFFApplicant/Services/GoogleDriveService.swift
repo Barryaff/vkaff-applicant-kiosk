@@ -26,7 +26,7 @@ class GoogleDriveService {
         let accessToken = try await getAccessToken()
 
         let boundary = UUID().uuidString
-        let url = URL(string: "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart")!
+        let url = URL(string: "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true")!
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -66,6 +66,8 @@ class GoogleDriveService {
 
         guard (200...299).contains(httpResponse.statusCode) else {
             // Parse error response from Google Drive API
+            let rawBody = String(data: responseData, encoding: .utf8) ?? "no body"
+            print("[GoogleDrive] Upload failed HTTP \(httpResponse.statusCode): \(rawBody)")
             let errorMessage = parseGoogleDriveError(from: responseData, statusCode: httpResponse.statusCode)
 
             // If we got a 401, invalidate the cached token so the next attempt refreshes it
@@ -149,13 +151,18 @@ class GoogleDriveService {
             "typ": "JWT"
         ]
 
-        let claims: [String: Any] = [
+        // Build JWT claims. Use domain-wide delegation (sub) if impersonateEmail is set,
+        // otherwise authenticate as the service account directly.
+        var claims: [String: Any] = [
             "iss": GoogleDriveConfig.serviceAccountEmail,
             "scope": "https://www.googleapis.com/auth/drive.file",
             "aud": "https://oauth2.googleapis.com/token",
             "iat": Int(now.timeIntervalSince1970),
             "exp": Int(expiry.timeIntervalSince1970)
         ]
+        if !GoogleDriveConfig.impersonateEmail.isEmpty {
+            claims["sub"] = GoogleDriveConfig.impersonateEmail
+        }
 
         let headerData = try JSONSerialization.data(withJSONObject: header)
         let claimsData = try JSONSerialization.data(withJSONObject: claims)
@@ -165,8 +172,17 @@ class GoogleDriveService {
 
         let signingInput = "\(headerBase64).\(claimsBase64)"
 
+        print("[GoogleDrive] JWT claims: iss=\(GoogleDriveConfig.serviceAccountEmail), sub=\(GoogleDriveConfig.impersonateEmail), scope=drive")
+
         // Load private key from bundled service account JSON
-        let privateKey = try loadPrivateKey()
+        let privateKey: SecKey
+        do {
+            privateKey = try loadPrivateKey()
+            print("[GoogleDrive] Private key loaded successfully")
+        } catch {
+            print("[GoogleDrive] Failed to load private key: \(error)")
+            throw error
+        }
 
         guard let signingData = signingInput.data(using: .utf8) else {
             throw DriveError.jwtCreationFailed
@@ -202,16 +218,21 @@ class GoogleDriveService {
            !(200...299).contains(httpResponse.statusCode) {
             // Attempt to parse error details
             let errorDetail: String
-            if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let errorDesc = json["error_description"] as? String {
-                errorDetail = errorDesc
+            if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                let errorType = json["error"] as? String ?? ""
+                let errorDesc = json["error_description"] as? String ?? ""
+                errorDetail = "HTTP \(httpResponse.statusCode) - \(errorType): \(errorDesc)"
+                print("[GoogleDrive] Token request failed: \(errorDetail)")
             } else {
-                errorDetail = "HTTP \(httpResponse.statusCode)"
+                let bodyStr = String(data: data, encoding: .utf8) ?? "no body"
+                errorDetail = "HTTP \(httpResponse.statusCode): \(bodyStr)"
+                print("[GoogleDrive] Token request failed: \(errorDetail)")
             }
             throw DriveError.tokenRequestFailed(detail: errorDetail)
         }
 
         let tokenResponse = try JSONDecoder().decode(TokenResponse.self, from: data)
+        print("[GoogleDrive] Token obtained successfully, expires in \(tokenResponse.expiresIn)s")
 
         // Cache the token with a refresh margin (refresh 5 minutes before actual expiry)
         GoogleDriveService.cachedToken = tokenResponse.accessToken
@@ -244,6 +265,10 @@ class GoogleDriveService {
             throw DriveError.invalidServiceAccountKey
         }
 
+        // Google service account keys are PKCS#8 format (BEGIN PRIVATE KEY).
+        // SecKeyCreateWithData expects PKCS#1 (raw RSA key), so we strip the PKCS#8 ASN.1 wrapper.
+        let rsaKeyData = stripPKCS8Header(from: keyBytes)
+
         let attributes: [String: Any] = [
             kSecAttrKeyType as String: kSecAttrKeyTypeRSA,
             kSecAttrKeyClass as String: kSecAttrKeyClassPrivate,
@@ -251,11 +276,74 @@ class GoogleDriveService {
         ]
 
         var cfError: Unmanaged<CFError>?
-        guard let key = SecKeyCreateWithData(keyBytes as CFData, attributes as CFDictionary, &cfError) else {
+        guard let key = SecKeyCreateWithData(rsaKeyData as CFData, attributes as CFDictionary, &cfError) else {
             throw DriveError.invalidServiceAccountKey
         }
 
         return key
+    }
+
+    /// Strips the PKCS#8 ASN.1 header to extract the inner PKCS#1 RSA private key.
+    /// PKCS#8 structure: SEQUENCE { version, algorithmIdentifier, OCTET STRING { <PKCS#1 key> } }
+    private func stripPKCS8Header(from data: Data) -> Data {
+        let bytes = [UInt8](data)
+        guard bytes.count > 26, bytes[0] == 0x30 else {
+            return data // Not PKCS#8 or too short, return as-is
+        }
+
+        var index = 0
+
+        // Skip outer SEQUENCE tag + length
+        index += 1
+        index += asn1LengthSize(bytes: bytes, from: index)
+
+        // Skip version INTEGER (0x02 0x01 0x00)
+        guard index < bytes.count, bytes[index] == 0x02 else { return data }
+        index += 1
+        let versionLen = Int(bytes[index])
+        index += 1 + versionLen
+
+        // Skip algorithm identifier SEQUENCE
+        guard index < bytes.count, bytes[index] == 0x30 else { return data }
+        index += 1
+        let algLen = asn1Length(bytes: bytes, from: &index)
+        index += algLen
+
+        // Now at OCTET STRING (0x04) containing the PKCS#1 key
+        guard index < bytes.count, bytes[index] == 0x04 else { return data }
+        index += 1
+        _ = asn1Length(bytes: bytes, from: &index)
+
+        return Data(bytes[index...])
+    }
+
+    /// Returns the number of bytes used by an ASN.1 length field (not the length value itself).
+    private func asn1LengthSize(bytes: [UInt8], from index: Int) -> Int {
+        guard index < bytes.count else { return 1 }
+        if bytes[index] & 0x80 == 0 {
+            return 1
+        }
+        let numBytes = Int(bytes[index] & 0x7F)
+        return 1 + numBytes
+    }
+
+    /// Reads an ASN.1 length and advances the index past it. Returns the length value.
+    private func asn1Length(bytes: [UInt8], from index: inout Int) -> Int {
+        guard index < bytes.count else { return 0 }
+        if bytes[index] & 0x80 == 0 {
+            let len = Int(bytes[index])
+            index += 1
+            return len
+        }
+        let numBytes = Int(bytes[index] & 0x7F)
+        index += 1
+        var length = 0
+        for i in 0..<numBytes {
+            guard index + i < bytes.count else { return 0 }
+            length = length << 8 + Int(bytes[index + i])
+        }
+        index += numBytes
+        return length
     }
 }
 

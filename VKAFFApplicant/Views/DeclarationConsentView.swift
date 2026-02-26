@@ -4,9 +4,9 @@ struct DeclarationConsentView: View {
     @EnvironmentObject var vm: RegistrationViewModel
 
     private var canSubmit: Bool {
-        vm.applicant.declarationAccuracy
+        if AppConfig.skipValidation { return true }
+        return vm.applicant.declarationAccuracy
             && vm.applicant.pdpaConsent
-            && vm.applicant.backgroundCheckConsent
             && vm.applicant.signatureData != nil
     }
 
@@ -19,34 +19,88 @@ struct DeclarationConsentView: View {
             continueTitle: "Submit Application",
             isContinueEnabled: canSubmit
         ) {
-            // Orange rule
-            Rectangle()
-                .fill(Color.affOrange)
-                .frame(height: 1)
-                .padding(.bottom, 8)
+            // General Information
+            Text("General Information")
+                .subheadingStyle()
 
-            // 1. Declaration of Accuracy
+            YesNoQuestion(
+                question: "Have you previously applied to Advanced Flavors & Fragrances?",
+                value: $vm.applicant.previouslyApplied
+            )
+
+            YesNoQuestion(
+                question: "Do you have any friends or relatives currently employed at AFF?",
+                value: $vm.applicant.hasConnectionsAtAFF
+            )
+
+            if vm.applicant.hasConnectionsAtAFF {
+                FormField(
+                    label: "Please provide name(s) and relationship",
+                    text: $vm.applicant.connectionsDetails,
+                    placeholder: "e.g., John Tan — cousin"
+                )
+            }
+
+            YesNoQuestion(
+                question: "Do you have any conflict of interest with AFF or its subsidiaries?",
+                value: $vm.applicant.hasConflictOfInterest
+            )
+
+            if vm.applicant.hasConflictOfInterest {
+                FormField(
+                    label: "Please provide details",
+                    text: $vm.applicant.conflictDetails,
+                    placeholder: "Describe the conflict of interest"
+                )
+            }
+
+            YesNoQuestion(
+                question: "Have you ever been declared bankrupt or are currently an undischarged bankrupt?",
+                value: $vm.applicant.hasBankruptcy
+            )
+
+            if vm.applicant.hasBankruptcy {
+                FormField(
+                    label: "Please provide details",
+                    text: $vm.applicant.bankruptcyDetails,
+                    placeholder: "Provide relevant details"
+                )
+            }
+
+            YesNoQuestion(
+                question: "Are you currently involved in any legal proceedings?",
+                value: $vm.applicant.hasLegalProceedings
+            )
+
+            if vm.applicant.hasLegalProceedings {
+                FormField(
+                    label: "Please provide details",
+                    text: $vm.applicant.legalDetails,
+                    placeholder: "Provide relevant details"
+                )
+            }
+
+            Divider().padding(.vertical, 12)
+
+            // 1. Declaration of Accuracy (Required)
             ConsentBlock(
                 isChecked: $vm.applicant.declarationAccuracy,
                 title: "Declaration of Accuracy",
-                consentText: "I declare that all information provided in this application is true, complete, and accurate to the best of my knowledge. I understand that any misrepresentation or omission of facts may result in the rejection of my application or termination of employment if discovered after hiring."
+                isRequired: true,
+                consentText: "I declare that all information provided in this application is true, complete, and accurate to the best of my knowledge. I understand that any misrepresentation or omission of facts may result in the rejection of my application or termination of employment if discovered after hiring.",
+                checkboxLabel: "I agree"
             )
 
-            // 2. PDPA Consent
+            // 2. PDPA Consent (Required)
             ConsentBlock(
                 isChecked: $vm.applicant.pdpaConsent,
                 title: "PDPA Consent",
-                consentText: "I consent to Advanced Flavors & Fragrances Pte. Ltd. collecting, using, and disclosing my personal data provided in this form for the purposes of recruitment, employment evaluation, and related HR administration, in accordance with the Personal Data Protection Act 2012 (PDPA) of Singapore. I understand that my data will be retained for a period of up to 2 years from the date of this application, after which it will be securely disposed of unless I am offered employment."
+                isRequired: true,
+                consentText: "I consent to Advanced Flavors & Fragrances Pte. Ltd. collecting, using, and disclosing my personal data provided in this form for the purposes of recruitment, employment evaluation, and related HR administration, in accordance with the Personal Data Protection Act 2012 (PDPA) of Singapore. I understand that my data will be retained for a period of up to 2 years from the date of this application, after which it will be securely disposed of unless I am offered employment.",
+                checkboxLabel: "I consent"
             )
 
-            // 3. Background Checks
-            ConsentBlock(
-                isChecked: $vm.applicant.backgroundCheckConsent,
-                title: "Background Checks",
-                consentText: "I understand that Advanced Flavors & Fragrances Pte. Ltd. may conduct background verification checks, including but not limited to employment history, educational qualifications, and criminal record checks, as part of the recruitment process. I consent to such checks being carried out."
-            )
-
-            // 4. Medical Declaration
+            // 3. Medical Declaration
             VStack(alignment: .leading, spacing: 12) {
                 Text("Medical Declaration")
                     .font(.system(size: 16, weight: .semibold))
@@ -95,11 +149,11 @@ struct DeclarationConsentView: View {
             SignatureField(signatureData: $vm.applicant.signatureData)
 
             if !canSubmit {
-                Text("Please complete all declarations and provide your signature to submit.")
+                Text("Please complete all required declarations and provide your signature to submit.")
                     .font(.system(size: 14))
                     .foregroundColor(.mediumGray)
                     .padding(.top, 8)
-                    .accessibilityLabel("Please complete all declarations and provide your signature to submit.")
+                    .accessibilityLabel("Please complete all required declarations and provide your signature to submit.")
             }
         }
         .toolbar {
@@ -120,14 +174,30 @@ struct DeclarationConsentView: View {
 struct ConsentBlock: View {
     @Binding var isChecked: Bool
     let title: String
+    var isRequired: Bool = false
     let consentText: String
+    var checkboxLabel: String = "I agree"
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(title)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(.vkaPurple)
-                .accessibilityAddTraits(.isHeader)
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text(title)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.vkaPurple)
+                    .accessibilityAddTraits(.isHeader)
+
+                if isRequired {
+                    Text("Required")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(
+                            Capsule()
+                                .fill(Color.affOrange)
+                        )
+                }
+            }
 
             Text(consentText)
                 .font(.system(size: 16, weight: .regular))
@@ -145,19 +215,61 @@ struct ConsentBlock: View {
                         .font(.system(size: 22))
                         .foregroundColor(isChecked ? .vkaPurple : .mediumGray)
 
-                    Text(title.contains("PDPA") ? "I consent" : "I agree")
+                    Text(checkboxLabel)
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(.darkText)
+
+                    if isRequired {
+                        Text("*")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(.errorRed)
+                    }
                 }
                 .padding(.vertical, 4)
             }
             .buttonStyle(.plain)
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel("\(title): \(title.contains("PDPA") ? "I consent" : "I agree")")
+            .accessibilityLabel("\(title): \(checkboxLabel). Required.")
             .accessibilityValue(isChecked ? "checked" : "unchecked")
             .accessibilityAddTraits(.isButton)
             .accessibilityHint("Double tap to \(isChecked ? "uncheck" : "check")")
         }
         .padding(.bottom, 16)
+    }
+}
+
+// MARK: - Yes/No Question
+
+struct YesNoQuestion: View {
+    let question: String
+    @Binding var value: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(question)
+                .font(.system(size: 16, weight: .regular))
+                .foregroundColor(.darkText)
+
+            HStack(spacing: 16) {
+                ForEach([true, false], id: \.self) { option in
+                    Button {
+                        value = option
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: value == option ? "checkmark.circle.fill" : "circle")
+                                .font(.system(size: 20))
+                                .foregroundColor(value == option ? .vkaPurple : .mediumGray)
+                            Text(option ? "Yes" : "No")
+                                .font(.system(size: 16))
+                                .foregroundColor(.darkText)
+                        }
+                        .padding(.vertical, 6)
+                        .padding(.horizontal, 12)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .padding(.vertical, 4)
     }
 }

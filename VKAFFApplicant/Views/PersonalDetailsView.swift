@@ -43,6 +43,20 @@ struct PersonalDetailsView: View {
                 focusValue: .nricFIN
             )
 
+            // Passport Number (always visible)
+            FormField(
+                label: "Passport Number (if applicable)",
+                text: $vm.applicant.passportNumber,
+                placeholder: "e.g., E12345678"
+            )
+
+            // Driving License Class (optional)
+            FormField(
+                label: "Driving License Class (if any)",
+                text: $vm.applicant.drivingLicenseClass,
+                placeholder: "e.g., Class 3, Class 4"
+            )
+
             // Date of Birth
             VStack(alignment: .leading, spacing: 6) {
                 Text("Date of Birth")
@@ -61,6 +75,42 @@ struct PersonalDetailsView: View {
             // Nationality
             FormDropdown(label: "Nationality", selection: $vm.applicant.nationality)
 
+            if vm.applicant.nationality == .others {
+                FormField(
+                    label: "Please specify your nationality",
+                    text: $vm.applicant.nationalityOther,
+                    placeholder: "Enter your nationality"
+                )
+            }
+
+            // Have you worked in Singapore before? (shown for non-Singaporeans)
+            if !vm.applicant.nationality.isSingaporean {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Have you worked in Singapore before?")
+                        .formLabelStyle()
+
+                    HStack(spacing: 16) {
+                        ForEach([true, false], id: \.self) { option in
+                            Button {
+                                vm.applicant.hasWorkedInSingapore = option
+                            } label: {
+                                HStack(spacing: 8) {
+                                    Image(systemName: vm.applicant.hasWorkedInSingapore == option ? "checkmark.circle.fill" : "circle")
+                                        .font(.system(size: 20))
+                                        .foregroundColor(vm.applicant.hasWorkedInSingapore == option ? .vkaPurple : .mediumGray)
+                                    Text(option ? "Yes" : "No")
+                                        .font(.system(size: 16))
+                                        .foregroundColor(.darkText)
+                                }
+                                .padding(.vertical, 6)
+                                .padding(.horizontal, 12)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+            }
+
             // Race
             FormDropdown(label: "Race", selection: $vm.applicant.race)
 
@@ -72,13 +122,13 @@ struct PersonalDetailsView: View {
                 )
             }
 
-            // Contact Info (two column on iPad)
+            // Contact Number with country code
             HStack(spacing: 16) {
-                FormField(
+                PhoneFieldWithCode(
                     label: "Contact Number",
-                    text: $vm.applicant.contactNumber,
-                    placeholder: "+65",
-                    keyboardType: .phonePad,
+                    countryCode: $vm.applicant.contactCountryCode,
+                    phoneNumber: $vm.applicant.contactNumber,
+                    placeholder: "8123 4567",
                     errorMessage: vm.fieldErrors["contactNumber"],
                     isValid: vm.validFields.contains("contactNumber"),
                     focusBinding: $focusedField,
@@ -111,10 +161,9 @@ struct PersonalDetailsView: View {
 
             // Postal Code
             FormField(
-                label: "Postal Code",
+                label: "Postal / Zip Code",
                 text: $vm.applicant.postalCode,
                 placeholder: "e.g., 408832",
-                keyboardType: .numberPad,
                 errorMessage: vm.fieldErrors["postalCode"],
                 isValid: vm.validFields.contains("postalCode"),
                 focusBinding: $focusedField,
@@ -138,11 +187,11 @@ struct PersonalDetailsView: View {
             )
 
             HStack(spacing: 16) {
-                FormField(
+                PhoneFieldWithCode(
                     label: "Emergency Contact Number",
-                    text: $vm.applicant.emergencyContactNumber,
-                    placeholder: "+65",
-                    keyboardType: .phonePad,
+                    countryCode: $vm.applicant.emergencyContactCountryCode,
+                    phoneNumber: $vm.applicant.emergencyContactNumber,
+                    placeholder: "9123 4567",
                     errorMessage: vm.fieldErrors["emergencyContactNumber"],
                     isValid: vm.validFields.contains("emergencyContactNumber"),
                     focusBinding: $focusedField,
@@ -154,6 +203,29 @@ struct PersonalDetailsView: View {
                     selection: $vm.applicant.emergencyContactRelationship
                 )
             }
+
+            if vm.applicant.emergencyContactRelationship == .others {
+                FormField(
+                    label: "Please specify relationship",
+                    text: $vm.applicant.emergencyContactRelationshipOther,
+                    placeholder: "e.g., Colleague, Roommate"
+                )
+            }
+
+            // Emergency contact email & address
+            FormField(
+                label: "Emergency Contact Email (optional)",
+                text: $vm.applicant.emergencyContactEmail,
+                placeholder: "contact@email.com",
+                keyboardType: .emailAddress
+            )
+
+            FormField(
+                label: "Emergency Contact Address (optional)",
+                text: $vm.applicant.emergencyContactAddress,
+                placeholder: "Block, street, unit number",
+                isMultiline: true
+            )
         }
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
@@ -217,7 +289,7 @@ struct FormScreenLayout<Content: View>: View {
                     ProgressBar(currentStep: stepIndex)
                         .frame(maxWidth: .infinity)
                 }
-                .padding(.horizontal, 32)
+                .padding(.horizontal, 48)
                 .padding(.top, 16)
                 .padding(.bottom, 12)
 
@@ -241,7 +313,7 @@ struct FormScreenLayout<Content: View>: View {
                             .accessibilityHidden(true)
 
                         Text(title)
-                            .headingStyle(size: 30)
+                            .headingStyle(size: 32)
                             .accessibilityAddTraits(.isHeader)
 
                         Rectangle()
@@ -249,17 +321,17 @@ struct FormScreenLayout<Content: View>: View {
                             .frame(width: 48, height: 2)
                             .accessibilityHidden(true)
                     }
-                    .padding(.bottom, 28)
+                    .padding(.bottom, 32)
 
                     // Form card
                     FormCard {
                         content
                     }
                 }
-                .padding(.horizontal, 32)
-                .padding(.vertical, 28)
+                .padding(.horizontal, 48)
+                .padding(.vertical, 32)
                 .padding(.bottom, 100)
-                .frame(maxWidth: .infinity, alignment: .center)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
             .background(Color.lightBackground)
             .scrollDismissesKeyboard(.interactively)

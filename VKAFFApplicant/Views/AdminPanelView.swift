@@ -58,7 +58,7 @@ struct AdminPanelView: View {
             // Resume idle timer when leaving admin panel
             vm.resumeIdleTimer()
         }
-        .onChange(of: networkMonitor.isConnected) { newValue in
+        .onChange(of: networkMonitor.isConnected) { _, newValue in
             isOnline = newValue
         }
         .alert("Clear All Pending Uploads", isPresented: $showClearAllConfirmation) {

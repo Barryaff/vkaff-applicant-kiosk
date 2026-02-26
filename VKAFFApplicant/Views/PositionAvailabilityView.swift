@@ -27,6 +27,7 @@ struct PositionAvailabilityView: View {
                         position: position,
                         isSelected: vm.applicant.positionsAppliedFor.contains(position),
                         onToggle: {
+                            vm.objectWillChange.send()
                             if vm.applicant.positionsAppliedFor.contains(position) {
                                 vm.applicant.positionsAppliedFor.remove(position)
                             } else {
@@ -80,10 +81,12 @@ struct PositionAvailabilityView: View {
                 )
 
                 FormField(
-                    label: "Last Drawn Salary (optional)",
+                    label: "Last Drawn Monthly Salary (SGD)",
                     text: $vm.applicant.lastDrawnSalary,
                     placeholder: "e.g., 3,000",
                     keyboardType: .numberPad,
+                    errorMessage: vm.fieldErrors["lastDrawnSalary"],
+                    isValid: vm.validFields.contains("lastDrawnSalary"),
                     isSalaryField: true,
                     positionFocusBinding: $focusedField,
                     positionFocusValue: .lastDrawnSalary
@@ -109,6 +112,11 @@ struct PositionAvailabilityView: View {
                     get: { vm.applicant.hasOwnTransport ? BoolOption.yes : BoolOption.no },
                     set: { vm.applicant.hasOwnTransport = $0 == .yes }
                 )
+            )
+
+            FormToggle(
+                label: "Open to being considered for other positions?",
+                isOn: $vm.applicant.openToOtherPositions
             )
 
             // How did you hear

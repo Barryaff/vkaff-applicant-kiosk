@@ -68,7 +68,7 @@ class SlackService {
                 "type": "header",
                 "text": [
                     "type": "plain_text",
-                    "text": "New Walk-In Applicant Registration",
+                    "text": "New Applicant Registration",
                     "emoji": true
                 ]
             ],
@@ -114,7 +114,7 @@ class SlackService {
                     ],
                     [
                         "type": "mrkdwn",
-                        "text": "*Nationality:*\n\(applicant.nationality.rawValue)"
+                        "text": "*Nationality:*\n\(applicant.nationality == .others ? (applicant.nationalityOther.isEmpty ? "Others" : applicant.nationalityOther) : applicant.nationality.rawValue)"
                     ]
                 ]
             ],

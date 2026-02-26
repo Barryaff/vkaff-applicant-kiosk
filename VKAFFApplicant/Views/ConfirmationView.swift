@@ -6,6 +6,11 @@ struct ConfirmationView: View {
     @State private var showConfetti: Bool = false
     @State private var showContent: Bool = false
 
+    private var thankYouMessage: String {
+        let name = vm.applicant.preferredName.isEmpty ? vm.applicant.fullName : vm.applicant.preferredName
+        return name.isEmpty ? "Thank You!" : "Thank You, \(name)!"
+    }
+
     var body: some View {
         ZStack {
             // Deep navy background (matching welcome)
@@ -36,8 +41,8 @@ struct ConfirmationView: View {
                 .accessibilityHidden(true)
 
                 // Thank you message
-                Text("Thank You, \(vm.applicant.preferredName.isEmpty ? vm.applicant.fullName : vm.applicant.preferredName)!")
-                    .font(.system(size: 34, weight: .semibold))
+                Text(thankYouMessage)
+                    .font(.system(size: 42, weight: .semibold))
                     .foregroundColor(.white)
                     .tracking(-0.5)
                     .multilineTextAlignment(.center)
@@ -45,14 +50,14 @@ struct ConfirmationView: View {
                     .opacity(showContent ? 1 : 0)
                     .offset(y: showContent ? 0 : 12)
                     .accessibilityAddTraits(.isHeader)
-                    .accessibilityLabel("Thank You, \(vm.applicant.preferredName.isEmpty ? vm.applicant.fullName : vm.applicant.preferredName)!")
+                    .accessibilityLabel(thankYouMessage)
 
                 Text("Your application has been received successfully.\nOur HR team will review and be in touch shortly.")
-                    .font(.system(size: 17, weight: .regular))
+                    .font(.system(size: 19, weight: .regular))
                     .foregroundColor(.white.opacity(0.45))
                     .multilineTextAlignment(.center)
-                    .lineSpacing(6)
-                    .padding(.top, 16)
+                    .lineSpacing(8)
+                    .padding(.top, 20)
                     .padding(.horizontal, 64)
                     .opacity(showContent ? 1 : 0)
                     .offset(y: showContent ? 0 : 8)

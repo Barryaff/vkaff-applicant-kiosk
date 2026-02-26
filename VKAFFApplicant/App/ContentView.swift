@@ -54,6 +54,16 @@ struct ContentView: View {
             }
         }
         .ignoresSafeArea()
+        .alert("Submission Issue", isPresented: Binding(
+            get: { vm.submissionError != nil },
+            set: { if !$0 { vm.submissionError = nil } }
+        )) {
+            Button("OK") {
+                vm.submissionError = nil
+            }
+        } message: {
+            Text(vm.submissionError ?? "")
+        }
         // Block swipe-back edge gesture by consuming leading-edge drags
         .gesture(
             DragGesture()

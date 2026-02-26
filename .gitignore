@@ -27,6 +27,9 @@ Pods/
 service-account-key.json
 VKAFFApplicant/Resources/service-account-key.json
 
+# Secrets plist (contains webhook URLs, API keys)
+VKAFFApplicant/Config/secrets.plist
+
 # macOS
 .DS_Store
 .AppleDouble

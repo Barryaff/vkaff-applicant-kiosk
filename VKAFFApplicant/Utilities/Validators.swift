@@ -100,49 +100,34 @@ enum Validators {
         return trimmed.range(of: pattern, options: .regularExpression) != nil
     }
 
-    // MARK: - Phone (Singapore)
+    // MARK: - Phone (International)
 
-    /// Validates Singapore phone numbers specifically:
-    /// - 8 digits starting with 6, 8, or 9 (local format)
-    /// - Or +65 / 65 prefix followed by 8 digits starting with 6, 8, or 9
+    /// Validates phone numbers — accepts international formats.
+    /// - With country code (+XX...): total digits must be 7-15
+    /// - Without country code: digits must be 7-15
     static func isValidPhone(_ value: String) -> Bool {
         let cleaned = value.filter { $0.isNumber || $0 == "+" }
+        guard !cleaned.isEmpty else { return false }
 
-        // Strip country code if present
-        var digits: String
-        if cleaned.hasPrefix("+65") {
-            digits = String(cleaned.dropFirst(3))
-        } else if cleaned.hasPrefix("65") && cleaned.count == 10 {
-            digits = String(cleaned.dropFirst(2))
-        } else {
-            digits = cleaned.filter { $0.isNumber }
-        }
+        let digits = cleaned.filter { $0.isNumber }
 
-        // Must be exactly 8 digits
-        guard digits.count == 8 else { return false }
+        // International numbers: 7-15 digits (ITU-T E.164)
+        guard digits.count >= 7 && digits.count <= 15 else { return false }
 
-        // Must start with 6, 8, or 9 (Singapore mobile/landline)
-        guard let firstDigit = digits.first,
-              firstDigit == "6" || firstDigit == "8" || firstDigit == "9" else {
-            return false
-        }
+        // If starts with +, must be followed by digits
+        if cleaned.hasPrefix("+") && digits.isEmpty { return false }
 
         return true
     }
 
-    // MARK: - Postal Code (Singapore 6 digits)
+    // MARK: - Postal Code (International)
 
+    /// Validates postal/zip codes — accepts international formats (3-10 alphanumeric characters).
     static func isValidPostalCode(_ value: String) -> Bool {
-        let digits = value.filter { $0.isNumber }
-        guard digits.count == 6 else { return false }
-
-        // Singapore postal codes: first two digits indicate district (01-82)
-        // Basic range check for realistic postal codes
-        guard let firstTwo = Int(String(digits.prefix(2))), firstTwo >= 1, firstTwo <= 82 else {
-            return false
-        }
-
-        return true
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        // Allow alphanumeric + spaces/hyphens (e.g., "SW1A 1AA", "100-0001")
+        let alphanumOnly = trimmed.filter { $0.isLetter || $0.isNumber }
+        return alphanumOnly.count >= 3 && alphanumOnly.count <= 10
     }
 
     // MARK: - Non-empty
@@ -177,30 +162,31 @@ enum Validators {
     }
 
     /// Sanitizes and normalizes a phone number string for consistent storage.
-    /// Strips spaces, dashes, parentheses. Ensures +65 prefix for SG numbers.
+    /// Strips spaces, dashes, parentheses. Preserves + prefix and country code.
     static func sanitizePhone(_ value: String) -> String {
         let cleaned = value.components(separatedBy: CharacterSet.decimalDigits.union(CharacterSet(charactersIn: "+")).inverted).joined()
 
-        // If it's a bare 8-digit SG number, add +65
-        if cleaned.count == 8 && !cleaned.hasPrefix("+") && !cleaned.hasPrefix("65") {
+        // Ensure + prefix if it looks like an international number
+        if cleaned.hasPrefix("+") {
+            return cleaned
+        }
+
+        // If bare 8-digit SG number (starts with 6/8/9), add +65
+        if cleaned.count == 8, let first = cleaned.first,
+           first == "6" || first == "8" || first == "9" {
             return "+65\(cleaned)"
         }
 
-        // If it starts with 65 and is 10 digits, add +
-        if cleaned.hasPrefix("65") && cleaned.count == 10 && !cleaned.hasPrefix("+") {
+        // If starts with country code digits (65...), add +
+        if cleaned.hasPrefix("65") && cleaned.count == 10 {
             return "+\(cleaned)"
-        }
-
-        // If it already has +65, keep it
-        if cleaned.hasPrefix("+65") {
-            return cleaned
         }
 
         return cleaned
     }
 
-    /// Ensures postal code is digits only, trimmed.
+    /// Trims and normalizes postal/zip code for storage.
     static func sanitizePostalCode(_ value: String) -> String {
-        return value.filter { $0.isNumber }
+        return value.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
     }
 }

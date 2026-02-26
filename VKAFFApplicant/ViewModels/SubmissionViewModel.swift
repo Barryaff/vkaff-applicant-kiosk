@@ -64,7 +64,19 @@ class SubmissionViewModel {
             )
         }
 
-        // Attempt upload with exponential backoff (1s, 2s, 4s)
+        // Send Slack notification independently (non-critical, don't block on Drive)
+        Task {
+            do {
+                try await withTimeout(seconds: 15) {
+                    try await self.slackService.sendNotification(for: sanitizedApplicant)
+                }
+                print("[SubmissionVM] Slack notification sent successfully")
+            } catch {
+                print("[SubmissionVM] Slack notification failed (non-critical): \(error.localizedDescription)")
+            }
+        }
+
+        // Attempt Drive upload with exponential backoff (1s, 2s, 4s)
         var retryCount = 0
         var lastError: SubmissionError?
 
@@ -88,21 +100,13 @@ class SubmissionViewModel {
                     )
                 }
 
-                // Send Slack notification (non-critical - don't fail submission if this fails)
-                do {
-                    try await withTimeout(seconds: 15) {
-                        try await self.slackService.sendNotification(for: sanitizedApplicant)
-                    }
-                } catch {
-                    // Slack notification failure is non-critical; log but don't block
-                    print("[SubmissionVM] Slack notification failed (non-critical): \(error.localizedDescription)")
-                }
-
+                print("[SubmissionVM] Drive upload successful")
                 return .success(referenceNumber: sanitizedApplicant.referenceNumber)
 
             } catch {
                 retryCount += 1
                 lastError = classifyError(error)
+                print("[SubmissionVM] Drive upload attempt \(retryCount) failed: \(error.localizedDescription)")
 
                 // Don't retry auth errors - they won't resolve with retries
                 if case .authError = lastError {

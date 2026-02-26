@@ -3,16 +3,19 @@ import SwiftUI
 struct FormDropdown<T: RawRepresentable & CaseIterable & Hashable>: View where T.RawValue == String, T.AllCases: RandomAccessCollection {
     let label: String
     @Binding var selection: T
+    var options: [T]? = nil
     var errorMessage: String? = nil
 
     var body: some View {
+        let displayOptions = options ?? Array(T.allCases)
+
         VStack(alignment: .leading, spacing: 6) {
             Text(label)
                 .formLabelStyle()
                 .accessibilityHidden(true)
 
             Menu {
-                ForEach(Array(T.allCases), id: \.self) { option in
+                ForEach(displayOptions, id: \.self) { option in
                     Button(option.rawValue) {
                         selection = option
                         let haptic = UISelectionFeedbackGenerator()

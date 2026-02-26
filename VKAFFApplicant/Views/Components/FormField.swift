@@ -80,7 +80,7 @@ struct FormField: View {
                     .font(.system(size: 20))
                     .foregroundColor(.darkText)
                     .keyboardType(keyboardType)
-                    .textInputAutocapitalization(keyboardType == .emailAddress ? .never : .words)
+                    .textInputAutocapitalization(keyboardType == .emailAddress ? .never : .characters)
                     .autocorrectionDisabled()
                     .padding(.horizontal, 16)
                     .padding(.vertical, 14)
@@ -94,15 +94,8 @@ struct FormField: View {
                     .applyEducationFocus(focusBinding: educationFocusBinding, value: educationFocusValue)
                     .applyPositionFocus(focusBinding: positionFocusBinding, value: positionFocusValue)
                     .onChange(of: text) { _, newValue in
-                        // Auto-advance for postal code when 6 digits entered
-                        if keyboardType == .numberPad && !isSalaryField && newValue.count >= 6 {
-                            let digitsOnly = String(newValue.filter { $0.isNumber }.prefix(6))
-                            if digitsOnly.count == 6 {
-                                text = digitsOnly
-                                // Dismiss keyboard after postal code is complete
-                                isFocused = false
-                                advanceFocus()
-                            }
+                        if let max = maxLength, newValue.count > max {
+                            text = String(newValue.prefix(max))
                         }
                     }
                 }
@@ -191,24 +184,8 @@ struct FormField: View {
         haptic.notificationOccurred(.warning)
     }
 
-    // MARK: - Phone auto-prefix binding
+    // MARK: - Phone binding (no auto-prefix — supports international numbers)
     private var phoneAutoPrefix: Binding<String> {
-        if keyboardType == .phonePad {
-            return Binding(
-                get: { text },
-                set: { newValue in
-                    var value = newValue
-                    // If user starts typing a number without +65, add the prefix
-                    if !value.isEmpty && !value.hasPrefix("+") && !value.hasPrefix("0") {
-                        let digits = value.filter { $0.isNumber }
-                        if digits.count == 1 && value == digits {
-                            value = "+65" + value
-                        }
-                    }
-                    text = value
-                }
-            )
-        }
         return $text
     }
 

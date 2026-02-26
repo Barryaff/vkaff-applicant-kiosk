@@ -7,19 +7,29 @@ class ApplicantData: ObservableObject, Codable {
     @Published var nricFIN: String = ""
     @Published var dateOfBirth: Date = Calendar.current.date(byAdding: .year, value: -25, to: Date()) ?? Date()
     @Published var gender: Gender = .male
-    @Published var nationality: NationalityStatus = .singaporeCitizen
+    @Published var nationality: Nationality = .singaporean
+    @Published var nationalityOther: String = ""
+    @Published var hasWorkedInSingapore: Bool = false
     @Published var race: Race = .chinese
     @Published var raceOther: String = ""
+    @Published var contactCountryCode: String = "+65"
     @Published var contactNumber: String = ""
     @Published var emailAddress: String = ""
     @Published var residentialAddress: String = ""
     @Published var postalCode: String = ""
+    @Published var passportNumber: String = ""
+    @Published var drivingLicenseClass: String = ""
     @Published var emergencyContactName: String = ""
+    @Published var emergencyContactCountryCode: String = "+65"
     @Published var emergencyContactNumber: String = ""
+    @Published var emergencyContactEmail: String = ""
+    @Published var emergencyContactAddress: String = ""
     @Published var emergencyContactRelationship: EmergencyRelationship = .parent
+    @Published var emergencyContactRelationshipOther: String = ""
 
     // MARK: - Education & Qualifications
     @Published var highestQualification: HighestQualification = .diploma
+    @Published var highestQualificationOther: String = ""
     @Published var fieldOfStudy: String = ""
     @Published var institutionName: String = ""
     @Published var yearOfGraduation: Int = Calendar.current.component(.year, from: Date())
@@ -33,6 +43,9 @@ class ApplicantData: ObservableObject, Codable {
     @Published var isCurrentlyEmployed: Bool = false
     @Published var noticePeriod: NoticePeriod = .immediate
 
+    // MARK: - References
+    @Published var references: [ReferenceRecord] = []
+
     // MARK: - Position & Availability
     @Published var positionsAppliedFor: Set<Position> = []
     @Published var positionOther: String = ""
@@ -45,11 +58,22 @@ class ApplicantData: ObservableObject, Codable {
     @Published var hasOwnTransport: Bool = false
     @Published var howDidYouHear: HearAboutUs = .walkIn
     @Published var referrerName: String = ""
+    @Published var openToOtherPositions: Bool = true
+
+    // MARK: - General Information
+    @Published var previouslyApplied: Bool = false
+    @Published var hasConnectionsAtAFF: Bool = false
+    @Published var connectionsDetails: String = ""
+    @Published var hasConflictOfInterest: Bool = false
+    @Published var conflictDetails: String = ""
+    @Published var hasBankruptcy: Bool = false
+    @Published var bankruptcyDetails: String = ""
+    @Published var hasLegalProceedings: Bool = false
+    @Published var legalDetails: String = ""
 
     // MARK: - Declaration & Consent
     @Published var declarationAccuracy: Bool = false
     @Published var pdpaConsent: Bool = false
-    @Published var backgroundCheckConsent: Bool = false
     @Published var hasMedicalCondition: MedicalDeclaration = .no
     @Published var medicalDetails: String = ""
     @Published var signatureData: Data? = nil
@@ -61,15 +85,23 @@ class ApplicantData: ObservableObject, Codable {
     // MARK: - Codable
     enum CodingKeys: String, CodingKey {
         case fullName, preferredName, nricFIN, dateOfBirth, gender, nationality
-        case race, raceOther, contactNumber, emailAddress, residentialAddress, postalCode
-        case emergencyContactName, emergencyContactNumber, emergencyContactRelationship
-        case highestQualification, fieldOfStudy, institutionName, yearOfGraduation
+        case nationalityOther, hasWorkedInSingapore
+        case race, raceOther, contactCountryCode, contactNumber, emailAddress, residentialAddress, postalCode
+        case passportNumber, drivingLicenseClass
+        case emergencyContactName, emergencyContactCountryCode, emergencyContactNumber
+        case emergencyContactEmail, emergencyContactAddress
+        case emergencyContactRelationship, emergencyContactRelationshipOther
+        case highestQualification, highestQualificationOther, fieldOfStudy, institutionName, yearOfGraduation
         case additionalQualifications, professionalCertifications, selectedLanguages
         case totalExperience, employmentHistory, isCurrentlyEmployed, noticePeriod
+        case references
         case positionsAppliedFor, positionOther, preferredEmploymentType, earliestStartDate
         case expectedSalary, lastDrawnSalary, willingToWorkShifts, willingToTravel
-        case hasOwnTransport, howDidYouHear, referrerName
-        case declarationAccuracy, pdpaConsent, backgroundCheckConsent
+        case hasOwnTransport, howDidYouHear, referrerName, openToOtherPositions
+        case previouslyApplied, hasConnectionsAtAFF, connectionsDetails
+        case hasConflictOfInterest, conflictDetails
+        case hasBankruptcy, bankruptcyDetails, hasLegalProceedings, legalDetails
+        case declarationAccuracy, pdpaConsent
         case hasMedicalCondition, medicalDetails, submissionDate, referenceNumber
     }
 
@@ -82,17 +114,27 @@ class ApplicantData: ObservableObject, Codable {
         nricFIN = try container.decode(String.self, forKey: .nricFIN)
         dateOfBirth = try container.decode(Date.self, forKey: .dateOfBirth)
         gender = try container.decode(Gender.self, forKey: .gender)
-        nationality = try container.decode(NationalityStatus.self, forKey: .nationality)
+        nationality = try container.decode(Nationality.self, forKey: .nationality)
+        nationalityOther = try container.decodeIfPresent(String.self, forKey: .nationalityOther) ?? ""
+        hasWorkedInSingapore = try container.decodeIfPresent(Bool.self, forKey: .hasWorkedInSingapore) ?? false
         race = try container.decode(Race.self, forKey: .race)
         raceOther = try container.decode(String.self, forKey: .raceOther)
+        contactCountryCode = try container.decodeIfPresent(String.self, forKey: .contactCountryCode) ?? "+65"
         contactNumber = try container.decode(String.self, forKey: .contactNumber)
         emailAddress = try container.decode(String.self, forKey: .emailAddress)
         residentialAddress = try container.decode(String.self, forKey: .residentialAddress)
         postalCode = try container.decode(String.self, forKey: .postalCode)
+        passportNumber = try container.decodeIfPresent(String.self, forKey: .passportNumber) ?? ""
+        drivingLicenseClass = try container.decodeIfPresent(String.self, forKey: .drivingLicenseClass) ?? ""
         emergencyContactName = try container.decode(String.self, forKey: .emergencyContactName)
+        emergencyContactCountryCode = try container.decodeIfPresent(String.self, forKey: .emergencyContactCountryCode) ?? "+65"
         emergencyContactNumber = try container.decode(String.self, forKey: .emergencyContactNumber)
+        emergencyContactEmail = try container.decodeIfPresent(String.self, forKey: .emergencyContactEmail) ?? ""
+        emergencyContactAddress = try container.decodeIfPresent(String.self, forKey: .emergencyContactAddress) ?? ""
         emergencyContactRelationship = try container.decode(EmergencyRelationship.self, forKey: .emergencyContactRelationship)
+        emergencyContactRelationshipOther = try container.decodeIfPresent(String.self, forKey: .emergencyContactRelationshipOther) ?? ""
         highestQualification = try container.decode(HighestQualification.self, forKey: .highestQualification)
+        highestQualificationOther = try container.decodeIfPresent(String.self, forKey: .highestQualificationOther) ?? ""
         fieldOfStudy = try container.decode(String.self, forKey: .fieldOfStudy)
         institutionName = try container.decode(String.self, forKey: .institutionName)
         yearOfGraduation = try container.decode(Int.self, forKey: .yearOfGraduation)
@@ -103,6 +145,7 @@ class ApplicantData: ObservableObject, Codable {
         employmentHistory = try container.decode([EmploymentRecord].self, forKey: .employmentHistory)
         isCurrentlyEmployed = try container.decode(Bool.self, forKey: .isCurrentlyEmployed)
         noticePeriod = try container.decode(NoticePeriod.self, forKey: .noticePeriod)
+        references = try container.decodeIfPresent([ReferenceRecord].self, forKey: .references) ?? []
         positionsAppliedFor = try container.decode(Set<Position>.self, forKey: .positionsAppliedFor)
         positionOther = try container.decode(String.self, forKey: .positionOther)
         preferredEmploymentType = try container.decode(EmploymentType.self, forKey: .preferredEmploymentType)
@@ -114,9 +157,18 @@ class ApplicantData: ObservableObject, Codable {
         hasOwnTransport = try container.decode(Bool.self, forKey: .hasOwnTransport)
         howDidYouHear = try container.decode(HearAboutUs.self, forKey: .howDidYouHear)
         referrerName = try container.decode(String.self, forKey: .referrerName)
+        openToOtherPositions = try container.decodeIfPresent(Bool.self, forKey: .openToOtherPositions) ?? true
+        previouslyApplied = try container.decodeIfPresent(Bool.self, forKey: .previouslyApplied) ?? false
+        hasConnectionsAtAFF = try container.decodeIfPresent(Bool.self, forKey: .hasConnectionsAtAFF) ?? false
+        connectionsDetails = try container.decodeIfPresent(String.self, forKey: .connectionsDetails) ?? ""
+        hasConflictOfInterest = try container.decodeIfPresent(Bool.self, forKey: .hasConflictOfInterest) ?? false
+        conflictDetails = try container.decodeIfPresent(String.self, forKey: .conflictDetails) ?? ""
+        hasBankruptcy = try container.decodeIfPresent(Bool.self, forKey: .hasBankruptcy) ?? false
+        bankruptcyDetails = try container.decodeIfPresent(String.self, forKey: .bankruptcyDetails) ?? ""
+        hasLegalProceedings = try container.decodeIfPresent(Bool.self, forKey: .hasLegalProceedings) ?? false
+        legalDetails = try container.decodeIfPresent(String.self, forKey: .legalDetails) ?? ""
         declarationAccuracy = try container.decode(Bool.self, forKey: .declarationAccuracy)
         pdpaConsent = try container.decode(Bool.self, forKey: .pdpaConsent)
-        backgroundCheckConsent = try container.decode(Bool.self, forKey: .backgroundCheckConsent)
         hasMedicalCondition = try container.decode(MedicalDeclaration.self, forKey: .hasMedicalCondition)
         medicalDetails = try container.decode(String.self, forKey: .medicalDetails)
         submissionDate = try container.decode(Date.self, forKey: .submissionDate)
@@ -133,16 +185,26 @@ class ApplicantData: ObservableObject, Codable {
         try container.encode(dateOfBirth, forKey: .dateOfBirth)
         try container.encode(gender, forKey: .gender)
         try container.encode(nationality, forKey: .nationality)
+        try container.encode(Validators.sanitizeInput(nationalityOther), forKey: .nationalityOther)
+        try container.encode(hasWorkedInSingapore, forKey: .hasWorkedInSingapore)
         try container.encode(race, forKey: .race)
         try container.encode(Validators.sanitizeInput(raceOther), forKey: .raceOther)
+        try container.encode(contactCountryCode, forKey: .contactCountryCode)
         try container.encode(Validators.sanitizePhone(contactNumber), forKey: .contactNumber)
         try container.encode(emailAddress.trimmingCharacters(in: .whitespaces).lowercased(), forKey: .emailAddress)
         try container.encode(Validators.sanitizeInput(residentialAddress), forKey: .residentialAddress)
         try container.encode(Validators.sanitizePostalCode(postalCode), forKey: .postalCode)
+        try container.encode(passportNumber.trimmingCharacters(in: .whitespaces).uppercased(), forKey: .passportNumber)
+        try container.encode(Validators.sanitizeInput(drivingLicenseClass), forKey: .drivingLicenseClass)
         try container.encode(Validators.sanitizeInput(emergencyContactName), forKey: .emergencyContactName)
+        try container.encode(emergencyContactCountryCode, forKey: .emergencyContactCountryCode)
         try container.encode(Validators.sanitizePhone(emergencyContactNumber), forKey: .emergencyContactNumber)
+        try container.encode(emergencyContactEmail.trimmingCharacters(in: .whitespaces).lowercased(), forKey: .emergencyContactEmail)
+        try container.encode(Validators.sanitizeInput(emergencyContactAddress), forKey: .emergencyContactAddress)
         try container.encode(emergencyContactRelationship, forKey: .emergencyContactRelationship)
+        try container.encode(Validators.sanitizeInput(emergencyContactRelationshipOther), forKey: .emergencyContactRelationshipOther)
         try container.encode(highestQualification, forKey: .highestQualification)
+        try container.encode(Validators.sanitizeInput(highestQualificationOther), forKey: .highestQualificationOther)
         try container.encode(Validators.sanitizeInput(fieldOfStudy), forKey: .fieldOfStudy)
         try container.encode(Validators.sanitizeInput(institutionName), forKey: .institutionName)
         try container.encode(yearOfGraduation, forKey: .yearOfGraduation)
@@ -153,6 +215,7 @@ class ApplicantData: ObservableObject, Codable {
         try container.encode(employmentHistory, forKey: .employmentHistory)
         try container.encode(isCurrentlyEmployed, forKey: .isCurrentlyEmployed)
         try container.encode(noticePeriod, forKey: .noticePeriod)
+        try container.encode(references, forKey: .references)
         try container.encode(positionsAppliedFor, forKey: .positionsAppliedFor)
         try container.encode(Validators.sanitizeInput(positionOther), forKey: .positionOther)
         try container.encode(preferredEmploymentType, forKey: .preferredEmploymentType)
@@ -164,9 +227,18 @@ class ApplicantData: ObservableObject, Codable {
         try container.encode(hasOwnTransport, forKey: .hasOwnTransport)
         try container.encode(howDidYouHear, forKey: .howDidYouHear)
         try container.encode(Validators.sanitizeInput(referrerName), forKey: .referrerName)
+        try container.encode(openToOtherPositions, forKey: .openToOtherPositions)
+        try container.encode(previouslyApplied, forKey: .previouslyApplied)
+        try container.encode(hasConnectionsAtAFF, forKey: .hasConnectionsAtAFF)
+        try container.encode(Validators.sanitizeInput(connectionsDetails), forKey: .connectionsDetails)
+        try container.encode(hasConflictOfInterest, forKey: .hasConflictOfInterest)
+        try container.encode(Validators.sanitizeInput(conflictDetails), forKey: .conflictDetails)
+        try container.encode(hasBankruptcy, forKey: .hasBankruptcy)
+        try container.encode(Validators.sanitizeInput(bankruptcyDetails), forKey: .bankruptcyDetails)
+        try container.encode(hasLegalProceedings, forKey: .hasLegalProceedings)
+        try container.encode(Validators.sanitizeInput(legalDetails), forKey: .legalDetails)
         try container.encode(declarationAccuracy, forKey: .declarationAccuracy)
         try container.encode(pdpaConsent, forKey: .pdpaConsent)
-        try container.encode(backgroundCheckConsent, forKey: .backgroundCheckConsent)
         try container.encode(hasMedicalCondition, forKey: .hasMedicalCondition)
         try container.encode(Validators.sanitizeInput(medicalDetails), forKey: .medicalDetails)
         try container.encode(submissionDate, forKey: .submissionDate)
@@ -186,8 +258,13 @@ class ApplicantData: ObservableObject, Codable {
         emailAddress = emailAddress.trimmingCharacters(in: .whitespaces).lowercased()
         residentialAddress = Validators.sanitizeInput(residentialAddress)
         postalCode = Validators.sanitizePostalCode(postalCode)
+        passportNumber = passportNumber.trimmingCharacters(in: .whitespaces).uppercased()
+        drivingLicenseClass = Validators.sanitizeInput(drivingLicenseClass)
         emergencyContactName = Validators.sanitizeInput(emergencyContactName)
         emergencyContactNumber = Validators.sanitizePhone(emergencyContactNumber)
+        emergencyContactEmail = emergencyContactEmail.trimmingCharacters(in: .whitespaces).lowercased()
+        emergencyContactAddress = Validators.sanitizeInput(emergencyContactAddress)
+        highestQualificationOther = Validators.sanitizeInput(highestQualificationOther)
         fieldOfStudy = Validators.sanitizeInput(fieldOfStudy)
         institutionName = Validators.sanitizeInput(institutionName)
         professionalCertifications = Validators.sanitizeInput(professionalCertifications)
@@ -195,6 +272,10 @@ class ApplicantData: ObservableObject, Codable {
         expectedSalary = Validators.sanitizeInput(expectedSalary)
         lastDrawnSalary = Validators.sanitizeInput(lastDrawnSalary)
         referrerName = Validators.sanitizeInput(referrerName)
+        connectionsDetails = Validators.sanitizeInput(connectionsDetails)
+        conflictDetails = Validators.sanitizeInput(conflictDetails)
+        bankruptcyDetails = Validators.sanitizeInput(bankruptcyDetails)
+        legalDetails = Validators.sanitizeInput(legalDetails)
         medicalDetails = Validators.sanitizeInput(medicalDetails)
     }
 
@@ -204,17 +285,27 @@ class ApplicantData: ObservableObject, Codable {
         nricFIN = ""
         dateOfBirth = Calendar.current.date(byAdding: .year, value: -25, to: Date()) ?? Date()
         gender = .male
-        nationality = .singaporeCitizen
+        nationality = .singaporean
+        nationalityOther = ""
+        hasWorkedInSingapore = false
         race = .chinese
         raceOther = ""
+        contactCountryCode = "+65"
         contactNumber = ""
         emailAddress = ""
         residentialAddress = ""
         postalCode = ""
+        passportNumber = ""
+        drivingLicenseClass = ""
         emergencyContactName = ""
+        emergencyContactCountryCode = "+65"
         emergencyContactNumber = ""
+        emergencyContactEmail = ""
+        emergencyContactAddress = ""
         emergencyContactRelationship = .parent
+        emergencyContactRelationshipOther = ""
         highestQualification = .diploma
+        highestQualificationOther = ""
         fieldOfStudy = ""
         institutionName = ""
         yearOfGraduation = Calendar.current.component(.year, from: Date())
@@ -225,6 +316,7 @@ class ApplicantData: ObservableObject, Codable {
         employmentHistory = []
         isCurrentlyEmployed = false
         noticePeriod = .immediate
+        references = []
         positionsAppliedFor = []
         positionOther = ""
         preferredEmploymentType = .fullTime
@@ -236,9 +328,18 @@ class ApplicantData: ObservableObject, Codable {
         hasOwnTransport = false
         howDidYouHear = .walkIn
         referrerName = ""
+        openToOtherPositions = true
+        previouslyApplied = false
+        hasConnectionsAtAFF = false
+        connectionsDetails = ""
+        hasConflictOfInterest = false
+        conflictDetails = ""
+        hasBankruptcy = false
+        bankruptcyDetails = ""
+        hasLegalProceedings = false
+        legalDetails = ""
         declarationAccuracy = false
         pdpaConsent = false
-        backgroundCheckConsent = false
         hasMedicalCondition = .no
         medicalDetails = ""
         signatureData = nil
@@ -255,15 +356,30 @@ enum Gender: String, Codable, CaseIterable {
     case preferNotToSay = "Prefer not to say"
 }
 
-enum NationalityStatus: String, Codable, CaseIterable {
-    case singaporeCitizen = "Singapore Citizen"
-    case singaporePR = "Singapore PR"
-    case employmentPass = "Employment Pass"
-    case sPass = "S Pass"
-    case workPermit = "Work Permit"
-    case dependantsPass = "Dependant's Pass"
-    case longTermVisitPass = "Long-Term Visit Pass"
+enum Nationality: String, Codable, CaseIterable {
+    case singaporean = "Singaporean"
+    case malaysian = "Malaysian"
+    case indian = "Indian"
+    case filipino = "Filipino"
+    case indonesian = "Indonesian"
+    case chinese = "Chinese"
+    case bangladeshi = "Bangladeshi"
+    case myanmar = "Myanmar"
+    case vietnamese = "Vietnamese"
+    case thai = "Thai"
+    case sriLankan = "Sri Lankan"
+    case pakistani = "Pakistani"
+    case nepalese = "Nepalese"
+    case japanese = "Japanese"
+    case korean = "Korean"
+    case australian = "Australian"
+    case british = "British"
+    case american = "American"
     case others = "Others"
+
+    var isSingaporean: Bool {
+        self == .singaporean
+    }
 }
 
 enum Race: String, Codable, CaseIterable {
@@ -283,11 +399,24 @@ enum EmergencyRelationship: String, Codable, CaseIterable {
 }
 
 enum HighestQualification: String, Codable, CaseIterable {
+    // Singapore
     case psle = "PSLE"
     case nLevel = "N-Level"
     case oLevel = "O-Level"
     case aLevel = "A-Level"
     case nitec = "Nitec / Higher Nitec"
+    // Malaysia
+    case upsr = "UPSR"
+    case pt3 = "PT3"
+    case spm = "SPM"
+    case stpm = "STPM"
+    case uec = "UEC"
+    case skm = "Sijil Kemahiran Malaysia (SKM)"
+    // International
+    case primarySchool = "Primary / Elementary School"
+    case secondarySchool = "Secondary / High School"
+    case vocationalCertificate = "Vocational / Technical Certificate"
+    // Common
     case diploma = "Diploma"
     case advancedDiploma = "Advanced Diploma"
     case bachelors = "Bachelor's Degree"
@@ -296,6 +425,32 @@ enum HighestQualification: String, Codable, CaseIterable {
     case doctorate = "Doctorate"
     case professional = "Professional Qualification"
     case others = "Others"
+
+    static var singaporeOptions: [HighestQualification] {
+        [.psle, .nLevel, .oLevel, .aLevel, .nitec,
+         .diploma, .advancedDiploma, .bachelors, .postgraduateDiploma,
+         .masters, .doctorate, .professional, .others]
+    }
+
+    static var malaysiaOptions: [HighestQualification] {
+        [.upsr, .pt3, .spm, .stpm, .uec, .skm,
+         .diploma, .advancedDiploma, .bachelors, .postgraduateDiploma,
+         .masters, .doctorate, .professional, .others]
+    }
+
+    static var internationalOptions: [HighestQualification] {
+        [.primarySchool, .secondarySchool, .vocationalCertificate,
+         .diploma, .advancedDiploma, .bachelors, .postgraduateDiploma,
+         .masters, .doctorate, .professional, .others]
+    }
+
+    static func options(for nationality: Nationality) -> [HighestQualification] {
+        switch nationality {
+        case .singaporean: return singaporeOptions
+        case .malaysian: return malaysiaOptions
+        default: return internationalOptions
+        }
+    }
 }
 
 enum TotalExperience: String, Codable, CaseIterable {

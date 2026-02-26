@@ -6,26 +6,34 @@ class PDFGenerator {
     private let purpleColor = UIColor(red: 70/255, green: 46/255, blue: 140/255, alpha: 1)   // #462E8C
     private let orangeColor = UIColor(red: 214/255, green: 76/255, blue: 1/255, alpha: 1)     // #D64C01
     private let grayColor = UIColor(red: 107/255, green: 114/255, blue: 128/255, alpha: 1)    // #6B7280
-    private let darkColor = UIColor(red: 26/255, green: 26/255, blue: 26/255, alpha: 1)
-    private let lightGrayBg = UIColor(red: 249/255, green: 250/255, blue: 251/255, alpha: 1)  // subtle bg for section headers
+    private let darkColor = UIColor(red: 26/255, green: 26/255, blue: 26/255, alpha: 1)       // #1A1A1A
+    private let lightGrayBg = UIColor(red: 249/255, green: 250/255, blue: 251/255, alpha: 1)  // #F9FAFB
+    private let greenColor = UIColor(red: 22/255, green: 163/255, blue: 74/255, alpha: 1)
+    private let separatorColor = UIColor(red: 229/255, green: 231/255, blue: 235/255, alpha: 1) // #E5E7EB
 
     // MARK: - Page Constants
     private let pageWidth: CGFloat = 595.2  // A4
     private let pageHeight: CGFloat = 841.8
     private let margin: CGFloat = 50
     private let contentWidth: CGFloat = 495.2
-    private let headerHeight: CGFloat = 85  // space reserved for header + logos + rule
-    private let footerHeight: CGFloat = 50  // space reserved for footer
-    private let usableBottom: CGFloat = 841.8 - 50  // pageHeight - footerHeight
+    private let headerHeight: CGFloat = 85
+    private let footerHeight: CGFloat = 50
+    private let usableBottom: CGFloat = 841.8 - 50
+
+    // MARK: - Layout Constants
+    private let sectionHeaderBandHeight: CGFloat = 24
+    private let fieldRowPadding: CGFloat = 6
+    private let labelValueSpacing: CGFloat = 2
+    private let rowSeparatorHeight: CGFloat = 0.5
 
     // MARK: - Page Tracking
     private var currentPage: Int = 0
     private var totalPages: Int = 1
+    private var globalFieldIndex: Int = 0  // for alternating row shading
 
     // MARK: - Public API
 
     func generate(from applicant: ApplicantData) -> Data {
-        // Two-pass rendering: first pass counts pages, second pass renders with "Page X of Y"
         totalPages = countPages(from: applicant)
         return renderPDF(from: applicant)
     }
@@ -34,48 +42,70 @@ class PDFGenerator {
 
     private func countPages(from applicant: ApplicantData) -> Int {
         var pageCount = 1
-        var yPosition: CGFloat = headerHeight + 10 // after header
-        yPosition = simulateTitle(at: yPosition, applicant: applicant)
+        var yPosition: CGFloat = headerHeight + 10
+        yPosition = simulateTitle(at: yPosition)
 
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "dd MMM yyyy"
 
         // Personal Details section
-        yPosition = simulateCheckNewPage(y: yPosition, needed: 40, pageCount: &pageCount)
+        yPosition = simulateCheckNewPage(y: yPosition, needed: 44, pageCount: &pageCount)
         yPosition = simulateSectionHeader(at: yPosition)
 
-        // Two-column rows
+        let countNatDisplay = applicant.nationality == .others
+            ? applicant.nationalityOther.isEmpty ? "Others" : applicant.nationalityOther
+            : applicant.nationality.rawValue
+
         let twoColPersonal: [((String, String), (String, String))] = [
             (("Full Name", applicant.fullName), ("Preferred Name", applicant.preferredName)),
             (("NRIC / FIN", applicant.nricFIN), ("Date of Birth", dateFormatter.string(from: applicant.dateOfBirth))),
-            (("Gender", applicant.gender.rawValue), ("Nationality", applicant.nationality.rawValue)),
+            (("Gender", applicant.gender.rawValue), ("Nationality", countNatDisplay)),
             (("Race", applicant.race == .others ? applicant.raceOther : applicant.race.rawValue), ("Contact Number", applicant.contactNumber))
         ]
         for _ in twoColPersonal {
-            yPosition = simulateCheckNewPage(y: yPosition, needed: 24, pageCount: &pageCount)
-            yPosition += 24
+            yPosition = simulateCheckNewPage(y: yPosition, needed: 36, pageCount: &pageCount)
+            yPosition += 36
         }
 
-        let singlePersonal: [(String, String)] = [
+        let countEmRelDisplay = applicant.emergencyContactRelationship == .others
+            ? applicant.emergencyContactRelationshipOther.isEmpty ? "Others" : applicant.emergencyContactRelationshipOther
+            : applicant.emergencyContactRelationship.rawValue
+
+        var singlePersonal: [(String, String)] = [
             ("Email", applicant.emailAddress),
             ("Address", applicant.residentialAddress),
-            ("Postal Code", applicant.postalCode),
-            ("Emergency Contact", "\(applicant.emergencyContactName) (\(applicant.emergencyContactRelationship.rawValue))"),
-            ("Emergency Phone", applicant.emergencyContactNumber)
+            ("Postal Code", applicant.postalCode)
         ]
+        if !applicant.passportNumber.isEmpty {
+            singlePersonal.append(("Passport Number", applicant.passportNumber))
+        }
+        if !applicant.drivingLicenseClass.isEmpty {
+            singlePersonal.append(("Driving License", applicant.drivingLicenseClass))
+        }
+        if !applicant.nationality.isSingaporean {
+            singlePersonal.append(("Worked in Singapore Before", applicant.hasWorkedInSingapore ? "Yes" : "No"))
+        }
+        singlePersonal.append(contentsOf: [
+            ("Emergency Contact", "\(applicant.emergencyContactName) (\(countEmRelDisplay))"),
+            ("Emergency Phone", applicant.emergencyContactNumber)
+        ])
         for (_, value) in singlePersonal {
-            yPosition = simulateCheckNewPage(y: yPosition, needed: 24, pageCount: &pageCount)
             let h = simulateFieldHeight(value: value)
+            yPosition = simulateCheckNewPage(y: yPosition, needed: h, pageCount: &pageCount)
             yPosition += h
         }
 
         // Education section
         yPosition += 10
-        yPosition = simulateCheckNewPage(y: yPosition, needed: 40, pageCount: &pageCount)
+        yPosition = simulateCheckNewPage(y: yPosition, needed: 44, pageCount: &pageCount)
         yPosition = simulateSectionHeader(at: yPosition)
 
+        let countQualDisplay = applicant.highestQualification == .others
+            ? applicant.highestQualificationOther.isEmpty ? "Others" : applicant.highestQualificationOther
+            : applicant.highestQualification.rawValue
+
         let educationFields: [(String, String)] = [
-            ("Highest Qualification", applicant.highestQualification.rawValue),
+            ("Highest Qualification", countQualDisplay),
             ("Field of Study", applicant.fieldOfStudy),
             ("Institution", applicant.institutionName),
             ("Year of Graduation", "\(applicant.yearOfGraduation)"),
@@ -83,17 +113,18 @@ class PDFGenerator {
             ("Languages", applicant.selectedLanguages.map { "\($0.displayName) (\($0.proficiency.rawValue))" }.joined(separator: ", "))
         ]
         for (_, value) in educationFields {
-            yPosition = simulateCheckNewPage(y: yPosition, needed: 24, pageCount: &pageCount)
             let h = simulateFieldHeight(value: value)
+            yPosition = simulateCheckNewPage(y: yPosition, needed: h, pageCount: &pageCount)
             yPosition += h
         }
 
         // Additional Qualifications
         if !applicant.additionalQualifications.isEmpty {
             yPosition += 6
+            yPosition += 18 // subsection label
             for (index, _) in applicant.additionalQualifications.enumerated() {
-                yPosition = simulateCheckNewPage(y: yPosition, needed: 24, pageCount: &pageCount)
-                yPosition += 24
+                yPosition = simulateCheckNewPage(y: yPosition, needed: 36, pageCount: &pageCount)
+                yPosition += 36
                 if index < applicant.additionalQualifications.count - 1 {
                     yPosition += 4
                 }
@@ -102,44 +133,63 @@ class PDFGenerator {
 
         // Work Experience section
         yPosition += 10
-        yPosition = simulateCheckNewPage(y: yPosition, needed: 40, pageCount: &pageCount)
+        yPosition = simulateCheckNewPage(y: yPosition, needed: 44, pageCount: &pageCount)
         yPosition = simulateSectionHeader(at: yPosition)
-        // two fields
-        yPosition = simulateCheckNewPage(y: yPosition, needed: 24, pageCount: &pageCount)
-        yPosition += 24 // two-col row
+        yPosition = simulateCheckNewPage(y: yPosition, needed: 36, pageCount: &pageCount)
+        yPosition += 36 // two-col row
         for _ in applicant.employmentHistory {
             yPosition += 8
-            yPosition = simulateCheckNewPage(y: yPosition, needed: 100, pageCount: &pageCount)
-            yPosition += 24 * 4 // 4 fields per employer
+            yPosition = simulateCheckNewPage(y: yPosition, needed: 120, pageCount: &pageCount)
+            yPosition += 36 * 4 // 4 fields per employer
+        }
+
+        // References section
+        if !applicant.references.isEmpty {
+            yPosition += 10
+            yPosition = simulateCheckNewPage(y: yPosition, needed: 44, pageCount: &pageCount)
+            yPosition = simulateSectionHeader(at: yPosition)
+            for _ in applicant.references {
+                yPosition += 8
+                yPosition = simulateCheckNewPage(y: yPosition, needed: 100, pageCount: &pageCount)
+                yPosition += 36 * 3
+            }
         }
 
         // Position & Availability section
         yPosition += 10
-        yPosition = simulateCheckNewPage(y: yPosition, needed: 40, pageCount: &pageCount)
+        yPosition = simulateCheckNewPage(y: yPosition, needed: 44, pageCount: &pageCount)
         yPosition = simulateSectionHeader(at: yPosition)
-        // position fields
         for (_, value) in buildPositionFields(from: applicant, dateFormatter: dateFormatter) {
-            yPosition = simulateCheckNewPage(y: yPosition, needed: 24, pageCount: &pageCount)
             let h = simulateFieldHeight(value: value)
+            yPosition = simulateCheckNewPage(y: yPosition, needed: h, pageCount: &pageCount)
             yPosition += h
         }
 
+        // General Information section
+        yPosition += 10
+        yPosition = simulateCheckNewPage(y: yPosition, needed: 44, pageCount: &pageCount)
+        yPosition = simulateSectionHeader(at: yPosition)
+        yPosition += 36 * 5 // 5 yes/no questions
+        if applicant.hasConnectionsAtAFF { yPosition += 36 }
+        if applicant.hasConflictOfInterest { yPosition += 36 }
+        if applicant.hasBankruptcy { yPosition += 36 }
+        if applicant.hasLegalProceedings { yPosition += 36 }
+
         // Signature section
         yPosition += 20
-        yPosition = simulateCheckNewPage(y: yPosition, needed: 200, pageCount: &pageCount)
+        yPosition = simulateCheckNewPage(y: yPosition, needed: 220, pageCount: &pageCount)
         yPosition = simulateSectionHeader(at: yPosition)
-        yPosition += 140 // signature + date + reference
+        yPosition += 160
 
         return pageCount
     }
 
-    private func simulateTitle(at y: CGFloat, applicant: ApplicantData) -> CGFloat {
-        // title + subtitle + ref + date row + spacing
-        return y + 24 + 20 + 20
+    private func simulateTitle(at y: CGFloat) -> CGFloat {
+        return y + 22 + 20  // title + ref/date line
     }
 
     private func simulateSectionHeader(at y: CGFloat) -> CGFloat {
-        return y + 8 + 20 + 12
+        return y + 8 + 16 + 10  // gap + text + rule + gap
     }
 
     private func simulateCheckNewPage(y: CGFloat, needed: CGFloat, pageCount: inout Int) -> CGFloat {
@@ -156,9 +206,10 @@ class PDFGenerator {
         ]
         let displayValue = value.isEmpty ? "-" : value
         let valueSize = (displayValue as NSString).boundingRect(
-            with: CGSize(width: contentWidth - 140, height: .greatestFiniteMagnitude),
+            with: CGSize(width: contentWidth - 10, height: .greatestFiniteMagnitude),
             options: .usesLineFragmentOrigin, attributes: valueAttr, context: nil)
-        return max(20, valueSize.height + 8)
+        // label (8pt) + spacing(2) + value height + row padding
+        return max(32, 12 + labelValueSpacing + valueSize.height + fieldRowPadding * 2)
     }
 
     // MARK: - Second Pass (Actual Rendering)
@@ -170,6 +221,7 @@ class PDFGenerator {
 
         let data = renderer.pdfData { context in
             currentPage = 0
+            globalFieldIndex = 0
             var yPosition: CGFloat = 0
 
             let dateFormatter = DateFormatter()
@@ -182,31 +234,57 @@ class PDFGenerator {
             // =====================
             // PERSONAL DETAILS
             // =====================
-            yPosition = checkPageBreak(y: yPosition, needed: 40, context: context)
+            yPosition = checkPageBreak(y: yPosition, needed: 44, context: context)
             yPosition = drawSectionHeader("Personal Details", at: yPosition)
 
-            // Two-column paired fields
+            let nationalityDisplay = applicant.nationality == .others
+                ? applicant.nationalityOther.isEmpty ? "Others" : applicant.nationalityOther
+                : applicant.nationality.rawValue
+
+            let contactDisplay = "\(applicant.contactCountryCode) \(applicant.contactNumber)"
+
             let twoColPersonal: [((String, String), (String, String))] = [
                 (("Full Name", applicant.fullName), ("Preferred Name", applicant.preferredName)),
                 (("NRIC / FIN", applicant.nricFIN), ("Date of Birth", dateFormatter.string(from: applicant.dateOfBirth))),
-                (("Gender", applicant.gender.rawValue), ("Nationality", applicant.nationality.rawValue)),
-                (("Race", applicant.race == .others ? applicant.raceOther : applicant.race.rawValue), ("Contact Number", applicant.contactNumber))
+                (("Gender", applicant.gender.rawValue), ("Nationality", nationalityDisplay)),
+                (("Race", applicant.race == .others ? applicant.raceOther : applicant.race.rawValue), ("Contact Number", contactDisplay))
             ]
             for (left, right) in twoColPersonal {
-                yPosition = checkPageBreak(y: yPosition, needed: 24, context: context)
+                yPosition = checkPageBreak(y: yPosition, needed: 36, context: context)
                 yPosition = drawTwoColumnField(left: left, right: right, at: yPosition)
             }
 
-            // Single-column fields (email, address, etc.)
-            let singlePersonal: [(String, String)] = [
+            let emergencyRelDisplay = applicant.emergencyContactRelationship == .others
+                ? applicant.emergencyContactRelationshipOther.isEmpty ? "Others" : applicant.emergencyContactRelationshipOther
+                : applicant.emergencyContactRelationship.rawValue
+
+            var singlePersonal: [(String, String)] = [
                 ("Email", applicant.emailAddress),
                 ("Address", applicant.residentialAddress),
-                ("Postal Code", applicant.postalCode),
-                ("Emergency Contact", "\(applicant.emergencyContactName) (\(applicant.emergencyContactRelationship.rawValue))"),
-                ("Emergency Phone", applicant.emergencyContactNumber)
+                ("Postal Code", applicant.postalCode)
             ]
+            if !applicant.passportNumber.isEmpty {
+                singlePersonal.append(("Passport Number", applicant.passportNumber))
+            }
+            if !applicant.drivingLicenseClass.isEmpty {
+                singlePersonal.append(("Driving License", applicant.drivingLicenseClass))
+            }
+            if !applicant.nationality.isSingaporean {
+                singlePersonal.append(("Worked in Singapore Before", applicant.hasWorkedInSingapore ? "Yes" : "No"))
+            }
+            let emergencyPhoneDisplay = "\(applicant.emergencyContactCountryCode) \(applicant.emergencyContactNumber)"
+            singlePersonal.append(contentsOf: [
+                ("Emergency Contact", "\(applicant.emergencyContactName) (\(emergencyRelDisplay))"),
+                ("Emergency Phone", emergencyPhoneDisplay)
+            ])
+            if !applicant.emergencyContactEmail.isEmpty {
+                singlePersonal.append(("Emergency Email", applicant.emergencyContactEmail))
+            }
+            if !applicant.emergencyContactAddress.isEmpty {
+                singlePersonal.append(("Emergency Address", applicant.emergencyContactAddress))
+            }
             for (label, value) in singlePersonal {
-                yPosition = checkPageBreak(y: yPosition, needed: 24, context: context)
+                yPosition = checkPageBreak(y: yPosition, needed: 32, context: context)
                 yPosition = drawField(label: label, value: value, at: yPosition)
             }
 
@@ -214,11 +292,15 @@ class PDFGenerator {
             // EDUCATION & QUALIFICATIONS
             // =====================
             yPosition += 10
-            yPosition = checkPageBreak(y: yPosition, needed: 40, context: context)
+            yPosition = checkPageBreak(y: yPosition, needed: 44, context: context)
             yPosition = drawSectionHeader("Education & Qualifications", at: yPosition)
 
+            let qualificationDisplay = applicant.highestQualification == .others
+                ? applicant.highestQualificationOther.isEmpty ? "Others" : applicant.highestQualificationOther
+                : applicant.highestQualification.rawValue
+
             let educationFields: [(String, String)] = [
-                ("Highest Qualification", applicant.highestQualification.rawValue),
+                ("Highest Qualification", qualificationDisplay),
                 ("Field of Study", applicant.fieldOfStudy),
                 ("Institution", applicant.institutionName),
                 ("Year of Graduation", "\(applicant.yearOfGraduation)"),
@@ -227,7 +309,7 @@ class PDFGenerator {
             ]
 
             for (label, value) in educationFields {
-                yPosition = checkPageBreak(y: yPosition, needed: 24, context: context)
+                yPosition = checkPageBreak(y: yPosition, needed: 32, context: context)
                 yPosition = drawField(label: label, value: value, at: yPosition)
             }
 
@@ -238,9 +320,12 @@ class PDFGenerator {
                 yPosition = drawSubsectionLabel("Additional Qualifications", at: yPosition)
 
                 for (index, qual) in applicant.additionalQualifications.enumerated() {
-                    yPosition = checkPageBreak(y: yPosition, needed: 24, context: context)
+                    let qualDisplay = qual.qualification == .others
+                        ? qual.qualificationOther.isEmpty ? "Others" : qual.qualificationOther
+                        : qual.qualification.rawValue
+                    yPosition = checkPageBreak(y: yPosition, needed: 36, context: context)
                     yPosition = drawTwoColumnField(
-                        left: ("Qualification \(index + 1)", qual.qualification.rawValue),
+                        left: ("Qualification \(index + 1)", qualDisplay),
                         right: ("Institution", "\(qual.institution) (\(qual.year))"),
                         at: yPosition
                     )
@@ -251,11 +336,10 @@ class PDFGenerator {
             // WORK EXPERIENCE
             // =====================
             yPosition += 10
-            yPosition = checkPageBreak(y: yPosition, needed: 40, context: context)
+            yPosition = checkPageBreak(y: yPosition, needed: 44, context: context)
             yPosition = drawSectionHeader("Work Experience", at: yPosition)
 
-            // Two-col for total experience + currently employed
-            yPosition = checkPageBreak(y: yPosition, needed: 24, context: context)
+            yPosition = checkPageBreak(y: yPosition, needed: 36, context: context)
             yPosition = drawTwoColumnField(
                 left: ("Total Experience", applicant.totalExperience.rawValue),
                 right: ("Currently Employed", applicant.isCurrentlyEmployed ? "Yes (Notice: \(applicant.noticePeriod.rawValue))" : "No"),
@@ -267,7 +351,7 @@ class PDFGenerator {
 
             for (index, record) in applicant.employmentHistory.enumerated() {
                 yPosition += 8
-                yPosition = checkPageBreak(y: yPosition, needed: 100, context: context)
+                yPosition = checkPageBreak(y: yPosition, needed: 120, context: context)
 
                 let period = record.isCurrentPosition
                     ? "\(monthFormatter.string(from: record.fromDate)) - Present"
@@ -286,74 +370,135 @@ class PDFGenerator {
             }
 
             // =====================
+            // REFERENCES
+            // =====================
+            if !applicant.references.isEmpty {
+                yPosition += 10
+                yPosition = checkPageBreak(y: yPosition, needed: 44, context: context)
+                yPosition = drawSectionHeader("References", at: yPosition)
+
+                for (index, ref) in applicant.references.enumerated() {
+                    yPosition += 8
+                    yPosition = checkPageBreak(y: yPosition, needed: 100, context: context)
+                    yPosition = drawTwoColumnField(
+                        left: ("Reference \(index + 1)", ref.name),
+                        right: ("Relationship", ref.relationship),
+                        at: yPosition
+                    )
+                    let refPhoneDisplay = "\(ref.contactCountryCode) \(ref.contactNumber)"
+                    yPosition = drawTwoColumnField(
+                        left: ("Contact", refPhoneDisplay),
+                        right: ("Email", ref.email),
+                        at: yPosition
+                    )
+                    yPosition = drawField(label: "Years Known", value: ref.yearsKnown, at: yPosition)
+                }
+            }
+
+            // =====================
             // POSITION & AVAILABILITY
             // =====================
             yPosition += 10
-            yPosition = checkPageBreak(y: yPosition, needed: 40, context: context)
+            yPosition = checkPageBreak(y: yPosition, needed: 44, context: context)
             yPosition = drawSectionHeader("Position & Availability", at: yPosition)
 
             let positions = applicant.positionsAppliedFor.map(\.rawValue).joined(separator: ", ")
-            yPosition = checkPageBreak(y: yPosition, needed: 24, context: context)
+            yPosition = checkPageBreak(y: yPosition, needed: 32, context: context)
             yPosition = drawField(label: "Positions Applied", value: positions, at: yPosition)
 
-            // Two-col pairs
             let twoColPosition: [((String, String), (String, String))] = [
                 (("Employment Type", applicant.preferredEmploymentType.rawValue), ("Earliest Start", dateFormatter.string(from: applicant.earliestStartDate))),
-                (("Expected Salary", applicant.expectedSalary.isEmpty ? "Not specified" : "SGD $\(applicant.expectedSalary)"), ("Last Drawn Salary", applicant.lastDrawnSalary.isEmpty ? "Not specified" : "SGD $\(applicant.lastDrawnSalary)")),
+                (("Expected Salary", applicant.expectedSalary.isEmpty ? "-" : "SGD $\(applicant.expectedSalary)"), ("Last Drawn Salary", applicant.lastDrawnSalary.isEmpty ? "-" : "SGD $\(applicant.lastDrawnSalary)")),
                 (("Shifts", applicant.willingToWorkShifts.rawValue), ("Travel", applicant.willingToTravel.rawValue)),
                 (("Own Transport", applicant.hasOwnTransport ? "Yes" : "No"), ("Source", applicant.howDidYouHear.rawValue))
             ]
 
             for (left, right) in twoColPosition {
-                yPosition = checkPageBreak(y: yPosition, needed: 24, context: context)
+                yPosition = checkPageBreak(y: yPosition, needed: 36, context: context)
                 yPosition = drawTwoColumnField(left: left, right: right, at: yPosition)
             }
 
             if applicant.howDidYouHear == .referral && !applicant.referrerName.isEmpty {
-                yPosition = checkPageBreak(y: yPosition, needed: 24, context: context)
+                yPosition = checkPageBreak(y: yPosition, needed: 32, context: context)
                 yPosition = drawField(label: "Referrer", value: applicant.referrerName, at: yPosition)
+            }
+
+            yPosition = checkPageBreak(y: yPosition, needed: 32, context: context)
+            yPosition = drawField(label: "Open to Other Positions", value: applicant.openToOtherPositions ? "Yes" : "No", at: yPosition)
+
+            // =====================
+            // GENERAL INFORMATION
+            // =====================
+            yPosition += 10
+            yPosition = checkPageBreak(y: yPosition, needed: 44, context: context)
+            yPosition = drawSectionHeader("General Information", at: yPosition)
+
+            let generalInfoItems: [(String, Bool, String)] = [
+                ("Previously Applied to AFF", applicant.previouslyApplied, ""),
+                ("Friends / Relatives at AFF", applicant.hasConnectionsAtAFF, applicant.connectionsDetails),
+                ("Conflict of Interest", applicant.hasConflictOfInterest, applicant.conflictDetails),
+                ("Bankruptcy", applicant.hasBankruptcy, applicant.bankruptcyDetails),
+                ("Legal Proceedings", applicant.hasLegalProceedings, applicant.legalDetails)
+            ]
+
+            for (label, value, details) in generalInfoItems {
+                yPosition = checkPageBreak(y: yPosition, needed: 32, context: context)
+                yPosition = drawField(label: label, value: value ? "Yes" : "No", at: yPosition)
+                if value && !details.isEmpty {
+                    yPosition = checkPageBreak(y: yPosition, needed: 32, context: context)
+                    yPosition = drawField(label: "  Details", value: details, at: yPosition)
+                }
             }
 
             // =====================
             // DECLARATION & SIGNATURE
             // =====================
             yPosition += 20
-            yPosition = checkPageBreak(y: yPosition, needed: 200, context: context)
+            yPosition = checkPageBreak(y: yPosition, needed: 220, context: context)
             yPosition = drawSectionHeader("Declaration & Signature", at: yPosition)
 
             // Declaration checkmarks
             let declarations: [(String, Bool)] = [
                 ("I declare that all information provided is true and accurate.", applicant.declarationAccuracy),
-                ("I consent to the collection and use of my personal data (PDPA).", applicant.pdpaConsent),
-                ("I consent to background verification checks.", applicant.backgroundCheckConsent)
+                ("I consent to the collection and use of my personal data (PDPA).", applicant.pdpaConsent)
             ]
             for (text, agreed) in declarations {
-                yPosition = checkPageBreak(y: yPosition, needed: 18, context: context)
+                yPosition = checkPageBreak(y: yPosition, needed: 22, context: context)
                 yPosition = drawDeclarationItem(text: text, agreed: agreed, at: yPosition)
             }
 
             // Medical declaration
             if applicant.hasMedicalCondition == .yes {
-                yPosition = checkPageBreak(y: yPosition, needed: 24, context: context)
+                yPosition = checkPageBreak(y: yPosition, needed: 32, context: context)
                 yPosition = drawField(label: "Medical Condition", value: applicant.medicalDetails.isEmpty ? "Yes (details not provided)" : applicant.medicalDetails, at: yPosition)
             }
 
-            yPosition += 12
+            yPosition += 16
 
-            // Signature image with 2pt purple border
+            // Signature image
             if let sigData = applicant.signatureData, let sigImage = UIImage(data: sigData) {
-                yPosition = checkPageBreak(y: yPosition, needed: 160, context: context)
+                yPosition = checkPageBreak(y: yPosition, needed: 170, context: context)
+
+                // "Applicant's Signature" label above
+                let sigLabelAttr: [NSAttributedString.Key: Any] = [
+                    .font: UIFont.systemFont(ofSize: 8, weight: .semibold),
+                    .foregroundColor: grayColor
+                ]
+                ("APPLICANT'S SIGNATURE" as NSString).draw(at: CGPoint(x: margin, y: yPosition), withAttributes: sigLabelAttr)
+                yPosition += 14
 
                 let sigBoxRect = CGRect(x: margin, y: yPosition, width: 300, height: 100)
 
-                // 2pt purple border
+                // Thin 1pt gray border
                 let ctx = context.cgContext
-                ctx.setStrokeColor(purpleColor.cgColor)
-                ctx.setLineWidth(2)
-                ctx.stroke(sigBoxRect.insetBy(dx: -6, dy: -6))
+                ctx.setStrokeColor(separatorColor.cgColor)
+                ctx.setLineWidth(1)
+                ctx.stroke(sigBoxRect)
 
-                sigImage.draw(in: sigBoxRect)
-                yPosition += 118
+                // Draw signature inside with slight padding
+                let sigInset = sigBoxRect.insetBy(dx: 8, dy: 8)
+                sigImage.draw(in: sigInset)
+                yPosition += 110
 
                 let signedDate = dateFormatter.string(from: applicant.submissionDate)
                 yPosition = drawTwoColumnField(
@@ -397,52 +542,48 @@ class PDFGenerator {
     // MARK: - Header
 
     private func drawHeader(in context: CGContext) -> CGFloat {
-        let logoY: CGFloat = 14
+        let headerTopPad: CGFloat = 18
 
-        // --- VKA Logo placeholder (left-aligned, 60pt height) ---
-        let vkaLogoRect = CGRect(x: margin, y: logoY, width: 100, height: 60)
-        context.setFillColor(purpleColor.withAlphaComponent(0.1).cgColor)
-        context.fill(vkaLogoRect)
-        context.setStrokeColor(purpleColor.cgColor)
-        context.setLineWidth(1.5)
-        context.stroke(vkaLogoRect)
+        // --- VKA Logo (left-aligned) from asset catalog ---
+        if let vkaLogo = UIImage(named: "vka_logo_purple") {
+            let logoHeight: CGFloat = 28
+            let aspectRatio = vkaLogo.size.width / vkaLogo.size.height
+            let logoWidth = min(logoHeight * aspectRatio, 75)
+            let vkaLogoRect = CGRect(x: margin, y: headerTopPad + 12, width: logoWidth, height: logoHeight)
+            vkaLogo.draw(in: vkaLogoRect)
+        }
 
-        let vkaAttr: [NSAttributedString.Key: Any] = [
-            .font: UIFont.systemFont(ofSize: 22, weight: .bold),
-            .foregroundColor: purpleColor
+        // --- AFF company name (right-aligned) ---
+        let affNameAttr: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 11, weight: .semibold),
+            .foregroundColor: darkColor
         ]
-        let vkaStr = "VKA" as NSString
-        let vkaSize = vkaStr.size(withAttributes: vkaAttr)
-        vkaStr.draw(at: CGPoint(
-            x: vkaLogoRect.midX - vkaSize.width / 2,
-            y: vkaLogoRect.midY - vkaSize.height / 2
-        ), withAttributes: vkaAttr)
-
-        // --- AFF Logo placeholder (right-aligned, 40pt height) ---
-        let affLogoRect = CGRect(x: pageWidth - margin - 80, y: logoY + 10, width: 80, height: 40)
-        context.setFillColor(orangeColor.withAlphaComponent(0.1).cgColor)
-        context.fill(affLogoRect)
-        context.setStrokeColor(orangeColor.cgColor)
-        context.setLineWidth(1.5)
-        context.stroke(affLogoRect)
-
-        let affAttr: [NSAttributedString.Key: Any] = [
-            .font: UIFont.systemFont(ofSize: 16, weight: .bold),
-            .foregroundColor: orangeColor
+        let affSubAttr: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 8, weight: .regular),
+            .foregroundColor: grayColor
         ]
-        let affStr = "AFF" as NSString
-        let affSize = affStr.size(withAttributes: affAttr)
-        affStr.draw(at: CGPoint(
-            x: affLogoRect.midX - affSize.width / 2,
-            y: affLogoRect.midY - affSize.height / 2
-        ), withAttributes: affAttr)
 
-        // --- 2pt orange horizontal rule spanning full width below header ---
-        let ruleY = logoY + 66
+        let affName = "Advanced Flavors & Fragrances Pte. Ltd." as NSString
+        let affSub = "Singapore" as NSString
+        let affNameSize = affName.size(withAttributes: affNameAttr)
+        let affSubSize = affSub.size(withAttributes: affSubAttr)
+
+        let affNameX = pageWidth - margin - affNameSize.width
+        let affNameY = headerTopPad + 14
+        affName.draw(at: CGPoint(x: affNameX, y: affNameY), withAttributes: affNameAttr)
+
+        let affSubX = pageWidth - margin - affSubSize.width
+        let affSubY = affNameY + affNameSize.height + 2
+        affSub.draw(at: CGPoint(x: affSubX, y: affSubY), withAttributes: affSubAttr)
+
+        // --- Thin dark rule with orange accent strip ---
+        let ruleY = headerTopPad + 58
+        context.setFillColor(darkColor.cgColor)
+        context.fill(CGRect(x: margin, y: ruleY, width: contentWidth, height: 1))
         context.setFillColor(orangeColor.cgColor)
-        context.fill(CGRect(x: margin, y: ruleY, width: contentWidth, height: 2))
+        context.fill(CGRect(x: margin, y: ruleY, width: 50, height: 2))
 
-        return ruleY + 14 // return Y below the rule
+        return ruleY + 14
     }
 
     // MARK: - Title
@@ -450,42 +591,36 @@ class PDFGenerator {
     private func drawTitle(at y: CGFloat, referenceNumber: String, date: String) -> CGFloat {
         var yPos = y
 
-        // Title: 18pt semibold, purple
+        // Title: uppercase, tracked, corporate
         let titleAttr: [NSAttributedString.Key: Any] = [
-            .font: UIFont.systemFont(ofSize: 18, weight: .semibold),
-            .foregroundColor: purpleColor
+            .font: UIFont.systemFont(ofSize: 16, weight: .bold),
+            .foregroundColor: darkColor,
+            .kern: 1.5 as NSNumber
         ]
-        let title = "Walk-In Applicant Registration Form"
+        let title = "REGISTRATION FORM"
         (title as NSString).draw(at: CGPoint(x: margin, y: yPos), withAttributes: titleAttr)
 
-        // Right-aligned reference number in orange (same line as title)
+        yPos += 22
+
+        // Reference and date on same line
+        let metaAttr: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 9, weight: .medium),
+            .foregroundColor: grayColor
+        ]
         let refAttr: [NSAttributedString.Key: Any] = [
-            .font: UIFont.monospacedDigitSystemFont(ofSize: 11, weight: .semibold),
+            .font: UIFont.monospacedDigitSystemFont(ofSize: 9, weight: .semibold),
             .foregroundColor: orangeColor
         ]
-        let refStr = referenceNumber as NSString
-        let refSize = refStr.size(withAttributes: refAttr)
-        refStr.draw(at: CGPoint(x: pageWidth - margin - refSize.width, y: yPos + 2), withAttributes: refAttr)
 
-        yPos += 24
+        ("Ref: " as NSString).draw(at: CGPoint(x: margin, y: yPos), withAttributes: metaAttr)
+        let refLabelWidth = ("Ref: " as NSString).size(withAttributes: metaAttr).width
+        (referenceNumber as NSString).draw(at: CGPoint(x: margin + refLabelWidth, y: yPos), withAttributes: refAttr)
 
-        // Subtitle: 12pt gray
-        let subtitleAttr: [NSAttributedString.Key: Any] = [
-            .font: UIFont.systemFont(ofSize: 12, weight: .regular),
-            .foregroundColor: grayColor
-        ]
-        ("Advanced Flavors & Fragrances Pte. Ltd." as NSString).draw(at: CGPoint(x: margin, y: yPos), withAttributes: subtitleAttr)
+        let dateStr = "Date: \(date)" as NSString
+        let dateSize = dateStr.size(withAttributes: metaAttr)
+        dateStr.draw(at: CGPoint(x: pageWidth - margin - dateSize.width, y: yPos), withAttributes: metaAttr)
 
-        // Right-aligned date in gray (same line as subtitle)
-        let dateAttr: [NSAttributedString.Key: Any] = [
-            .font: UIFont.systemFont(ofSize: 10, weight: .regular),
-            .foregroundColor: grayColor
-        ]
-        let dateStr = date as NSString
-        let dateSize = dateStr.size(withAttributes: dateAttr)
-        dateStr.draw(at: CGPoint(x: pageWidth - margin - dateSize.width, y: yPos + 1), withAttributes: dateAttr)
-
-        yPos += 26
+        yPos += 20
 
         return yPos
     }
@@ -494,24 +629,26 @@ class PDFGenerator {
 
     private func drawSectionHeader(_ title: String, at y: CGFloat) -> CGFloat {
         var yPos = y + 8
+        globalFieldIndex = 0  // reset alternating row index per section
 
-        // Light background band
         let ctx = UIGraphicsGetCurrentContext()
-        ctx?.setFillColor(lightGrayBg.cgColor)
-        ctx?.fill(CGRect(x: margin, y: yPos - 2, width: contentWidth, height: 22))
 
-        // Purple text, 14pt semibold
+        // Section title — uppercase, dark, tracked
         let attr: [NSAttributedString.Key: Any] = [
-            .font: UIFont.systemFont(ofSize: 14, weight: .semibold),
-            .foregroundColor: purpleColor
+            .font: UIFont.systemFont(ofSize: 10, weight: .bold),
+            .foregroundColor: darkColor,
+            .kern: 1.2 as NSNumber
         ]
-        (title as NSString).draw(at: CGPoint(x: margin + 8, y: yPos), withAttributes: attr)
-        yPos += 22
+        (title.uppercased() as NSString).draw(at: CGPoint(x: margin, y: yPos), withAttributes: attr)
 
-        // Orange underline accent (60pt wide, 2pt thick)
+        yPos += 16
+
+        // Full-width dark rule with short orange accent
+        ctx?.setFillColor(separatorColor.cgColor)
+        ctx?.fill(CGRect(x: margin, y: yPos, width: contentWidth, height: 1))
         ctx?.setFillColor(orangeColor.cgColor)
-        ctx?.fill(CGRect(x: margin, y: yPos, width: 60, height: 2))
-        yPos += 12
+        ctx?.fill(CGRect(x: margin, y: yPos, width: 30, height: 2))
+        yPos += 10
 
         return yPos
     }
@@ -527,11 +664,29 @@ class PDFGenerator {
         return y + 18
     }
 
-    // MARK: - Single Field (label-value, full width)
+    // MARK: - Row Background & Separator
+
+    private func drawRowBackground(at y: CGFloat, height: CGFloat) {
+        let ctx = UIGraphicsGetCurrentContext()
+
+        // Alternating row shading
+        if globalFieldIndex % 2 == 1 {
+            ctx?.setFillColor(lightGrayBg.cgColor)
+            ctx?.fill(CGRect(x: margin, y: y, width: contentWidth, height: height))
+        }
+
+        // Bottom separator line
+        ctx?.setFillColor(separatorColor.cgColor)
+        ctx?.fill(CGRect(x: margin, y: y + height - rowSeparatorHeight, width: contentWidth, height: rowSeparatorHeight))
+
+        globalFieldIndex += 1
+    }
+
+    // MARK: - Single Field (label-above-value, full width)
 
     private func drawField(label: String, value: String, at y: CGFloat, valueColor: UIColor? = nil) -> CGFloat {
         let labelAttr: [NSAttributedString.Key: Any] = [
-            .font: UIFont.systemFont(ofSize: 9, weight: .semibold),
+            .font: UIFont.systemFont(ofSize: 8, weight: .semibold),
             .foregroundColor: grayColor
         ]
         let valueAttr: [NSAttributedString.Key: Any] = [
@@ -539,26 +694,31 @@ class PDFGenerator {
             .foregroundColor: valueColor ?? darkColor
         ]
 
-        var yPos = y
-
-        (label.uppercased() as NSString).draw(at: CGPoint(x: margin, y: yPos), withAttributes: labelAttr)
-
-        // Value with text wrapping
-        let valueX = margin + 150
-        let valueWidth = contentWidth - 150
         let displayValue = value.isEmpty ? "-" : value
-        let valueRect = CGRect(x: valueX, y: yPos, width: valueWidth, height: 80)
+        let valueSize = (displayValue as NSString).boundingRect(
+            with: CGSize(width: contentWidth - 16, height: .greatestFiniteMagnitude),
+            options: .usesLineFragmentOrigin, attributes: valueAttr, context: nil)
+
+        // Label height (8pt font ~ 10pt) + spacing + value height + padding
+        let labelHeight: CGFloat = 12
+        let totalRowHeight = max(32, fieldRowPadding + labelHeight + labelValueSpacing + valueSize.height + fieldRowPadding)
+
+        // Draw row background and separator
+        drawRowBackground(at: y, height: totalRowHeight)
+
+        // Label (uppercase, 8pt semibold gray)
+        let labelY = y + fieldRowPadding
+        (label.uppercased() as NSString).draw(at: CGPoint(x: margin + 8, y: labelY), withAttributes: labelAttr)
+
+        // Value below label
+        let valueY = labelY + labelHeight + labelValueSpacing
+        let valueRect = CGRect(x: margin + 8, y: valueY, width: contentWidth - 16, height: valueSize.height + 4)
         (displayValue as NSString).draw(with: valueRect, options: .usesLineFragmentOrigin, attributes: valueAttr, context: nil)
 
-        let valueSize = (displayValue as NSString).boundingRect(
-            with: CGSize(width: valueWidth, height: .greatestFiniteMagnitude),
-            options: .usesLineFragmentOrigin, attributes: valueAttr, context: nil)
-        yPos += max(20, valueSize.height + 8)
-
-        return yPos
+        return y + totalRowHeight
     }
 
-    // MARK: - Two-Column Field
+    // MARK: - Two-Column Field (labels above values)
 
     private func drawTwoColumnField(
         left: (String, String),
@@ -566,12 +726,12 @@ class PDFGenerator {
         at y: CGFloat,
         rightColor: UIColor? = nil
     ) -> CGFloat {
-        let colWidth = (contentWidth - 20) / 2  // 20pt gutter
-        let leftX = margin
-        let rightX = margin + colWidth + 20
+        let colWidth = (contentWidth - 20 - 16) / 2  // minus gutter and side padding
+        let leftX = margin + 8
+        let rightX = margin + 8 + colWidth + 20
 
         let labelAttr: [NSAttributedString.Key: Any] = [
-            .font: UIFont.systemFont(ofSize: 9, weight: .semibold),
+            .font: UIFont.systemFont(ofSize: 8, weight: .semibold),
             .foregroundColor: grayColor
         ]
         let leftValueAttr: [NSAttributedString.Key: Any] = [
@@ -583,40 +743,48 @@ class PDFGenerator {
             .foregroundColor: rightColor ?? darkColor
         ]
 
-        var yPos = y
-
-        // Left column
-        (left.0.uppercased() as NSString).draw(at: CGPoint(x: leftX, y: yPos), withAttributes: labelAttr)
         let leftDisplay = left.1.isEmpty ? "-" : left.1
-        let leftValueRect = CGRect(x: leftX, y: yPos + 12, width: colWidth, height: 40)
-        (leftDisplay as NSString).draw(with: leftValueRect, options: .usesLineFragmentOrigin, attributes: leftValueAttr, context: nil)
+        let rightDisplay = right.1.isEmpty ? "-" : right.1
+
         let leftSize = (leftDisplay as NSString).boundingRect(
             with: CGSize(width: colWidth, height: .greatestFiniteMagnitude),
             options: .usesLineFragmentOrigin, attributes: leftValueAttr, context: nil)
-
-        // Right column
-        (right.0.uppercased() as NSString).draw(at: CGPoint(x: rightX, y: yPos), withAttributes: labelAttr)
-        let rightDisplay = right.1.isEmpty ? "-" : right.1
-        let rightValueRect = CGRect(x: rightX, y: yPos + 12, width: colWidth, height: 40)
-        (rightDisplay as NSString).draw(with: rightValueRect, options: .usesLineFragmentOrigin, attributes: rightValueAttr, context: nil)
         let rightSize = (rightDisplay as NSString).boundingRect(
             with: CGSize(width: colWidth, height: .greatestFiniteMagnitude),
             options: .usesLineFragmentOrigin, attributes: rightValueAttr, context: nil)
 
-        let maxH = max(leftSize.height, rightSize.height)
-        yPos += 12 + max(18, maxH + 8)
+        let labelHeight: CGFloat = 12
+        let maxValueHeight = max(leftSize.height, rightSize.height)
+        let totalRowHeight = max(36, fieldRowPadding + labelHeight + labelValueSpacing + maxValueHeight + fieldRowPadding)
 
-        return yPos
+        // Draw row background and separator
+        drawRowBackground(at: y, height: totalRowHeight)
+
+        let labelY = y + fieldRowPadding
+        let valueY = labelY + labelHeight + labelValueSpacing
+
+        // Left column: label above value
+        (left.0.uppercased() as NSString).draw(at: CGPoint(x: leftX, y: labelY), withAttributes: labelAttr)
+        let leftValueRect = CGRect(x: leftX, y: valueY, width: colWidth, height: maxValueHeight + 4)
+        (leftDisplay as NSString).draw(with: leftValueRect, options: .usesLineFragmentOrigin, attributes: leftValueAttr, context: nil)
+
+        // Right column: label above value
+        (right.0.uppercased() as NSString).draw(at: CGPoint(x: rightX, y: labelY), withAttributes: labelAttr)
+        let rightValueRect = CGRect(x: rightX, y: valueY, width: colWidth, height: maxValueHeight + 4)
+        (rightDisplay as NSString).draw(with: rightValueRect, options: .usesLineFragmentOrigin, attributes: rightValueAttr, context: nil)
+
+        return y + totalRowHeight
     }
 
     // MARK: - Declaration Item
 
     private func drawDeclarationItem(text: String, agreed: Bool, at y: CGFloat) -> CGFloat {
-        let checkmark = agreed ? "\u{2713}" : "\u{2717}"
-        let checkColor = agreed ? UIColor(red: 22/255, green: 163/255, blue: 74/255, alpha: 1) : UIColor.red
+        // Green checkmark or gray empty box
+        let checkmark = agreed ? "\u{2713}" : "\u{25A1}"
+        let checkColor = agreed ? greenColor : grayColor
 
         let checkAttr: [NSAttributedString.Key: Any] = [
-            .font: UIFont.systemFont(ofSize: 12, weight: .bold),
+            .font: UIFont.systemFont(ofSize: 13, weight: .bold),
             .foregroundColor: checkColor
         ]
         let textAttr: [NSAttributedString.Key: Any] = [
@@ -624,10 +792,10 @@ class PDFGenerator {
             .foregroundColor: darkColor
         ]
 
-        (checkmark as NSString).draw(at: CGPoint(x: margin, y: y), withAttributes: checkAttr)
-        (text as NSString).draw(at: CGPoint(x: margin + 18, y: y + 1), withAttributes: textAttr)
+        (checkmark as NSString).draw(at: CGPoint(x: margin + 8, y: y), withAttributes: checkAttr)
+        (text as NSString).draw(at: CGPoint(x: margin + 26, y: y + 2), withAttributes: textAttr)
 
-        return y + 18
+        return y + 22
     }
 
     // MARK: - Footer
@@ -639,12 +807,22 @@ class PDFGenerator {
         context.setFillColor(grayColor.withAlphaComponent(0.3).cgColor)
         context.fill(CGRect(x: margin, y: footerY - 6, width: contentWidth, height: 0.5))
 
-        let leftAttr: [NSAttributedString.Key: Any] = [
+        // "CONFIDENTIAL" small caps left side
+        let confidentialAttr: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 7, weight: .semibold),
+            .foregroundColor: grayColor.withAlphaComponent(0.6)
+        ]
+        ("CONFIDENTIAL" as NSString).draw(at: CGPoint(x: margin, y: footerY), withAttributes: confidentialAttr)
+
+        // Center: auto-generated notice
+        let centerAttr: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 7, weight: .regular),
             .foregroundColor: grayColor
         ]
-        let footer = "This document is auto-generated by the VKAFF Applicant Registration System. Confidential."
-        (footer as NSString).draw(at: CGPoint(x: margin, y: footerY), withAttributes: leftAttr)
+        let centerText = "AFF Registration System" as NSString
+        let centerSize = centerText.size(withAttributes: centerAttr)
+        let centerX = margin + (contentWidth - centerSize.width) / 2
+        centerText.draw(at: CGPoint(x: centerX, y: footerY), withAttributes: centerAttr)
 
         // Page X of Y right-aligned
         let pageAttr: [NSAttributedString.Key: Any] = [
@@ -664,12 +842,13 @@ class PDFGenerator {
             ("Positions Applied", positions),
             ("Employment Type", applicant.preferredEmploymentType.rawValue),
             ("Earliest Start", dateFormatter.string(from: applicant.earliestStartDate)),
-            ("Expected Salary", applicant.expectedSalary.isEmpty ? "Not specified" : "SGD $\(applicant.expectedSalary)"),
-            ("Last Drawn Salary", applicant.lastDrawnSalary.isEmpty ? "Not specified" : "SGD $\(applicant.lastDrawnSalary)"),
+            ("Expected Salary", applicant.expectedSalary.isEmpty ? "-" : "SGD $\(applicant.expectedSalary)"),
+            ("Last Drawn Salary", applicant.lastDrawnSalary.isEmpty ? "-" : "SGD $\(applicant.lastDrawnSalary)"),
             ("Shifts", applicant.willingToWorkShifts.rawValue),
             ("Travel", applicant.willingToTravel.rawValue),
             ("Own Transport", applicant.hasOwnTransport ? "Yes" : "No"),
-            ("Source", applicant.howDidYouHear.rawValue)
+            ("Source", applicant.howDidYouHear.rawValue),
+            ("Open to Other Positions", applicant.openToOtherPositions ? "Yes" : "No")
         ]
     }
 }

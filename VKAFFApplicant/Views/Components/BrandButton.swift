@@ -82,7 +82,7 @@ struct FormNavigationBar: View {
             .accessibilityHint(isEnabled ? "Proceed to the next step" : "Complete all required fields before continuing")
             .accessibilityValue(isEnabled ? "enabled" : "disabled")
         }
-        .padding(.horizontal, 32)
+        .padding(.horizontal, 48)
         .padding(.vertical, 16)
         .background(
             VStack(spacing: 0) {

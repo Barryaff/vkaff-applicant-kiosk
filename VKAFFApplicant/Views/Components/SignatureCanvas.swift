@@ -82,7 +82,6 @@ struct SignatureField: View {
 
                 Spacer()
 
-                let formatter = DateFormatter()
                 Text({
                     let f = DateFormatter()
                     f.dateFormat = "dd MMM yyyy"

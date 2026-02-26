@@ -74,14 +74,6 @@ struct WorkExperienceView: View {
                     label: "Reason for Leaving",
                     selection: $record.reasonForLeaving
                 )
-
-                FormField(
-                    label: "Key Responsibilities (optional)",
-                    text: $record.keyResponsibilities,
-                    placeholder: "Brief description of your role",
-                    isMultiline: true,
-                    maxLength: 200
-                )
             }
 
             // Currently Employed
@@ -96,6 +88,58 @@ struct WorkExperienceView: View {
                 FormDropdown(
                     label: "Notice Period Required",
                     selection: $vm.applicant.noticePeriod
+                )
+            }
+
+            // References
+            Divider().padding(.vertical, 8)
+
+            Text("References")
+                .subheadingStyle()
+
+            Text("Please provide up to 2 references (non-family members preferred)")
+                .font(.system(size: 14))
+                .foregroundColor(.mediumGray)
+
+            RepeatableCardSection(
+                title: "Reference",
+                items: $vm.applicant.references,
+                maxItems: AppConfig.maxReferences,
+                createNew: { ReferenceRecord() }
+            ) { $record in
+                FormField(
+                    label: "Full Name",
+                    text: $record.name,
+                    placeholder: "Reference's full name"
+                )
+
+                FormField(
+                    label: "Relationship",
+                    text: $record.relationship,
+                    placeholder: "e.g., Former Supervisor, Colleague"
+                )
+
+                HStack(spacing: 16) {
+                    PhoneFieldWithCode(
+                        label: "Contact Number",
+                        countryCode: $record.contactCountryCode,
+                        phoneNumber: $record.contactNumber,
+                        placeholder: "9123 4567"
+                    )
+
+                    FormField(
+                        label: "Email Address",
+                        text: $record.email,
+                        placeholder: "reference@email.com",
+                        keyboardType: .emailAddress
+                    )
+                }
+
+                FormField(
+                    label: "Years Known",
+                    text: $record.yearsKnown,
+                    placeholder: "e.g., 3 years",
+                    keyboardType: .numberPad
                 )
             }
         }

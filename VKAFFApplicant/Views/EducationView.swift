@@ -11,11 +11,20 @@ struct EducationView: View {
             onBack: { vm.navigateBack() },
             onContinue: { vm.navigateForward() }
         ) {
-            // Highest Qualification
+            // Highest Qualification (filtered by nationality)
             FormDropdown(
                 label: "Highest Qualification",
-                selection: $vm.applicant.highestQualification
+                selection: $vm.applicant.highestQualification,
+                options: HighestQualification.options(for: vm.applicant.nationality)
             )
+
+            if vm.applicant.highestQualification == .others {
+                FormField(
+                    label: "Please specify your qualification",
+                    text: $vm.applicant.highestQualificationOther,
+                    placeholder: "e.g., Diploma in Engineering"
+                )
+            }
 
             // Field of Study
             FormField(
@@ -39,14 +48,15 @@ struct EducationView: View {
                 educationFocusValue: .institutionName
             )
 
-            // Year of Graduation
+            // Year of Graduation (or expected graduation)
             VStack(alignment: .leading, spacing: 6) {
-                Text("Year of Graduation")
+                Text("Year of Graduation (or Expected)")
                     .formLabelStyle()
 
+                let currentYear = Calendar.current.component(.year, from: Date())
                 Picker("", selection: $vm.applicant.yearOfGraduation) {
-                    ForEach(1970...2026, id: \.self) { year in
-                        Text("\(year)").tag(year)
+                    ForEach(1970...(currentYear + 6), id: \.self) { year in
+                        Text(String(year)).tag(year)
                     }
                 }
                 .pickerStyle(.menu)
@@ -76,8 +86,16 @@ struct EducationView: View {
             ) { $qual in
                 FormDropdown(
                     label: "Qualification",
-                    selection: $qual.qualification
+                    selection: $qual.qualification,
+                    options: HighestQualification.options(for: vm.applicant.nationality)
                 )
+                if qual.qualification == .others {
+                    FormField(
+                        label: "Please specify",
+                        text: $qual.qualificationOther,
+                        placeholder: "e.g., Trade Certificate"
+                    )
+                }
                 FormField(
                     label: "Institution",
                     text: $qual.institution,
@@ -87,8 +105,8 @@ struct EducationView: View {
                     Text("Year")
                         .formLabelStyle()
                     Picker("", selection: $qual.year) {
-                        ForEach(1970...2026, id: \.self) { year in
-                            Text("\(year)").tag(year)
+                        ForEach(1970...(Calendar.current.component(.year, from: Date()) + 6), id: \.self) { year in
+                            Text(String(year)).tag(year)
                         }
                     }
                     .pickerStyle(.menu)

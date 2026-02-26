@@ -38,6 +38,14 @@ class RegistrationViewModel: ObservableObject {
             self?.resetToWelcome()
         }
 
+        // Forward ApplicantData changes to RegistrationViewModel so SwiftUI detects updates
+        applicant.objectWillChange
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+
         // Sync idle timer warning state
         idleTimer?.$isWarningShown
             .receive(on: DispatchQueue.main)
@@ -164,6 +172,15 @@ class RegistrationViewModel: ObservableObject {
                 self?.onFieldChanged("expectedSalary", isValid: Validators.isNotEmpty(value))
             }
             .store(in: &cancellables)
+
+        // Last Drawn Salary
+        applicant.$lastDrawnSalary
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] value in
+                self?.onFieldChanged("lastDrawnSalary", isValid: Validators.isNotEmpty(value))
+            }
+            .store(in: &cancellables)
     }
 
     /// Called when any field changes. Clears the error for that field immediately
@@ -240,6 +257,9 @@ class RegistrationViewModel: ObservableObject {
     /// Only shows errors when user presses Continue. Does NOT clear validFields
     /// so checkmarks persist from real-time validation.
     func canProceed() -> Bool {
+        // Skip all validation when testing
+        if AppConfig.skipValidation { return true }
+
         // Only clear errors (not valid fields) - errors are shown on Continue press
         fieldErrors.removeAll()
 
@@ -288,7 +308,7 @@ class RegistrationViewModel: ObservableObject {
         }
 
         if !Validators.isValidPhone(applicant.contactNumber) {
-            fieldErrors["contactNumber"] = "Enter a valid Singapore number (8 digits starting with 6, 8, or 9)"
+            fieldErrors["contactNumber"] = "Enter a valid phone number with country code (e.g., +65 8123 4567)"
             isValid = false
         } else {
             validFields.insert("contactNumber")
@@ -309,7 +329,7 @@ class RegistrationViewModel: ObservableObject {
         }
 
         if !Validators.isValidPostalCode(applicant.postalCode) {
-            fieldErrors["postalCode"] = "Enter a valid 6-digit postal code"
+            fieldErrors["postalCode"] = "Enter a valid postal / zip code"
             isValid = false
         } else {
             validFields.insert("postalCode")
@@ -323,7 +343,7 @@ class RegistrationViewModel: ObservableObject {
         }
 
         if !Validators.isValidPhone(applicant.emergencyContactNumber) {
-            fieldErrors["emergencyContactNumber"] = "Enter a valid Singapore number (8 digits starting with 6, 8, or 9)"
+            fieldErrors["emergencyContactNumber"] = "Enter a valid phone number with country code"
             isValid = false
         } else {
             validFields.insert("emergencyContactNumber")
@@ -367,13 +387,19 @@ class RegistrationViewModel: ObservableObject {
             validFields.insert("expectedSalary")
         }
 
+        if !Validators.isNotEmpty(applicant.lastDrawnSalary) {
+            fieldErrors["lastDrawnSalary"] = "Last drawn salary is required"
+            isValid = false
+        } else {
+            validFields.insert("lastDrawnSalary")
+        }
+
         return isValid
     }
 
     private func validateDeclaration() -> Bool {
         return applicant.declarationAccuracy
             && applicant.pdpaConsent
-            && applicant.backgroundCheckConsent
             && applicant.signatureData != nil
     }
 
@@ -393,18 +419,21 @@ class RegistrationViewModel: ObservableObject {
 
             if result.success {
                 haptic.notificationOccurred(.success)
-                withAnimation(.timingCurve(0.25, 0.1, 0.25, 1.0, duration: 0.35)) {
-                    currentScreen = .confirmation
-                }
-
-                // Auto-return after 15 seconds
-                try? await Task.sleep(nanoseconds: UInt64(AppConfig.confirmationAutoReturnSeconds * 1_000_000_000))
-                if currentScreen == .confirmation {
-                    resetToWelcome()
-                }
             } else {
-                haptic.notificationOccurred(.error)
+                // Upload failed but data is saved locally as encrypted backup.
+                // Still proceed to confirmation so the applicant isn't stuck.
+                haptic.notificationOccurred(.warning)
                 submissionError = result.errorMessage
+            }
+
+            withAnimation(.timingCurve(0.25, 0.1, 0.25, 1.0, duration: 0.35)) {
+                currentScreen = .confirmation
+            }
+
+            // Auto-return after confirmation
+            try? await Task.sleep(nanoseconds: UInt64(AppConfig.confirmationAutoReturnSeconds * 1_000_000_000))
+            if currentScreen == .confirmation {
+                resetToWelcome()
             }
         }
     }
@@ -473,6 +502,15 @@ class RegistrationViewModel: ObservableObject {
 
         // Re-setup observers since the applicant object was reset
         cancellables.removeAll()
+
+        // Re-forward ApplicantData changes
+        applicant.objectWillChange
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+
         setupFieldObservers()
 
         // Re-bind idle timer publishers
