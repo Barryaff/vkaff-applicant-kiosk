@@ -63,6 +63,8 @@ struct FormNavigationBar: View {
                     }
                 }
                 .buttonStyle(SecondaryButtonStyle())
+                .accessibilityLabel("Back")
+                .accessibilityHint("Go to the previous step")
             }
 
             Spacer()
@@ -76,6 +78,9 @@ struct FormNavigationBar: View {
             }
             .buttonStyle(PrimaryButtonStyle(isEnabled: isEnabled))
             .disabled(!isEnabled)
+            .accessibilityLabel(continueTitle)
+            .accessibilityHint(isEnabled ? "Proceed to the next step" : "Complete all required fields before continuing")
+            .accessibilityValue(isEnabled ? "enabled" : "disabled")
         }
         .padding(.horizontal, 32)
         .padding(.vertical, 16)

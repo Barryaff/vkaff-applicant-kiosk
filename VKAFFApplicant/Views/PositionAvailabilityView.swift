@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PositionAvailabilityView: View {
     @EnvironmentObject var vm: RegistrationViewModel
+    @FocusState private var focusedField: PositionFocus?
 
     var body: some View {
         FormScreenLayout(
@@ -39,7 +40,9 @@ struct PositionAvailabilityView: View {
                     FormField(
                         label: "Please specify",
                         text: $vm.applicant.positionOther,
-                        placeholder: "Enter position title"
+                        placeholder: "Enter position title",
+                        positionFocusBinding: $focusedField,
+                        positionFocusValue: .positionOther
                     )
                 }
             }
@@ -57,6 +60,8 @@ struct PositionAvailabilityView: View {
                 Text("Earliest Available Start Date")
                     .formLabelStyle()
                 DatePicker("", selection: $vm.applicant.earliestStartDate, displayedComponents: .date)
+                    .datePickerStyle(.compact)
+                    .tint(.affOrange)
                     .labelsHidden()
             }
 
@@ -68,14 +73,20 @@ struct PositionAvailabilityView: View {
                     placeholder: "e.g., 3,500",
                     keyboardType: .numberPad,
                     errorMessage: vm.fieldErrors["expectedSalary"],
-                    isValid: vm.validFields.contains("expectedSalary")
+                    isValid: vm.validFields.contains("expectedSalary"),
+                    isSalaryField: true,
+                    positionFocusBinding: $focusedField,
+                    positionFocusValue: .expectedSalary
                 )
 
                 FormField(
                     label: "Last Drawn Salary (optional)",
                     text: $vm.applicant.lastDrawnSalary,
                     placeholder: "e.g., 3,000",
-                    keyboardType: .numberPad
+                    keyboardType: .numberPad,
+                    isSalaryField: true,
+                    positionFocusBinding: $focusedField,
+                    positionFocusValue: .lastDrawnSalary
                 )
             }
 
@@ -110,9 +121,37 @@ struct PositionAvailabilityView: View {
                 FormField(
                     label: "Referrer's Name",
                     text: $vm.applicant.referrerName,
-                    placeholder: "Who referred you?"
+                    placeholder: "Who referred you?",
+                    positionFocusBinding: $focusedField,
+                    positionFocusValue: .referrerName
                 )
             }
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                if focusedField != .referrerName && focusedField != .lastDrawnSalary {
+                    Button("Next") {
+                        advanceFocus()
+                    }
+                    .foregroundColor(.affOrange)
+                }
+                Spacer()
+                Button("Done") {
+                    focusedField = nil
+                }
+                .fontWeight(.semibold)
+                .foregroundColor(.affOrange)
+            }
+        }
+    }
+
+    private func advanceFocus() {
+        switch focusedField {
+        case .positionOther: focusedField = .expectedSalary
+        case .expectedSalary: focusedField = .lastDrawnSalary
+        case .lastDrawnSalary: focusedField = .referrerName
+        case .referrerName: focusedField = nil
+        case nil: break
         }
     }
 }
@@ -141,6 +180,11 @@ struct PositionCheckbox: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(position.rawValue)
+        .accessibilityValue(isSelected ? "checked" : "unchecked")
+        .accessibilityAddTraits(.isButton)
+        .accessibilityHint("Double tap to \(isSelected ? "deselect" : "select") this position")
     }
 }
 

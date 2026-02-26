@@ -17,7 +17,9 @@ struct RepeatableCardSection<T: Identifiable, Content: View>: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                     Button {
-                        withAnimation(.easeInOut(duration: 0.25)) {
+                        let haptic = UIImpactFeedbackGenerator(style: .light)
+                        haptic.impactOccurred()
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                             items.removeAll { $0.id as AnyHashable == item.id as AnyHashable }
                         }
                     } label: {
@@ -26,6 +28,8 @@ struct RepeatableCardSection<T: Identifiable, Content: View>: View {
                             .foregroundColor(.mediumGray)
                             .frame(width: 32, height: 32)
                     }
+                    .accessibilityLabel("Remove this \(title.lowercased())")
+                    .accessibilityHint("Double tap to remove")
                 }
                 .padding(20)
                 .background(
@@ -45,11 +49,20 @@ struct RepeatableCardSection<T: Identifiable, Content: View>: View {
                     RoundedRectangle(cornerRadius: 12)
                         .stroke(Color.dividerSubtle, lineWidth: 1)
                 )
+                .transition(.asymmetric(
+                    insertion: .scale(scale: 0.95, anchor: .top)
+                        .combined(with: .opacity)
+                        .combined(with: .move(edge: .top)),
+                    removal: .scale(scale: 0.95, anchor: .top)
+                        .combined(with: .opacity)
+                ))
             }
 
             if items.count < maxItems {
                 Button {
-                    withAnimation(.easeInOut(duration: 0.25)) {
+                    let haptic = UIImpactFeedbackGenerator(style: .light)
+                    haptic.impactOccurred()
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.75)) {
                         items.append(createNew())
                     }
                 } label: {
@@ -68,6 +81,8 @@ struct RepeatableCardSection<T: Identifiable, Content: View>: View {
                             .foregroundColor(.vkaPurple.opacity(0.4))
                     )
                 }
+                .accessibilityLabel("Add Another \(title)")
+                .accessibilityHint("Adds a new \(title.lowercased()) entry. \(items.count) of \(maxItems) added.")
             }
         }
     }

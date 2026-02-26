@@ -34,6 +34,8 @@ struct LanguageChipSelector: View {
                                     withAnimation(.easeInOut(duration: 0.2)) {
                                         langProf.proficiency = level
                                     }
+                                    let haptic = UISelectionFeedbackGenerator()
+                                    haptic.selectionChanged()
                                 } label: {
                                     Text(level.rawValue)
                                         .font(.system(size: 13, weight: langProf.proficiency == level ? .semibold : .regular))
@@ -47,6 +49,9 @@ struct LanguageChipSelector: View {
                                         )
                                 }
                                 .buttonStyle(.plain)
+                                .accessibilityLabel("\(langProf.displayName) proficiency: \(level.rawValue)")
+                                .accessibilityValue(langProf.proficiency == level ? "selected" : "not selected")
+                                .accessibilityAddTraits(langProf.proficiency == level ? [.isSelected] : [])
                             }
                         }
                         .padding(3)
@@ -82,6 +87,8 @@ struct LanguageChipSelector: View {
     }
 
     private func toggleLanguage(_ language: Language) {
+        let haptic = UIImpactFeedbackGenerator(style: .light)
+        haptic.impactOccurred()
         withAnimation(.easeInOut(duration: 0.2)) {
             if let index = selectedLanguages.firstIndex(where: { $0.language == language }) {
                 selectedLanguages.remove(at: index)
@@ -116,6 +123,10 @@ struct LanguageChip: View {
                 )
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(language.rawValue)
+        .accessibilityValue(isSelected ? "selected" : "not selected")
+        .accessibilityAddTraits(isSelected ? [.isSelected] : [])
+        .accessibilityHint("Double tap to \(isSelected ? "remove" : "add") \(language.rawValue)")
     }
 }
 

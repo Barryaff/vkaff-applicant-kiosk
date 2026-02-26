@@ -54,14 +54,21 @@ struct SignatureField: View {
             Text("Applicant's Signature")
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(.vkaPurple)
+                .accessibilityAddTraits(.isHeader)
 
             SignatureCanvas(signatureData: $signatureData)
                 .id(canvasKey)
                 .frame(height: 200)
                 .frame(maxWidth: 600)
+                .accessibilityLabel("Signature canvas. Draw your signature here")
+                .accessibilityAddTraits(.allowsDirectInteraction)
+                .accessibilityValue(signatureData != nil ? "Signature provided" : "No signature yet")
+                .accessibilityHint("Use your finger or Apple Pencil to draw your signature")
 
             HStack {
                 Button {
+                    let haptic = UIImpactFeedbackGenerator(style: .light)
+                    haptic.impactOccurred()
                     signatureData = nil
                     canvasKey = UUID()
                 } label: {
@@ -70,6 +77,8 @@ struct SignatureField: View {
                         .foregroundColor(.mediumGray)
                         .underline()
                 }
+                .accessibilityLabel("Clear Signature")
+                .accessibilityHint("Removes your drawn signature so you can start over")
 
                 Spacer()
 
@@ -81,6 +90,7 @@ struct SignatureField: View {
                 }())
                 .font(.system(size: 14))
                 .foregroundColor(.mediumGray)
+                .accessibilityLabel("Today's date: \({ let f = DateFormatter(); f.dateStyle = .long; return f.string(from: Date()) }())")
             }
             .frame(maxWidth: 600)
         }

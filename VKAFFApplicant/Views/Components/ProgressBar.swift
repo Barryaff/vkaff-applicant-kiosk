@@ -34,6 +34,7 @@ struct ProgressBar: View {
                                 .frame(width: 28, height: 28)
                         }
                     }
+                    .accessibilityHidden(true)
 
                     // Label
                     if UIDevice.current.userInterfaceIdiom == .pad {
@@ -41,6 +42,7 @@ struct ProgressBar: View {
                             .font(.system(size: 11, weight: index == currentStep ? .semibold : .regular))
                             .foregroundColor(index <= currentStep ? .darkText : .mediumGray)
                             .padding(.leading, 6)
+                            .accessibilityHidden(true)
                     }
 
                     // Connector line
@@ -49,12 +51,16 @@ struct ProgressBar: View {
                             .fill(index < currentStep ? Color.affOrange : Color.dividerSubtle)
                             .frame(height: 2)
                             .padding(.horizontal, 8)
+                            .accessibilityHidden(true)
                     }
                 }
             }
         }
         .padding(.vertical, 12)
         .animation(.easeInOut(duration: 0.3), value: currentStep)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Step \(currentStep + 1) of \(steps.count), \(steps[currentStep].title)")
+        .accessibilityValue(currentStep > 0 ? "\(currentStep) step\(currentStep == 1 ? "" : "s") completed" : "No steps completed")
     }
 }
 

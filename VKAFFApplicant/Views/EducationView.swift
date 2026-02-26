@@ -2,6 +2,7 @@ import SwiftUI
 
 struct EducationView: View {
     @EnvironmentObject var vm: RegistrationViewModel
+    @FocusState private var focusedField: EducationFocus?
 
     var body: some View {
         FormScreenLayout(
@@ -22,7 +23,9 @@ struct EducationView: View {
                 text: $vm.applicant.fieldOfStudy,
                 placeholder: "e.g., Chemistry, Food Science",
                 errorMessage: vm.fieldErrors["fieldOfStudy"],
-                isValid: vm.validFields.contains("fieldOfStudy")
+                isValid: vm.validFields.contains("fieldOfStudy"),
+                educationFocusBinding: $focusedField,
+                educationFocusValue: .fieldOfStudy
             )
 
             // Institution
@@ -31,7 +34,9 @@ struct EducationView: View {
                 text: $vm.applicant.institutionName,
                 placeholder: "e.g., Singapore Polytechnic",
                 errorMessage: vm.fieldErrors["institutionName"],
-                isValid: vm.validFields.contains("institutionName")
+                isValid: vm.validFields.contains("institutionName"),
+                educationFocusBinding: $focusedField,
+                educationFocusValue: .institutionName
             )
 
             // Year of Graduation
@@ -95,13 +100,40 @@ struct EducationView: View {
                 label: "Professional Certifications / Licenses (optional)",
                 text: $vm.applicant.professionalCertifications,
                 placeholder: "e.g., WSQ certifications, food safety, forklift license, ISO auditor, etc.",
-                isMultiline: true
+                isMultiline: true,
+                educationFocusBinding: $focusedField,
+                educationFocusValue: .certifications
             )
 
             // Language Proficiency
             Divider().padding(.vertical, 8)
 
             LanguageChipSelector(selectedLanguages: $vm.applicant.selectedLanguages)
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                if focusedField != .certifications {
+                    Button("Next") {
+                        advanceFocus()
+                    }
+                    .foregroundColor(.affOrange)
+                }
+                Spacer()
+                Button("Done") {
+                    focusedField = nil
+                }
+                .fontWeight(.semibold)
+                .foregroundColor(.affOrange)
+            }
+        }
+    }
+
+    private func advanceFocus() {
+        switch focusedField {
+        case .fieldOfStudy: focusedField = .institutionName
+        case .institutionName: focusedField = .certifications
+        case .certifications: focusedField = nil
+        case nil: break
         }
     }
 }

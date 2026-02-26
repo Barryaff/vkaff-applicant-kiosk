@@ -16,6 +16,7 @@
 		4F625F50BF45D2B3FEB6BD53 /* BrandButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A34E739525725A803F1B13C /* BrandButton.swift */; };
 		501A06CD8E76C78DD5A2C40D /* IdleTimerOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9582FED866714EF582607539 /* IdleTimerOverlay.swift */; };
 		55F59C7F88F02881FB81EC67 /* EncryptedBackupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E1801E46E6CCC0357E98A26 /* EncryptedBackupService.swift */; };
+		58B45C383D51B69F3EF43F86 /* EncryptedBackupServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B818E6845ED065C0D487CE8F /* EncryptedBackupServiceTests.swift */; };
 		5F8BB6B6295B431F1D2DC5DC /* ConfirmationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 339FBECB964C0FEABF6E79D4 /* ConfirmationView.swift */; };
 		6AD30A293C52B4150ADAEDC4 /* RegistrationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21D1A366F7044B891C1B0342 /* RegistrationViewModel.swift */; };
 		6E02EE4BE338B15144EF3AC8 /* ProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9501CDF6CA34761BD48E94EB /* ProgressBar.swift */; };
@@ -34,6 +35,7 @@
 		9590C3BBDE56AC658185D7FE /* GoogleDriveService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01F8CBC5A3C5E877650E4F71 /* GoogleDriveService.swift */; };
 		9637D8454E66456D5A0E4C14 /* AdminPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BB533A6F69F0C504845C5B3 /* AdminPanelView.swift */; };
 		979B16FA050B29F00205D4E5 /* FormCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = C81920E787291E763827F9D9 /* FormCard.swift */; };
+		A0DB31E76BC7ABDBEB1D32F7 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5C9B88E69590F453BC07FDA /* AppDelegate.swift */; };
 		A23D42A2CEE747C7DF0D76BB /* Validators.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2ABD18D2D98CFC641859BD2 /* Validators.swift */; };
 		A27A7024574CD994183E79C4 /* LanguageChipSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D4F1006BC0C673B940DFF4A /* LanguageChipSelector.swift */; };
 		A5485C09DD6085DA40952AAF /* PersonalDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D6A544B3902AB86F6CC958C /* PersonalDetailsView.swift */; };
@@ -49,6 +51,8 @@
 		CAD8AF66F9F0B340AFD60DCA /* PDFGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FA24492AB1FA017648F0014 /* PDFGenerator.swift */; };
 		D138382AAFEEE55F39923D29 /* SlackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51C6171C956899E2F7707A7A /* SlackService.swift */; };
 		DA6D8FCFD04493C489CE4581 /* RepeatableCardSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBB2E636BD3EB3C0E40BDFF /* RepeatableCardSection.swift */; };
+		DA99AAF0AFEA4C8F45047C4B /* IdleTimerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F37544EDD55EC904C4F85B92 /* IdleTimerTests.swift */; };
+		DDBB24031902E5183EB721F5 /* ApplicantDataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9EC628FEB1F138E5CDA3BD1 /* ApplicantDataTests.swift */; };
 		E6815CC59BE003FD5F90E7CA /* SlackConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C0FDD59A2849806114DE73C /* SlackConfig.swift */; };
 		E7A40DE97A0436BA00493866 /* SubmissionResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE2AC29C3703A43E073C8A44 /* SubmissionResult.swift */; };
 		F19EE5A8FCD9157AE5CEA13A /* VKAFFColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0C79DA68B567063F9530D4C /* VKAFFColors.swift */; };
@@ -103,6 +107,9 @@
 		9FD5A321A43934F1D21DD238 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		A854FE5627D42C76703EC6A6 /* ValidatorsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidatorsTests.swift; sourceTree = "<group>"; };
 		AE2AC29C3703A43E073C8A44 /* SubmissionResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubmissionResult.swift; sourceTree = "<group>"; };
+		B5C9B88E69590F453BC07FDA /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		B818E6845ED065C0D487CE8F /* EncryptedBackupServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncryptedBackupServiceTests.swift; sourceTree = "<group>"; };
+		B9EC628FEB1F138E5CDA3BD1 /* ApplicantDataTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicantDataTests.swift; sourceTree = "<group>"; };
 		BB22863A5D1EB9E5C9B6BB5E /* BrandedSpinner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrandedSpinner.swift; sourceTree = "<group>"; };
 		C0AC19EF4ACCD14FE504F5C4 /* WorkExperienceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkExperienceView.swift; sourceTree = "<group>"; };
 		C81920E787291E763827F9D9 /* FormCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormCard.swift; sourceTree = "<group>"; };
@@ -116,6 +123,7 @@
 		E63FE4DA5A56828F66CB2BD7 /* EducationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EducationView.swift; sourceTree = "<group>"; };
 		F2ABD18D2D98CFC641859BD2 /* Validators.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Validators.swift; sourceTree = "<group>"; };
 		F2E4E61C1E5C032DAC0C4E19 /* FormSegmented.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormSegmented.swift; sourceTree = "<group>"; };
+		F37544EDD55EC904C4F85B92 /* IdleTimerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdleTimerTests.swift; sourceTree = "<group>"; };
 		FF8B45D4F40AD4BE40714609 /* QualificationRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QualificationRecord.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -123,6 +131,9 @@
 		07988D300968F4A7717B0662 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				B9EC628FEB1F138E5CDA3BD1 /* ApplicantDataTests.swift */,
+				B818E6845ED065C0D487CE8F /* EncryptedBackupServiceTests.swift */,
+				F37544EDD55EC904C4F85B92 /* IdleTimerTests.swift */,
 				978E023413EC7B6B3E3E0B5C /* NRICMaskerTests.swift */,
 				215C425E7CA70AA2721C6355 /* ReferenceNumberGeneratorTests.swift */,
 				A854FE5627D42C76703EC6A6 /* ValidatorsTests.swift */,
@@ -161,6 +172,7 @@
 		5909F03F6D5ED6D42AB4A00B /* App */ = {
 			isa = PBXGroup;
 			children = (
+				B5C9B88E69590F453BC07FDA /* AppDelegate.swift */,
 				9FD5A321A43934F1D21DD238 /* ContentView.swift */,
 				7E0BD016938B51449904B765 /* VKAFFApplicantApp.swift */,
 			);
@@ -370,6 +382,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DDBB24031902E5183EB721F5 /* ApplicantDataTests.swift in Sources */,
+				58B45C383D51B69F3EF43F86 /* EncryptedBackupServiceTests.swift in Sources */,
+				DA99AAF0AFEA4C8F45047C4B /* IdleTimerTests.swift in Sources */,
 				3FD02A4F4E8A31754246EC13 /* NRICMaskerTests.swift in Sources */,
 				93ACF54B9A2BFE251144FCAB /* ReferenceNumberGeneratorTests.swift in Sources */,
 				8D37CF180B8B6006ED9E4A94 /* ValidatorsTests.swift in Sources */,
@@ -383,6 +398,7 @@
 				9637D8454E66456D5A0E4C14 /* AdminPanelView.swift in Sources */,
 				7AD17FE62EDE76D0A9AF5B2C /* AnimatedCheckmark.swift in Sources */,
 				70D4B28CC6C9F4A143783BE5 /* AppConfig.swift in Sources */,
+				A0DB31E76BC7ABDBEB1D32F7 /* AppDelegate.swift in Sources */,
 				7339205EBDF713F12D64C91A /* ApplicantData.swift in Sources */,
 				4F625F50BF45D2B3FEB6BD53 /* BrandButton.swift in Sources */,
 				6FD12ADC7F6B3487B620BA6A /* BrandedSpinner.swift in Sources */,

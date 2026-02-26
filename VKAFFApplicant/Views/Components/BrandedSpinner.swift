@@ -25,5 +25,7 @@ struct BrandedSpinner: View {
         .onAppear {
             rotation = 360
         }
+        .accessibilityLabel("Loading")
+        .accessibilityHidden(true)
     }
 }

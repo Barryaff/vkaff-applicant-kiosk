@@ -39,6 +39,8 @@ struct AnimatedCheckmark: View {
                 drawProgress = 1.0
             }
         }
+        .accessibilityLabel("Success checkmark")
+        .accessibilityHidden(true)
     }
 }
 

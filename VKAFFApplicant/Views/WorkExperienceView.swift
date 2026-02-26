@@ -51,6 +51,8 @@ struct WorkExperienceView: View {
                         Text("From")
                             .formLabelStyle()
                         DatePicker("", selection: $record.fromDate, displayedComponents: .date)
+                            .datePickerStyle(.compact)
+                            .tint(.affOrange)
                             .labelsHidden()
                     }
 
@@ -59,6 +61,8 @@ struct WorkExperienceView: View {
                             Text("To")
                                 .formLabelStyle()
                             DatePicker("", selection: $record.toDate, displayedComponents: .date)
+                                .datePickerStyle(.compact)
+                                .tint(.affOrange)
                                 .labelsHidden()
                         }
                     }
@@ -93,6 +97,16 @@ struct WorkExperienceView: View {
                     label: "Notice Period Required",
                     selection: $vm.applicant.noticePeriod
                 )
+            }
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") {
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                }
+                .fontWeight(.semibold)
+                .foregroundColor(.affOrange)
             }
         }
     }

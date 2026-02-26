@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PersonalDetailsView: View {
     @EnvironmentObject var vm: RegistrationViewModel
+    @FocusState private var focusedField: PersonalDetailsFocus?
 
     var body: some View {
         FormScreenLayout(
@@ -16,7 +17,9 @@ struct PersonalDetailsView: View {
                 text: $vm.applicant.fullName,
                 placeholder: "Enter your full name",
                 errorMessage: vm.fieldErrors["fullName"],
-                isValid: vm.validFields.contains("fullName")
+                isValid: vm.validFields.contains("fullName"),
+                focusBinding: $focusedField,
+                focusValue: .fullName
             )
 
             // Preferred Name
@@ -25,7 +28,9 @@ struct PersonalDetailsView: View {
                 text: $vm.applicant.preferredName,
                 placeholder: "What should we call you?",
                 errorMessage: vm.fieldErrors["preferredName"],
-                isValid: vm.validFields.contains("preferredName")
+                isValid: vm.validFields.contains("preferredName"),
+                focusBinding: $focusedField,
+                focusValue: .preferredName
             )
 
             // NRIC / FIN
@@ -33,7 +38,9 @@ struct PersonalDetailsView: View {
                 label: "NRIC / FIN Number",
                 text: $vm.applicant.nricFIN,
                 errorMessage: vm.fieldErrors["nricFIN"],
-                isValid: vm.validFields.contains("nricFIN")
+                isValid: vm.validFields.contains("nricFIN"),
+                focusBinding: $focusedField,
+                focusValue: .nricFIN
             )
 
             // Date of Birth
@@ -42,6 +49,7 @@ struct PersonalDetailsView: View {
                     .formLabelStyle()
                 DatePicker("", selection: $vm.applicant.dateOfBirth, displayedComponents: .date)
                     .datePickerStyle(.wheel)
+                    .tint(.affOrange)
                     .labelsHidden()
                     .frame(height: 120)
                     .clipped()
@@ -72,7 +80,9 @@ struct PersonalDetailsView: View {
                     placeholder: "+65",
                     keyboardType: .phonePad,
                     errorMessage: vm.fieldErrors["contactNumber"],
-                    isValid: vm.validFields.contains("contactNumber")
+                    isValid: vm.validFields.contains("contactNumber"),
+                    focusBinding: $focusedField,
+                    focusValue: .contactNumber
                 )
 
                 FormField(
@@ -81,7 +91,9 @@ struct PersonalDetailsView: View {
                     placeholder: "your@email.com",
                     keyboardType: .emailAddress,
                     errorMessage: vm.fieldErrors["emailAddress"],
-                    isValid: vm.validFields.contains("emailAddress")
+                    isValid: vm.validFields.contains("emailAddress"),
+                    focusBinding: $focusedField,
+                    focusValue: .emailAddress
                 )
             }
 
@@ -92,7 +104,9 @@ struct PersonalDetailsView: View {
                 placeholder: "Block, street, unit number",
                 isMultiline: true,
                 errorMessage: vm.fieldErrors["residentialAddress"],
-                isValid: vm.validFields.contains("residentialAddress")
+                isValid: vm.validFields.contains("residentialAddress"),
+                focusBinding: $focusedField,
+                focusValue: .residentialAddress
             )
 
             // Postal Code
@@ -102,7 +116,9 @@ struct PersonalDetailsView: View {
                 placeholder: "e.g., 408832",
                 keyboardType: .numberPad,
                 errorMessage: vm.fieldErrors["postalCode"],
-                isValid: vm.validFields.contains("postalCode")
+                isValid: vm.validFields.contains("postalCode"),
+                focusBinding: $focusedField,
+                focusValue: .postalCode
             )
 
             // Emergency Contact
@@ -116,7 +132,9 @@ struct PersonalDetailsView: View {
                 text: $vm.applicant.emergencyContactName,
                 placeholder: "Full name",
                 errorMessage: vm.fieldErrors["emergencyContactName"],
-                isValid: vm.validFields.contains("emergencyContactName")
+                isValid: vm.validFields.contains("emergencyContactName"),
+                focusBinding: $focusedField,
+                focusValue: .emergencyContactName
             )
 
             HStack(spacing: 16) {
@@ -126,7 +144,9 @@ struct PersonalDetailsView: View {
                     placeholder: "+65",
                     keyboardType: .phonePad,
                     errorMessage: vm.fieldErrors["emergencyContactNumber"],
-                    isValid: vm.validFields.contains("emergencyContactNumber")
+                    isValid: vm.validFields.contains("emergencyContactNumber"),
+                    focusBinding: $focusedField,
+                    focusValue: .emergencyContactNumber
                 )
 
                 FormDropdown(
@@ -134,6 +154,37 @@ struct PersonalDetailsView: View {
                     selection: $vm.applicant.emergencyContactRelationship
                 )
             }
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                if focusedField != .emergencyContactNumber {
+                    Button("Next") {
+                        advanceFocus()
+                    }
+                    .foregroundColor(.affOrange)
+                }
+                Spacer()
+                Button("Done") {
+                    focusedField = nil
+                }
+                .fontWeight(.semibold)
+                .foregroundColor(.affOrange)
+            }
+        }
+    }
+
+    private func advanceFocus() {
+        switch focusedField {
+        case .fullName: focusedField = .preferredName
+        case .preferredName: focusedField = .nricFIN
+        case .nricFIN: focusedField = .contactNumber
+        case .contactNumber: focusedField = .emailAddress
+        case .emailAddress: focusedField = .residentialAddress
+        case .residentialAddress: focusedField = .postalCode
+        case .postalCode: focusedField = .emergencyContactName
+        case .emergencyContactName: focusedField = .emergencyContactNumber
+        case .emergencyContactNumber: focusedField = nil
+        case nil: break
         }
     }
 }
@@ -157,6 +208,7 @@ struct FormScreenLayout<Content: View>: View {
                     .resizable()
                     .scaledToFit()
                     .frame(height: 40)
+                    .accessibilityHidden(true)
 
                 Spacer().frame(width: 24)
 
@@ -175,9 +227,11 @@ struct FormScreenLayout<Content: View>: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(title)
                             .headingStyle()
+                            .accessibilityAddTraits(.isHeader)
                         Rectangle()
                             .fill(Color.affOrange)
                             .frame(width: 40, height: 2)
+                            .accessibilityHidden(true)
                     }
                     .padding(.bottom, 24)
 
@@ -188,10 +242,12 @@ struct FormScreenLayout<Content: View>: View {
                 }
                 .padding(.horizontal, 32)
                 .padding(.vertical, 24)
+                .padding(.bottom, 100)
                 .frame(maxWidth: .infinity, alignment: .center)
             }
             .background(Color.lightBackground)
             .scrollDismissesKeyboard(.interactively)
+            .dynamicTypeSize(.large ... .accessibility3)
 
             // Bottom navigation
             FormNavigationBar(

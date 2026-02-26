@@ -5,32 +5,41 @@ struct FormSegmented<T: RawRepresentable & CaseIterable & Hashable>: View where 
     @Binding var selection: T
     var accentColor: Color = .affOrange
 
+    @Namespace private var segmentedNamespace
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(label)
                 .formLabelStyle()
+                .accessibilityHidden(true)
 
             HStack(spacing: 0) {
                 ForEach(Array(T.allCases), id: \.self) { option in
                     Button {
-                        withAnimation(.easeInOut(duration: 0.2)) {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
                             selection = option
                         }
-                        let haptic = UIImpactFeedbackGenerator(style: .light)
-                        haptic.impactOccurred()
+                        let haptic = UISelectionFeedbackGenerator()
+                        haptic.selectionChanged()
                     } label: {
                         Text(option.rawValue)
                             .font(.system(size: 15, weight: selection == option ? .semibold : .regular))
                             .foregroundColor(selection == option ? .white : .darkText)
                             .padding(.vertical, 12)
                             .frame(maxWidth: .infinity)
-                            .background(
-                                selection == option
-                                    ? AnyShape(RoundedRectangle(cornerRadius: 8)).fill(accentColor)
-                                    : AnyShape(RoundedRectangle(cornerRadius: 8)).fill(Color.clear)
-                            )
+                            .background {
+                                if selection == option {
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(accentColor)
+                                        .matchedGeometryEffect(id: "segmentIndicator", in: segmentedNamespace)
+                                }
+                            }
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel("\(label): \(option.rawValue)")
+                    .accessibilityValue(selection == option ? "selected" : "not selected")
+                    .accessibilityAddTraits(selection == option ? [.isSelected] : [])
+                    .accessibilityHint("Double tap to select \(option.rawValue)")
                 }
             }
             .padding(4)
@@ -61,6 +70,9 @@ struct FormToggle: View {
             Toggle("", isOn: $isOn)
                 .tint(.affOrange)
                 .labelsHidden()
+                .accessibilityLabel(label)
+                .accessibilityValue(isOn ? "on" : "off")
+                .accessibilityHint("Double tap to toggle")
         }
         .padding(.vertical, 4)
     }

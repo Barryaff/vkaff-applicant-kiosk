@@ -72,6 +72,11 @@ struct DeclarationConsentView: View {
                         .padding(.vertical, 4)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("Medical condition: \(option.rawValue)")
+                    .accessibilityValue(vm.applicant.hasMedicalCondition == option ? "selected" : "not selected")
+                    .accessibilityAddTraits(vm.applicant.hasMedicalCondition == option ? [.isButton, .isSelected] : [.isButton])
+                    .accessibilityHint("Double tap to select \(option.rawValue)")
                 }
 
                 if vm.applicant.hasMedicalCondition == .yes {
@@ -94,6 +99,17 @@ struct DeclarationConsentView: View {
                     .font(.system(size: 14))
                     .foregroundColor(.mediumGray)
                     .padding(.top, 8)
+                    .accessibilityLabel("Please complete all declarations and provide your signature to submit.")
+            }
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") {
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                }
+                .fontWeight(.semibold)
+                .foregroundColor(.affOrange)
             }
         }
     }
@@ -111,6 +127,7 @@ struct ConsentBlock: View {
             Text(title)
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(.vkaPurple)
+                .accessibilityAddTraits(.isHeader)
 
             Text(consentText)
                 .font(.system(size: 16, weight: .regular))
@@ -135,6 +152,11 @@ struct ConsentBlock: View {
                 .padding(.vertical, 4)
             }
             .buttonStyle(.plain)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("\(title): \(title.contains("PDPA") ? "I consent" : "I agree")")
+            .accessibilityValue(isChecked ? "checked" : "unchecked")
+            .accessibilityAddTraits(.isButton)
+            .accessibilityHint("Double tap to \(isChecked ? "uncheck" : "check")")
         }
         .padding(.bottom, 16)
     }
