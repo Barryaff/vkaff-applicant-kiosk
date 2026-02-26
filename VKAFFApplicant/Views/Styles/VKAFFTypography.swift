@@ -5,13 +5,13 @@ import SwiftUI
 struct HeadingStyle: ViewModifier {
     var size: CGFloat = 28
     var weight: Font.Weight = .semibold
-    var color: Color = .vkaPurple
+    var color: Color = .navy
 
     func body(content: Content) -> some View {
         content
             .font(.system(size: size, weight: weight, design: .default))
             .foregroundColor(color)
-            .tracking(0.5)
+            .tracking(-0.5)
     }
 }
 
@@ -19,8 +19,8 @@ struct SubheadingStyle: ViewModifier {
     func body(content: Content) -> some View {
         content
             .font(.system(size: 22, weight: .medium, design: .default))
-            .foregroundColor(.vkaPurple)
-            .tracking(0.3)
+            .foregroundColor(.navy)
+            .tracking(-0.3)
     }
 }
 
@@ -29,6 +29,7 @@ struct BodyStyle: ViewModifier {
         content
             .font(.system(size: 17, weight: .regular, design: .default))
             .foregroundColor(.darkText)
+            .lineSpacing(4)
     }
 }
 
@@ -36,7 +37,17 @@ struct LabelStyle: ViewModifier {
     func body(content: Content) -> some View {
         content
             .font(.system(size: 15, weight: .medium, design: .default))
-            .foregroundColor(.mediumGray)
+            .foregroundColor(.bodyGray)
+    }
+}
+
+struct SectionLabelStyle: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .font(.system(size: 11, weight: .semibold, design: .default))
+            .foregroundColor(.gold)
+            .tracking(3)
+            .textCase(.uppercase)
     }
 }
 
@@ -52,7 +63,7 @@ struct CaptionStyle: ViewModifier {
     func body(content: Content) -> some View {
         content
             .font(.system(size: 14, weight: .regular, design: .default))
-            .foregroundColor(.mediumGray)
+            .foregroundColor(.bodyGray)
     }
 }
 
@@ -73,6 +84,10 @@ extension View {
 
     func formLabelStyle() -> some View {
         modifier(LabelStyle())
+    }
+
+    func sectionLabelStyle() -> some View {
+        modifier(SectionLabelStyle())
     }
 
     func inputStyle() -> some View {

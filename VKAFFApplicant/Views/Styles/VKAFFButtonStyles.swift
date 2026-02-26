@@ -7,39 +7,44 @@ struct PrimaryButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 20, weight: .semibold))
+            .font(.system(size: 16, weight: .semibold))
+            .tracking(1.5)
+            .textCase(.uppercase)
             .foregroundColor(.white)
-            .padding(.horizontal, 48)
+            .padding(.horizontal, 40)
             .padding(.vertical, 16)
             .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(isEnabled ? (configuration.isPressed ? Color.orangePress : Color.affOrange) : Color.gray.opacity(0.4))
-                    .shadow(color: isEnabled ? Color.affOrange.opacity(0.3) : .clear, radius: 8, x: 0, y: 4)
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(isEnabled ? (configuration.isPressed ? Color.orangePress : Color.affOrange) : Color.bodyGray.opacity(0.3))
             )
-            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
-            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(isEnabled ? Color.affOrange : Color.bodyGray.opacity(0.2), lineWidth: 1.5)
+            )
+            .offset(y: configuration.isPressed ? 0 : -1)
+            .animation(.timingCurve(0.16, 1, 0.3, 1, duration: 0.4), value: configuration.isPressed)
     }
 }
 
-// MARK: - Secondary Button (Purple Outlined)
+// MARK: - Secondary Button (Outlined)
 
 struct SecondaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 18, weight: .medium))
-            .foregroundColor(configuration.isPressed ? .purpleDeep : .vkaPurple)
-            .padding(.horizontal, 36)
+            .font(.system(size: 15, weight: .medium))
+            .tracking(1)
+            .foregroundColor(configuration.isPressed ? .affOrange : .navy)
+            .padding(.horizontal, 32)
             .padding(.vertical, 14)
             .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.vkaPurple, lineWidth: 1.5)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(configuration.isPressed ? Color.purpleLight : .clear)
-                    )
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(configuration.isPressed ? Color.orangeLight : .clear)
             )
-            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
-            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(configuration.isPressed ? Color.affOrange : Color.dividerSubtle, lineWidth: 1.5)
+            )
+            .animation(.timingCurve(0.16, 1, 0.3, 1, duration: 0.4), value: configuration.isPressed)
     }
 }
 
@@ -48,16 +53,16 @@ struct SecondaryButtonStyle: ButtonStyle {
 struct DestructiveButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 16, weight: .medium))
-            .foregroundColor(configuration.isPressed ? .errorRed : .mediumGray)
+            .font(.system(size: 14, weight: .medium))
+            .tracking(0.5)
+            .foregroundColor(configuration.isPressed ? .errorRed : .bodyGray)
             .padding(.horizontal, 24)
             .padding(.vertical, 10)
             .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(Color.dividerSubtle, lineWidth: 1)
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(configuration.isPressed ? Color.errorRed.opacity(0.5) : Color.dividerSubtle, lineWidth: 1)
             )
-            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
-            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
+            .animation(.timingCurve(0.16, 1, 0.3, 1, duration: 0.4), value: configuration.isPressed)
     }
 }
 
@@ -66,16 +71,21 @@ struct DestructiveButtonStyle: ButtonStyle {
 struct LargeCTAButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 20, weight: .semibold))
-            .foregroundColor(.white)
+            .font(.system(size: 14, weight: .semibold))
+            .tracking(3)
+            .textCase(.uppercase)
+            .foregroundColor(configuration.isPressed ? .navy : .white)
             .padding(.horizontal, 56)
             .padding(.vertical, 20)
             .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(configuration.isPressed ? Color.orangePress : Color.affOrange)
-                    .shadow(color: .black.opacity(0.1), radius: 12, x: 0, y: 4)
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(configuration.isPressed ? Color.gold : Color.affOrange)
             )
-            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
-            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
+            .overlay(
+                RoundedRectangle(cornerRadius: 6)
+                    .stroke(Color.white.opacity(0.15), lineWidth: 1)
+            )
+            .offset(y: configuration.isPressed ? 0 : -2)
+            .animation(.timingCurve(0.16, 1, 0.3, 1, duration: 0.4), value: configuration.isPressed)
     }
 }

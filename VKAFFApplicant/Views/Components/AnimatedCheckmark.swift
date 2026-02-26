@@ -7,26 +7,26 @@ struct AnimatedCheckmark: View {
 
     var body: some View {
         ZStack {
-            // Outer white ring
+            // Outer gold ring
             Circle()
-                .stroke(Color.white, lineWidth: 3)
+                .stroke(Color.gold.opacity(0.3), lineWidth: 1.5)
                 .frame(width: 100, height: 100)
                 .scaleEffect(circleScale)
                 .opacity(circleOpacity)
 
-            // Purple filled circle
+            // Navy filled circle
             Circle()
-                .fill(Color.vkaPurple)
+                .fill(Color.navyLight)
                 .frame(width: 90, height: 90)
                 .scaleEffect(circleScale)
                 .opacity(circleOpacity)
 
-            // Orange checkmark
+            // Gold checkmark
             CheckmarkShape()
                 .trim(from: 0, to: drawProgress)
                 .stroke(
-                    Color.affOrange,
-                    style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round)
+                    Color.gold,
+                    style: StrokeStyle(lineWidth: 3.5, lineCap: .round, lineJoin: .round)
                 )
                 .frame(width: 40, height: 30)
         }

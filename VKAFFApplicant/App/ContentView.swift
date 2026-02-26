@@ -112,14 +112,15 @@ struct ContentView: View {
 
     private var submissionOverlay: some View {
         ZStack {
-            Color.vkaPurple.opacity(0.85)
+            Color.navy.opacity(0.92)
                 .ignoresSafeArea()
 
             VStack(spacing: 24) {
                 BrandedSpinner()
                 Text("Submitting your application...")
-                    .font(.system(size: 18, weight: .medium, design: .default))
-                    .foregroundColor(.white)
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundColor(.white.opacity(0.7))
+                    .tracking(0.5)
             }
         }
         .accessibilityElement(children: .ignore)

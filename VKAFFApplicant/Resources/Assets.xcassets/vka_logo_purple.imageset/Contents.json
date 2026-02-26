@@ -1,10 +1,12 @@
 {
   "images" : [
     {
+      "filename" : "VKA_Logo_Main_Purple.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
+      "filename" : "VKA_Logo_Main_Purple@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },

@@ -85,9 +85,14 @@ struct FormNavigationBar: View {
         .padding(.horizontal, 32)
         .padding(.vertical, 16)
         .background(
-            Rectangle()
-                .fill(.ultraThinMaterial)
-                .ignoresSafeArea(edges: .bottom)
+            VStack(spacing: 0) {
+                Rectangle()
+                    .fill(Color.dividerSubtle)
+                    .frame(height: 1)
+                Rectangle()
+                    .fill(Color.white)
+                    .ignoresSafeArea(edges: .bottom)
+            }
         )
     }
 }

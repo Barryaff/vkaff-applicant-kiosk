@@ -2,19 +2,28 @@ import SwiftUI
 
 extension Color {
     // MARK: - Brand Primary
-    static let affOrange = Color(hex: "D64C01")
+    static let affOrange = Color(hex: "D64C00")
     static let vkaPurple = Color(hex: "462E8C")
 
+    // MARK: - Premium Palette (from VKAFF website)
+    static let navy = Color(hex: "1A0A2E")
+    static let navyLight = Color(hex: "2D1550")
+    static let gold = Color(hex: "C4A265")
+    static let goldLight = Color(hex: "D4B87A")
+    static let goldDark = Color(hex: "A68A4E")
+
     // MARK: - Extended Palette
-    static let orangeLight = Color(hex: "F5E6D9")
+    static let orangeLight = Color(hex: "FFF5EE")
     static let orangePress = Color(hex: "B84000")
     static let purpleLight = Color(hex: "EDE8F5")
     static let purpleDeep = Color(hex: "2E1D5E")
     static let darkText = Color(hex: "1A1A1A")
+    static let bodyGray = Color(hex: "6B7280")
     static let mediumGray = Color(hex: "6B7280")
     static let lightBackground = Color(hex: "FAFAF8")
+    static let cream = Color(hex: "F5F0F8")
     static let cardWhite = Color.white
-    static let successGreen = Color(hex: "1B7A3D")
+    static let successGreen = Color(hex: "2D5A3D")
     static let errorRed = Color(hex: "C0392B")
     static let dividerSubtle = Color(hex: "E5E7EB")
 

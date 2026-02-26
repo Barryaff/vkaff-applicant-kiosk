@@ -12,7 +12,7 @@ struct BrandedSpinner: View {
             Circle()
                 .trim(from: 0, to: 0.3)
                 .stroke(
-                    Color.affOrange,
+                    Color.gold,
                     style: StrokeStyle(lineWidth: 4, lineCap: .round)
                 )
                 .frame(width: 48, height: 48)

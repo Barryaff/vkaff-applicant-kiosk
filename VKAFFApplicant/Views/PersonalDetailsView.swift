@@ -202,38 +202,54 @@ struct FormScreenLayout<Content: View>: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Top bar
-            HStack(alignment: .center) {
-                Image("aff_logo_orange")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(height: 40)
-                    .accessibilityHidden(true)
+            // Premium top bar
+            VStack(spacing: 0) {
+                HStack(alignment: .center) {
+                    // VKA logo (compact for form screens)
+                    Image("vka_logo_purple")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 28)
+                        .accessibilityHidden(true)
 
-                Spacer().frame(width: 24)
+                    Spacer().frame(width: 32)
 
-                ProgressBar(currentStep: stepIndex)
-                    .frame(maxWidth: .infinity)
+                    ProgressBar(currentStep: stepIndex)
+                        .frame(maxWidth: .infinity)
+                }
+                .padding(.horizontal, 32)
+                .padding(.top, 16)
+                .padding(.bottom, 12)
+
+                // Subtle bottom border
+                Rectangle()
+                    .fill(Color.dividerSubtle)
+                    .frame(height: 1)
             }
-            .padding(.horizontal, 32)
-            .padding(.top, 16)
-            .padding(.bottom, 8)
-            .background(Color.lightBackground)
+            .background(Color.white)
 
             // Scrollable content
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    // Section title
-                    VStack(alignment: .leading, spacing: 8) {
+                    // Section label + title
+                    VStack(alignment: .leading, spacing: 10) {
+                        // Gold uppercase section label
+                        Text("STEP \(stepIndex + 1)")
+                            .font(.system(size: 11, weight: .semibold))
+                            .tracking(3)
+                            .foregroundColor(.gold)
+                            .accessibilityHidden(true)
+
                         Text(title)
-                            .headingStyle()
+                            .headingStyle(size: 30)
                             .accessibilityAddTraits(.isHeader)
+
                         Rectangle()
                             .fill(Color.affOrange)
-                            .frame(width: 40, height: 2)
+                            .frame(width: 48, height: 2)
                             .accessibilityHidden(true)
                     }
-                    .padding(.bottom, 24)
+                    .padding(.bottom, 28)
 
                     // Form card
                     FormCard {
@@ -241,7 +257,7 @@ struct FormScreenLayout<Content: View>: View {
                     }
                 }
                 .padding(.horizontal, 32)
-                .padding(.vertical, 24)
+                .padding(.vertical, 28)
                 .padding(.bottom, 100)
                 .frame(maxWidth: .infinity, alignment: .center)
             }

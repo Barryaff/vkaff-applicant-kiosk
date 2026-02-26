@@ -11,18 +11,19 @@ struct IdleTimerOverlay: View {
 
             VStack(spacing: 24) {
                 Image(systemName: "clock.arrow.circlepath")
-                    .font(.system(size: 48))
-                    .foregroundColor(.affOrange)
+                    .font(.system(size: 44))
+                    .foregroundColor(.gold)
                     .accessibilityHidden(true)
 
                 Text("Are you still here?")
-                    .font(.system(size: 28, weight: .semibold))
+                    .font(.system(size: 26, weight: .semibold))
                     .foregroundColor(.white)
+                    .tracking(-0.3)
                     .accessibilityAddTraits(.isHeader)
 
                 Text("Your session will reset in \(vm.idleCountdown) seconds")
-                    .font(.system(size: 18, weight: .regular))
-                    .foregroundColor(.white.opacity(0.7))
+                    .font(.system(size: 17, weight: .regular))
+                    .foregroundColor(.white.opacity(0.5))
                     .accessibilityLabel("Your session will reset in \(vm.idleCountdown) seconds")
 
                 Button {
@@ -39,8 +40,8 @@ struct IdleTimerOverlay: View {
             }
             .padding(48)
             .background(
-                RoundedRectangle(cornerRadius: 24)
-                    .fill(Color.purpleDeep)
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.navy)
             )
             .accessibilityElement(children: .contain)
             .accessibilityAddTraits(.isModal)

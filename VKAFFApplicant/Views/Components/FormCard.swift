@@ -13,9 +13,13 @@ struct FormCard<Content: View>: View {
         }
         .padding(32)
         .background(
-            RoundedRectangle(cornerRadius: 20)
+            RoundedRectangle(cornerRadius: 12)
                 .fill(Color.cardWhite)
-                .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.black.opacity(0.04), lineWidth: 1)
+                )
+                .shadow(color: .black.opacity(0.03), radius: 12, x: 0, y: 4)
         )
         .frame(maxWidth: 720)
     }
