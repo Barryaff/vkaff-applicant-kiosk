@@ -1,0 +1,678 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		05019D8B2F765979AC97AB21 /* FormDropdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C964766EE4EDD12BB823058 /* FormDropdown.swift */; };
+		1FAC174EB29BC6A3B0248D88 /* ReferenceNumberGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CB4E34498DF9DF96C851BE5 /* ReferenceNumberGenerator.swift */; };
+		25E32C6E2B2E4E971CD5462C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CEEC421861DE9D6DB4162742 /* Assets.xcassets */; };
+		3E61855EBFCA08BA17134B1A /* EmploymentRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84796D9B7C7E159A3FDEA19E /* EmploymentRecord.swift */; };
+		3FD02A4F4E8A31754246EC13 /* NRICMaskerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 978E023413EC7B6B3E3E0B5C /* NRICMaskerTests.swift */; };
+		443E87FF8FE4B04011AD477B /* FormSegmented.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2E4E61C1E5C032DAC0C4E19 /* FormSegmented.swift */; };
+		4F625F50BF45D2B3FEB6BD53 /* BrandButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A34E739525725A803F1B13C /* BrandButton.swift */; };
+		501A06CD8E76C78DD5A2C40D /* IdleTimerOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9582FED866714EF582607539 /* IdleTimerOverlay.swift */; };
+		55F59C7F88F02881FB81EC67 /* EncryptedBackupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E1801E46E6CCC0357E98A26 /* EncryptedBackupService.swift */; };
+		5F8BB6B6295B431F1D2DC5DC /* ConfirmationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 339FBECB964C0FEABF6E79D4 /* ConfirmationView.swift */; };
+		6AD30A293C52B4150ADAEDC4 /* RegistrationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21D1A366F7044B891C1B0342 /* RegistrationViewModel.swift */; };
+		6E02EE4BE338B15144EF3AC8 /* ProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9501CDF6CA34761BD48E94EB /* ProgressBar.swift */; };
+		6FD12ADC7F6B3487B620BA6A /* BrandedSpinner.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB22863A5D1EB9E5C9B6BB5E /* BrandedSpinner.swift */; };
+		70D4B28CC6C9F4A143783BE5 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C8B2B5124FD8D348067A366 /* AppConfig.swift */; };
+		7339205EBDF713F12D64C91A /* ApplicantData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F47CADCA9961633A664C30E /* ApplicantData.swift */; };
+		7906D77E68483CCE72A63AD6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FD5A321A43934F1D21DD238 /* ContentView.swift */; };
+		7AD17FE62EDE76D0A9AF5B2C /* AnimatedCheckmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = 156DFF3BCBB149F0DB8F1882 /* AnimatedCheckmark.swift */; };
+		7DF722E4BBDC05B80DAB582A /* PositionAvailabilityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAA27C88D2F2FBA39B20A4F3 /* PositionAvailabilityView.swift */; };
+		8C2AF886210E8113F4B72BD6 /* DeclarationConsentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726232589EF5CBEC76C626C1 /* DeclarationConsentView.swift */; };
+		8D37CF180B8B6006ED9E4A94 /* ValidatorsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A854FE5627D42C76703EC6A6 /* ValidatorsTests.swift */; };
+		8F0B9B83A26A0A7F1FA92242 /* VKAFFApplicantApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E0BD016938B51449904B765 /* VKAFFApplicantApp.swift */; };
+		90574BF39332BC8B033916CD /* FormField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FF6F03231A4C1AF47744B25 /* FormField.swift */; };
+		93ACF54B9A2BFE251144FCAB /* ReferenceNumberGeneratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 215C425E7CA70AA2721C6355 /* ReferenceNumberGeneratorTests.swift */; };
+		94B959C6F911F7478F51775C /* IdleTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBB43DE7074A8651C9E93B22 /* IdleTimer.swift */; };
+		9590C3BBDE56AC658185D7FE /* GoogleDriveService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01F8CBC5A3C5E877650E4F71 /* GoogleDriveService.swift */; };
+		9637D8454E66456D5A0E4C14 /* AdminPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BB533A6F69F0C504845C5B3 /* AdminPanelView.swift */; };
+		979B16FA050B29F00205D4E5 /* FormCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = C81920E787291E763827F9D9 /* FormCard.swift */; };
+		A23D42A2CEE747C7DF0D76BB /* Validators.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2ABD18D2D98CFC641859BD2 /* Validators.swift */; };
+		A27A7024574CD994183E79C4 /* LanguageChipSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D4F1006BC0C673B940DFF4A /* LanguageChipSelector.swift */; };
+		A5485C09DD6085DA40952AAF /* PersonalDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D6A544B3902AB86F6CC958C /* PersonalDetailsView.swift */; };
+		A5D3D551A11321C3BB607153 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4A0FC92BE33ECC8C600E7A6 /* WelcomeView.swift */; };
+		A6E85D967809B0464B69D7F1 /* VKAFFButtonStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = C845F9C319BA460A572ABB52 /* VKAFFButtonStyles.swift */; };
+		A9CA68B3497485EA21C88102 /* QualificationRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF8B45D4F40AD4BE40714609 /* QualificationRecord.swift */; };
+		AD1F13309B556C031E740DC1 /* WorkExperienceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0AC19EF4ACCD14FE504F5C4 /* WorkExperienceView.swift */; };
+		B23D404C71E54D8817A595DD /* GoogleDriveConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30C2C0581237420A748C5FC0 /* GoogleDriveConfig.swift */; };
+		B5C459304F1BDE41061B4128 /* VKAFFTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 706DD31C0A342891EBCAAF25 /* VKAFFTypography.swift */; };
+		BA75A7C49B73F4B12BC30CF9 /* SignatureCanvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E7854E7B7C5E8EFD8E8DE66 /* SignatureCanvas.swift */; };
+		BB6639E196DFF56D49085B21 /* EducationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E63FE4DA5A56828F66CB2BD7 /* EducationView.swift */; };
+		C2BE404033E2DBA7044B86C4 /* NRICMasker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607C7F12741474176131E476 /* NRICMasker.swift */; };
+		CAD8AF66F9F0B340AFD60DCA /* PDFGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FA24492AB1FA017648F0014 /* PDFGenerator.swift */; };
+		D138382AAFEEE55F39923D29 /* SlackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51C6171C956899E2F7707A7A /* SlackService.swift */; };
+		DA6D8FCFD04493C489CE4581 /* RepeatableCardSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBB2E636BD3EB3C0E40BDFF /* RepeatableCardSection.swift */; };
+		E6815CC59BE003FD5F90E7CA /* SlackConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C0FDD59A2849806114DE73C /* SlackConfig.swift */; };
+		E7A40DE97A0436BA00493866 /* SubmissionResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE2AC29C3703A43E073C8A44 /* SubmissionResult.swift */; };
+		F19EE5A8FCD9157AE5CEA13A /* VKAFFColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0C79DA68B567063F9530D4C /* VKAFFColors.swift */; };
+		F91AB82FF0424D385D89EE1D /* LanguageProficiency.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC05F8C52588E0E3DBE863ED /* LanguageProficiency.swift */; };
+		FF8E1914AB0B8AFBA5A3A84F /* SubmissionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 002C58853F04A85E9021D9CB /* SubmissionViewModel.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		70560E6BED68F6D8617DEA15 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EA015FDB7D9B3DD97C5E7D2E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3B8E8D44A02F4FDF52AAE83D;
+			remoteInfo = VKAFFApplicant;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		002C58853F04A85E9021D9CB /* SubmissionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubmissionViewModel.swift; sourceTree = "<group>"; };
+		01F8CBC5A3C5E877650E4F71 /* GoogleDriveService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleDriveService.swift; sourceTree = "<group>"; };
+		0BB533A6F69F0C504845C5B3 /* AdminPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminPanelView.swift; sourceTree = "<group>"; };
+		0E1801E46E6CCC0357E98A26 /* EncryptedBackupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncryptedBackupService.swift; sourceTree = "<group>"; };
+		156DFF3BCBB149F0DB8F1882 /* AnimatedCheckmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimatedCheckmark.swift; sourceTree = "<group>"; };
+		215C425E7CA70AA2721C6355 /* ReferenceNumberGeneratorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceNumberGeneratorTests.swift; sourceTree = "<group>"; };
+		21D1A366F7044B891C1B0342 /* RegistrationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationViewModel.swift; sourceTree = "<group>"; };
+		2C0FDD59A2849806114DE73C /* SlackConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlackConfig.swift; sourceTree = "<group>"; };
+		2E7854E7B7C5E8EFD8E8DE66 /* SignatureCanvas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignatureCanvas.swift; sourceTree = "<group>"; };
+		2FF6F03231A4C1AF47744B25 /* FormField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormField.swift; sourceTree = "<group>"; };
+		30C2C0581237420A748C5FC0 /* GoogleDriveConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleDriveConfig.swift; sourceTree = "<group>"; };
+		339FBECB964C0FEABF6E79D4 /* ConfirmationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfirmationView.swift; sourceTree = "<group>"; };
+		3CB4E34498DF9DF96C851BE5 /* ReferenceNumberGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceNumberGenerator.swift; sourceTree = "<group>"; };
+		4A34E739525725A803F1B13C /* BrandButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrandButton.swift; sourceTree = "<group>"; };
+		4B308AD6BF945C7817336355 /* VKAFFApplicant.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = VKAFFApplicant.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4FA24492AB1FA017648F0014 /* PDFGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFGenerator.swift; sourceTree = "<group>"; };
+		51C6171C956899E2F7707A7A /* SlackService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlackService.swift; sourceTree = "<group>"; };
+		5EBB2E636BD3EB3C0E40BDFF /* RepeatableCardSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepeatableCardSection.swift; sourceTree = "<group>"; };
+		607C7F12741474176131E476 /* NRICMasker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NRICMasker.swift; sourceTree = "<group>"; };
+		6C964766EE4EDD12BB823058 /* FormDropdown.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormDropdown.swift; sourceTree = "<group>"; };
+		706DD31C0A342891EBCAAF25 /* VKAFFTypography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VKAFFTypography.swift; sourceTree = "<group>"; };
+		726232589EF5CBEC76C626C1 /* DeclarationConsentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeclarationConsentView.swift; sourceTree = "<group>"; };
+		7D4F1006BC0C673B940DFF4A /* LanguageChipSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguageChipSelector.swift; sourceTree = "<group>"; };
+		7D6A544B3902AB86F6CC958C /* PersonalDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalDetailsView.swift; sourceTree = "<group>"; };
+		7E0BD016938B51449904B765 /* VKAFFApplicantApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VKAFFApplicantApp.swift; sourceTree = "<group>"; };
+		7F47CADCA9961633A664C30E /* ApplicantData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicantData.swift; sourceTree = "<group>"; };
+		84796D9B7C7E159A3FDEA19E /* EmploymentRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmploymentRecord.swift; sourceTree = "<group>"; };
+		8C8B2B5124FD8D348067A366 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
+		9501CDF6CA34761BD48E94EB /* ProgressBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressBar.swift; sourceTree = "<group>"; };
+		9582FED866714EF582607539 /* IdleTimerOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdleTimerOverlay.swift; sourceTree = "<group>"; };
+		978E023413EC7B6B3E3E0B5C /* NRICMaskerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NRICMaskerTests.swift; sourceTree = "<group>"; };
+		97AB50B2FF80BB93D74C5F6C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		984DC097CA26D525E147BBD1 /* VKAFFApplicantTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = VKAFFApplicantTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9FD5A321A43934F1D21DD238 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A854FE5627D42C76703EC6A6 /* ValidatorsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidatorsTests.swift; sourceTree = "<group>"; };
+		AE2AC29C3703A43E073C8A44 /* SubmissionResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubmissionResult.swift; sourceTree = "<group>"; };
+		BB22863A5D1EB9E5C9B6BB5E /* BrandedSpinner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrandedSpinner.swift; sourceTree = "<group>"; };
+		C0AC19EF4ACCD14FE504F5C4 /* WorkExperienceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkExperienceView.swift; sourceTree = "<group>"; };
+		C81920E787291E763827F9D9 /* FormCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormCard.swift; sourceTree = "<group>"; };
+		C845F9C319BA460A572ABB52 /* VKAFFButtonStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VKAFFButtonStyles.swift; sourceTree = "<group>"; };
+		CBB43DE7074A8651C9E93B22 /* IdleTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdleTimer.swift; sourceTree = "<group>"; };
+		CEEC421861DE9D6DB4162742 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		DAA27C88D2F2FBA39B20A4F3 /* PositionAvailabilityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PositionAvailabilityView.swift; sourceTree = "<group>"; };
+		DC05F8C52588E0E3DBE863ED /* LanguageProficiency.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguageProficiency.swift; sourceTree = "<group>"; };
+		E0C79DA68B567063F9530D4C /* VKAFFColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VKAFFColors.swift; sourceTree = "<group>"; };
+		E4A0FC92BE33ECC8C600E7A6 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
+		E63FE4DA5A56828F66CB2BD7 /* EducationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EducationView.swift; sourceTree = "<group>"; };
+		F2ABD18D2D98CFC641859BD2 /* Validators.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Validators.swift; sourceTree = "<group>"; };
+		F2E4E61C1E5C032DAC0C4E19 /* FormSegmented.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormSegmented.swift; sourceTree = "<group>"; };
+		FF8B45D4F40AD4BE40714609 /* QualificationRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QualificationRecord.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		07988D300968F4A7717B0662 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				978E023413EC7B6B3E3E0B5C /* NRICMaskerTests.swift */,
+				215C425E7CA70AA2721C6355 /* ReferenceNumberGeneratorTests.swift */,
+				A854FE5627D42C76703EC6A6 /* ValidatorsTests.swift */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		413A0692A776790B11409987 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				CBB43DE7074A8651C9E93B22 /* IdleTimer.swift */,
+				607C7F12741474176131E476 /* NRICMasker.swift */,
+				3CB4E34498DF9DF96C851BE5 /* ReferenceNumberGenerator.swift */,
+				F2ABD18D2D98CFC641859BD2 /* Validators.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		567ADC27E332EDAA82F4BE6D /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				0BB533A6F69F0C504845C5B3 /* AdminPanelView.swift */,
+				339FBECB964C0FEABF6E79D4 /* ConfirmationView.swift */,
+				726232589EF5CBEC76C626C1 /* DeclarationConsentView.swift */,
+				E63FE4DA5A56828F66CB2BD7 /* EducationView.swift */,
+				7D6A544B3902AB86F6CC958C /* PersonalDetailsView.swift */,
+				DAA27C88D2F2FBA39B20A4F3 /* PositionAvailabilityView.swift */,
+				E4A0FC92BE33ECC8C600E7A6 /* WelcomeView.swift */,
+				C0AC19EF4ACCD14FE504F5C4 /* WorkExperienceView.swift */,
+				B0B28D8A19D4C3B15154F3FC /* Components */,
+				D3F4251904CC60565022B8CE /* Styles */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		5909F03F6D5ED6D42AB4A00B /* App */ = {
+			isa = PBXGroup;
+			children = (
+				9FD5A321A43934F1D21DD238 /* ContentView.swift */,
+				7E0BD016938B51449904B765 /* VKAFFApplicantApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		66BE1AF23BA675AC0EA5BE22 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				7F47CADCA9961633A664C30E /* ApplicantData.swift */,
+				84796D9B7C7E159A3FDEA19E /* EmploymentRecord.swift */,
+				DC05F8C52588E0E3DBE863ED /* LanguageProficiency.swift */,
+				FF8B45D4F40AD4BE40714609 /* QualificationRecord.swift */,
+				AE2AC29C3703A43E073C8A44 /* SubmissionResult.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		6982F43E2A0D94195310EB78 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				8C8B2B5124FD8D348067A366 /* AppConfig.swift */,
+				30C2C0581237420A748C5FC0 /* GoogleDriveConfig.swift */,
+				2C0FDD59A2849806114DE73C /* SlackConfig.swift */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+		98B46493A4886E5E4A7B4370 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				4B308AD6BF945C7817336355 /* VKAFFApplicant.app */,
+				984DC097CA26D525E147BBD1 /* VKAFFApplicantTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		B0B28D8A19D4C3B15154F3FC /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				156DFF3BCBB149F0DB8F1882 /* AnimatedCheckmark.swift */,
+				4A34E739525725A803F1B13C /* BrandButton.swift */,
+				BB22863A5D1EB9E5C9B6BB5E /* BrandedSpinner.swift */,
+				C81920E787291E763827F9D9 /* FormCard.swift */,
+				6C964766EE4EDD12BB823058 /* FormDropdown.swift */,
+				2FF6F03231A4C1AF47744B25 /* FormField.swift */,
+				F2E4E61C1E5C032DAC0C4E19 /* FormSegmented.swift */,
+				9582FED866714EF582607539 /* IdleTimerOverlay.swift */,
+				7D4F1006BC0C673B940DFF4A /* LanguageChipSelector.swift */,
+				9501CDF6CA34761BD48E94EB /* ProgressBar.swift */,
+				5EBB2E636BD3EB3C0E40BDFF /* RepeatableCardSection.swift */,
+				2E7854E7B7C5E8EFD8E8DE66 /* SignatureCanvas.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		B6270E039DCC2E7B3ABC3B8F = {
+			isa = PBXGroup;
+			children = (
+				C2716D77ED195781D2599AC0 /* VKAFFApplicant */,
+				98B46493A4886E5E4A7B4370 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		C2716D77ED195781D2599AC0 /* VKAFFApplicant */ = {
+			isa = PBXGroup;
+			children = (
+				97AB50B2FF80BB93D74C5F6C /* Info.plist */,
+				5909F03F6D5ED6D42AB4A00B /* App */,
+				6982F43E2A0D94195310EB78 /* Config */,
+				66BE1AF23BA675AC0EA5BE22 /* Models */,
+				E453BABCA5834E9F35B5A34A /* Resources */,
+				DC1BFB562B0B7D34EFA4E1CD /* Services */,
+				07988D300968F4A7717B0662 /* Tests */,
+				413A0692A776790B11409987 /* Utilities */,
+				F65965EF5D6AC95887F1E21E /* ViewModels */,
+				567ADC27E332EDAA82F4BE6D /* Views */,
+			);
+			path = VKAFFApplicant;
+			sourceTree = "<group>";
+		};
+		D3F4251904CC60565022B8CE /* Styles */ = {
+			isa = PBXGroup;
+			children = (
+				C845F9C319BA460A572ABB52 /* VKAFFButtonStyles.swift */,
+				E0C79DA68B567063F9530D4C /* VKAFFColors.swift */,
+				706DD31C0A342891EBCAAF25 /* VKAFFTypography.swift */,
+			);
+			path = Styles;
+			sourceTree = "<group>";
+		};
+		DC1BFB562B0B7D34EFA4E1CD /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				0E1801E46E6CCC0357E98A26 /* EncryptedBackupService.swift */,
+				01F8CBC5A3C5E877650E4F71 /* GoogleDriveService.swift */,
+				4FA24492AB1FA017648F0014 /* PDFGenerator.swift */,
+				51C6171C956899E2F7707A7A /* SlackService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		E453BABCA5834E9F35B5A34A /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				CEEC421861DE9D6DB4162742 /* Assets.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		F65965EF5D6AC95887F1E21E /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				21D1A366F7044B891C1B0342 /* RegistrationViewModel.swift */,
+				002C58853F04A85E9021D9CB /* SubmissionViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		3B5955252E6CA09465EB9A87 /* VKAFFApplicantTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6572EB2C0E45FFED88C2B3C9 /* Build configuration list for PBXNativeTarget "VKAFFApplicantTests" */;
+			buildPhases = (
+				5BFD51439E8AD7D57D988B63 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				7BFE09A3FEDCED62BDB7C4E7 /* PBXTargetDependency */,
+			);
+			name = VKAFFApplicantTests;
+			packageProductDependencies = (
+			);
+			productName = VKAFFApplicantTests;
+			productReference = 984DC097CA26D525E147BBD1 /* VKAFFApplicantTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		3B8E8D44A02F4FDF52AAE83D /* VKAFFApplicant */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA15EC0C8F2B08959E24D4EC /* Build configuration list for PBXNativeTarget "VKAFFApplicant" */;
+			buildPhases = (
+				7F21962E2E23DA75AC676133 /* Sources */,
+				F91D0E49C56394505CCD2A92 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = VKAFFApplicant;
+			packageProductDependencies = (
+			);
+			productName = VKAFFApplicant;
+			productReference = 4B308AD6BF945C7817336355 /* VKAFFApplicant.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		EA015FDB7D9B3DD97C5E7D2E /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					3B8E8D44A02F4FDF52AAE83D = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = EAB2CD94092C6E952AE9D2F2 /* Build configuration list for PBXProject "VKAFFApplicant" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = B6270E039DCC2E7B3ABC3B8F;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				3B8E8D44A02F4FDF52AAE83D /* VKAFFApplicant */,
+				3B5955252E6CA09465EB9A87 /* VKAFFApplicantTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		F91D0E49C56394505CCD2A92 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				25E32C6E2B2E4E971CD5462C /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		5BFD51439E8AD7D57D988B63 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3FD02A4F4E8A31754246EC13 /* NRICMaskerTests.swift in Sources */,
+				93ACF54B9A2BFE251144FCAB /* ReferenceNumberGeneratorTests.swift in Sources */,
+				8D37CF180B8B6006ED9E4A94 /* ValidatorsTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7F21962E2E23DA75AC676133 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9637D8454E66456D5A0E4C14 /* AdminPanelView.swift in Sources */,
+				7AD17FE62EDE76D0A9AF5B2C /* AnimatedCheckmark.swift in Sources */,
+				70D4B28CC6C9F4A143783BE5 /* AppConfig.swift in Sources */,
+				7339205EBDF713F12D64C91A /* ApplicantData.swift in Sources */,
+				4F625F50BF45D2B3FEB6BD53 /* BrandButton.swift in Sources */,
+				6FD12ADC7F6B3487B620BA6A /* BrandedSpinner.swift in Sources */,
+				5F8BB6B6295B431F1D2DC5DC /* ConfirmationView.swift in Sources */,
+				7906D77E68483CCE72A63AD6 /* ContentView.swift in Sources */,
+				8C2AF886210E8113F4B72BD6 /* DeclarationConsentView.swift in Sources */,
+				BB6639E196DFF56D49085B21 /* EducationView.swift in Sources */,
+				3E61855EBFCA08BA17134B1A /* EmploymentRecord.swift in Sources */,
+				55F59C7F88F02881FB81EC67 /* EncryptedBackupService.swift in Sources */,
+				979B16FA050B29F00205D4E5 /* FormCard.swift in Sources */,
+				05019D8B2F765979AC97AB21 /* FormDropdown.swift in Sources */,
+				90574BF39332BC8B033916CD /* FormField.swift in Sources */,
+				443E87FF8FE4B04011AD477B /* FormSegmented.swift in Sources */,
+				B23D404C71E54D8817A595DD /* GoogleDriveConfig.swift in Sources */,
+				9590C3BBDE56AC658185D7FE /* GoogleDriveService.swift in Sources */,
+				94B959C6F911F7478F51775C /* IdleTimer.swift in Sources */,
+				501A06CD8E76C78DD5A2C40D /* IdleTimerOverlay.swift in Sources */,
+				A27A7024574CD994183E79C4 /* LanguageChipSelector.swift in Sources */,
+				F91AB82FF0424D385D89EE1D /* LanguageProficiency.swift in Sources */,
+				C2BE404033E2DBA7044B86C4 /* NRICMasker.swift in Sources */,
+				CAD8AF66F9F0B340AFD60DCA /* PDFGenerator.swift in Sources */,
+				A5485C09DD6085DA40952AAF /* PersonalDetailsView.swift in Sources */,
+				7DF722E4BBDC05B80DAB582A /* PositionAvailabilityView.swift in Sources */,
+				6E02EE4BE338B15144EF3AC8 /* ProgressBar.swift in Sources */,
+				A9CA68B3497485EA21C88102 /* QualificationRecord.swift in Sources */,
+				1FAC174EB29BC6A3B0248D88 /* ReferenceNumberGenerator.swift in Sources */,
+				6AD30A293C52B4150ADAEDC4 /* RegistrationViewModel.swift in Sources */,
+				DA6D8FCFD04493C489CE4581 /* RepeatableCardSection.swift in Sources */,
+				BA75A7C49B73F4B12BC30CF9 /* SignatureCanvas.swift in Sources */,
+				E6815CC59BE003FD5F90E7CA /* SlackConfig.swift in Sources */,
+				D138382AAFEEE55F39923D29 /* SlackService.swift in Sources */,
+				E7A40DE97A0436BA00493866 /* SubmissionResult.swift in Sources */,
+				FF8E1914AB0B8AFBA5A3A84F /* SubmissionViewModel.swift in Sources */,
+				8F0B9B83A26A0A7F1FA92242 /* VKAFFApplicantApp.swift in Sources */,
+				A6E85D967809B0464B69D7F1 /* VKAFFButtonStyles.swift in Sources */,
+				F19EE5A8FCD9157AE5CEA13A /* VKAFFColors.swift in Sources */,
+				B5C459304F1BDE41061B4128 /* VKAFFTypography.swift in Sources */,
+				A23D42A2CEE747C7DF0D76BB /* Validators.swift in Sources */,
+				A5D3D551A11321C3BB607153 /* WelcomeView.swift in Sources */,
+				AD1F13309B556C031E740DC1 /* WorkExperienceView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		7BFE09A3FEDCED62BDB7C4E7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3B8E8D44A02F4FDF52AAE83D /* VKAFFApplicant */;
+			targetProxy = 70560E6BED68F6D8617DEA15 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		05A2199BA291876FBF775ECD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 2;
+			};
+			name = Release;
+		};
+		5AA757D4C8D6E87977FCB8F1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.vkaff.applicant-kiosk.tests";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/VKAFFApplicant.app/VKAFFApplicant";
+			};
+			name = Debug;
+		};
+		723BB987AEC0C51D9B3AFB5E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				INFOPLIST_FILE = VKAFFApplicant/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "VKAFF Registration";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.vkaff.applicant-kiosk";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		9789DE70903AAC54BEB92697 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 2;
+			};
+			name = Debug;
+		};
+		CE0CDEC5CEBBFB9AEFC7DA8B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.vkaff.applicant-kiosk.tests";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/VKAFFApplicant.app/VKAFFApplicant";
+			};
+			name = Release;
+		};
+		E8E0F275AA8AE64494723E0C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				INFOPLIST_FILE = VKAFFApplicant/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "VKAFF Registration";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.vkaff.applicant-kiosk";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		6572EB2C0E45FFED88C2B3C9 /* Build configuration list for PBXNativeTarget "VKAFFApplicantTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5AA757D4C8D6E87977FCB8F1 /* Debug */,
+				CE0CDEC5CEBBFB9AEFC7DA8B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		AA15EC0C8F2B08959E24D4EC /* Build configuration list for PBXNativeTarget "VKAFFApplicant" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E8E0F275AA8AE64494723E0C /* Debug */,
+				723BB987AEC0C51D9B3AFB5E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		EAB2CD94092C6E952AE9D2F2 /* Build configuration list for PBXProject "VKAFFApplicant" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9789DE70903AAC54BEB92697 /* Debug */,
+				05A2199BA291876FBF775ECD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = EA015FDB7D9B3DD97C5E7D2E /* Project object */;
+}
