@@ -79,6 +79,15 @@ struct WorkExperienceView: View {
 
                 FormToggle(label: "Currently working here", isOn: $record.isCurrentPosition)
 
+                FormField(
+                    label: "Last Drawn Salary (SGD)",
+                    text: $record.lastDrawnSalary,
+                    placeholder: "e.g., 3,500",
+                    keyboardType: .numberPad,
+                    maxLength: 15,
+                    isSalaryField: true
+                )
+
                 FormDropdown(
                     label: "Reason for Leaving",
                     selection: $record.reasonForLeaving
@@ -139,7 +148,7 @@ struct WorkExperienceView: View {
                     )
 
                     FormField(
-                        label: "Email Address",
+                        label: "Email Address (optional)",
                         text: $record.email,
                         placeholder: "reference@email.com",
                         keyboardType: .emailAddress,

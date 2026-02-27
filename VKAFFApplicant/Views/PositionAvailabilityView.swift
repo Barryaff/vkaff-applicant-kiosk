@@ -27,7 +27,6 @@ struct PositionAvailabilityView: View {
                         position: position,
                         isSelected: vm.applicant.positionsAppliedFor.contains(position),
                         onToggle: {
-                            vm.objectWillChange.send()
                             if vm.applicant.positionsAppliedFor.contains(position) {
                                 vm.applicant.positionsAppliedFor.remove(position)
                             } else {
@@ -71,33 +70,18 @@ struct PositionAvailabilityView: View {
             }
 
             // Salary
-            HStack(spacing: 16) {
-                FormField(
-                    label: "Expected Monthly Salary (SGD)",
-                    text: $vm.applicant.expectedSalary,
-                    placeholder: "e.g., 3,500",
-                    keyboardType: .numberPad,
-                    maxLength: 15,
-                    errorMessage: vm.fieldErrors["expectedSalary"],
-                    isValid: vm.validFields.contains("expectedSalary"),
-                    isSalaryField: true,
-                    positionFocusBinding: $focusedField,
-                    positionFocusValue: .expectedSalary
-                )
-
-                FormField(
-                    label: "Last Drawn Monthly Salary (SGD)",
-                    text: $vm.applicant.lastDrawnSalary,
-                    placeholder: "e.g., 3,000",
-                    keyboardType: .numberPad,
-                    maxLength: 15,
-                    errorMessage: vm.fieldErrors["lastDrawnSalary"],
-                    isValid: vm.validFields.contains("lastDrawnSalary"),
-                    isSalaryField: true,
-                    positionFocusBinding: $focusedField,
-                    positionFocusValue: .lastDrawnSalary
-                )
-            }
+            FormField(
+                label: "Expected Monthly Salary (SGD)",
+                text: $vm.applicant.expectedSalary,
+                placeholder: "e.g., 3,500",
+                keyboardType: .numberPad,
+                maxLength: 15,
+                errorMessage: vm.fieldErrors["expectedSalary"],
+                isValid: vm.validFields.contains("expectedSalary"),
+                isSalaryField: true,
+                positionFocusBinding: $focusedField,
+                positionFocusValue: .expectedSalary
+            )
 
             Divider().padding(.vertical, 8)
 
@@ -110,14 +94,6 @@ struct PositionAvailabilityView: View {
             FormSegmented(
                 label: "Willing to travel for work?",
                 selection: $vm.applicant.willingToTravel
-            )
-
-            FormSegmented(
-                label: "Do you have your own transport?",
-                selection: Binding(
-                    get: { vm.applicant.hasOwnTransport ? BoolOption.yes : BoolOption.no },
-                    set: { vm.applicant.hasOwnTransport = $0 == .yes }
-                )
             )
 
             FormToggle(
@@ -144,7 +120,7 @@ struct PositionAvailabilityView: View {
         }
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
-                if focusedField != .referrerName && focusedField != .lastDrawnSalary {
+                if focusedField != .referrerName {
                     Button("Next") {
                         advanceFocus()
                     }
@@ -163,8 +139,7 @@ struct PositionAvailabilityView: View {
     private func advanceFocus() {
         switch focusedField {
         case .positionOther: focusedField = .expectedSalary
-        case .expectedSalary: focusedField = .lastDrawnSalary
-        case .lastDrawnSalary: focusedField = .referrerName
+        case .expectedSalary: focusedField = .referrerName
         case .referrerName: focusedField = nil
         case nil: break
         }
@@ -203,9 +178,3 @@ struct PositionCheckbox: View {
     }
 }
 
-// MARK: - Bool segmented helper
-
-enum BoolOption: String, CaseIterable {
-    case yes = "Yes"
-    case no = "No"
-}

@@ -10,6 +10,7 @@ struct EmploymentRecord: Identifiable, Codable {
     var isCurrentPosition: Bool
     var reasonForLeaving: ReasonForLeaving
     var keyResponsibilities: String
+    var lastDrawnSalary: String
 
     init(
         id: UUID = UUID(),
@@ -20,7 +21,8 @@ struct EmploymentRecord: Identifiable, Codable {
         toDate: Date = Date(),
         isCurrentPosition: Bool = false,
         reasonForLeaving: ReasonForLeaving = .preferNotToSay,
-        keyResponsibilities: String = ""
+        keyResponsibilities: String = "",
+        lastDrawnSalary: String = ""
     ) {
         self.id = id
         self.companyName = companyName
@@ -31,6 +33,7 @@ struct EmploymentRecord: Identifiable, Codable {
         self.isCurrentPosition = isCurrentPosition
         self.reasonForLeaving = reasonForLeaving
         self.keyResponsibilities = keyResponsibilities
+        self.lastDrawnSalary = lastDrawnSalary
     }
 }
 

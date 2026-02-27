@@ -1,80 +1,80 @@
 import Foundation
 
-class ApplicantData: ObservableObject, Codable {
+struct ApplicantData: Codable {
     // MARK: - Personal Details
-    @Published var fullName: String = ""
-    @Published var preferredName: String = ""
-    @Published var nricFIN: String = ""
-    @Published var dateOfBirth: Date = Calendar.current.date(byAdding: .year, value: -25, to: Date()) ?? Date()
-    @Published var gender: Gender = .male
-    @Published var nationality: Nationality = .singaporean
-    @Published var nationalityOther: String = ""
-    @Published var hasWorkedInSingapore: Bool = false
-    @Published var race: Race = .chinese
-    @Published var raceOther: String = ""
-    @Published var contactCountryCode: String = "+65"
-    @Published var contactNumber: String = ""
-    @Published var emailAddress: String = ""
-    @Published var residentialAddress: String = ""
-    @Published var postalCode: String = ""
-    @Published var passportNumber: String = ""
-    @Published var drivingLicenseClass: String = ""
-    @Published var emergencyContacts: [EmergencyContact] = [EmergencyContact()]
+    var fullName: String = ""
+    var preferredName: String = ""
+    var nricFIN: String = ""
+    var dateOfBirth: Date = Calendar.current.date(byAdding: .year, value: -25, to: Date()) ?? Date()
+    var gender: Gender = .male
+    var nationality: Nationality = .singaporean
+    var nationalityOther: String = ""
+    var hasWorkedInSingapore: Bool = false
+    var race: Race = .chinese
+    var raceOther: String = ""
+    var contactCountryCode: String = "+65"
+    var contactNumber: String = ""
+    var emailAddress: String = ""
+    var residentialAddress: String = ""
+    var postalCode: String = ""
+    var passportNumber: String = ""
+    var drivingLicenseClass: String = ""
+    var emergencyContacts: [EmergencyContact] = [EmergencyContact()]
 
     // MARK: - Education & Qualifications
-    @Published var highestQualification: HighestQualification = .diploma
-    @Published var highestQualificationOther: String = ""
-    @Published var fieldOfStudy: String = ""
-    @Published var institutionName: String = ""
-    @Published var yearOfGraduation: Int = Calendar.current.component(.year, from: Date())
-    @Published var additionalQualifications: [QualificationRecord] = []
-    @Published var professionalCertifications: String = ""
-    @Published var selectedLanguages: [LanguageProficiency] = []
+    var highestQualification: HighestQualification = .diploma
+    var highestQualificationOther: String = ""
+    var fieldOfStudy: String = ""
+    var institutionName: String = ""
+    var yearOfGraduation: Int = Calendar.current.component(.year, from: Date())
+    var additionalQualifications: [QualificationRecord] = []
+    var professionalCertifications: String = ""
+    var selectedLanguages: [LanguageProficiency] = []
 
     // MARK: - Work Experience
-    @Published var totalExperience: TotalExperience = .freshGraduate
-    @Published var employmentHistory: [EmploymentRecord] = []
-    @Published var isCurrentlyEmployed: Bool = false
-    @Published var noticePeriod: NoticePeriod = .immediate
+    var totalExperience: TotalExperience = .freshGraduate
+    var employmentHistory: [EmploymentRecord] = []
+    var isCurrentlyEmployed: Bool = false
+    var noticePeriod: NoticePeriod = .immediate
 
     // MARK: - References
-    @Published var references: [ReferenceRecord] = []
+    var references: [ReferenceRecord] = []
 
     // MARK: - Position & Availability
-    @Published var positionsAppliedFor: Set<Position> = []
-    @Published var positionOther: String = ""
-    @Published var preferredEmploymentType: EmploymentType = .fullTime
-    @Published var earliestStartDate: Date = Date()
-    @Published var expectedSalary: String = ""
-    @Published var lastDrawnSalary: String = ""
-    @Published var willingToWorkShifts: WillingnessOption = .openToDiscussion
-    @Published var willingToTravel: TravelOption = .occasionally
-    @Published var hasOwnTransport: Bool = false
-    @Published var howDidYouHear: HearAboutUs = .walkIn
-    @Published var referrerName: String = ""
-    @Published var openToOtherPositions: Bool = true
+    var positionsAppliedFor: Set<Position> = []
+    var positionOther: String = ""
+    var preferredEmploymentType: EmploymentType = .fullTime
+    var earliestStartDate: Date = Date()
+    var expectedSalary: String = ""
+    var lastDrawnSalary: String = ""
+    var willingToWorkShifts: WillingnessOption = .openToDiscussion
+    var willingToTravel: TravelOption = .occasionally
+    var hasOwnTransport: Bool = false
+    var howDidYouHear: HearAboutUs = .walkIn
+    var referrerName: String = ""
+    var openToOtherPositions: Bool = true
 
     // MARK: - General Information
-    @Published var previouslyApplied: Bool = false
-    @Published var hasConnectionsAtAFF: Bool = false
-    @Published var connectionsDetails: String = ""
-    @Published var hasConflictOfInterest: Bool = false
-    @Published var conflictDetails: String = ""
-    @Published var hasBankruptcy: Bool = false
-    @Published var bankruptcyDetails: String = ""
-    @Published var hasLegalProceedings: Bool = false
-    @Published var legalDetails: String = ""
+    var previouslyApplied: Bool = false
+    var hasConnectionsAtAFF: Bool = false
+    var connectionsDetails: String = ""
+    var hasConflictOfInterest: Bool = false
+    var conflictDetails: String = ""
+    var hasBankruptcy: Bool = false
+    var bankruptcyDetails: String = ""
+    var hasLegalProceedings: Bool = false
+    var legalDetails: String = ""
 
     // MARK: - Declaration & Consent
-    @Published var declarationAccuracy: Bool = false
-    @Published var pdpaConsent: Bool = false
-    @Published var hasMedicalCondition: MedicalDeclaration = .no
-    @Published var medicalDetails: String = ""
-    @Published var signatureData: Data? = nil
-    @Published var submissionDate: Date = Date()
+    var declarationAccuracy: Bool = false
+    var pdpaConsent: Bool = false
+    var hasMedicalCondition: MedicalDeclaration = .no
+    var medicalDetails: String = ""
+    var signatureData: Data? = nil
+    var submissionDate: Date = Date()
 
     // MARK: - Metadata
-    @Published var referenceNumber: String = ""
+    var referenceNumber: String = ""
 
     // MARK: - Codable
     enum CodingKeys: String, CodingKey {
@@ -88,8 +88,8 @@ class ApplicantData: ObservableObject, Codable {
         case totalExperience, employmentHistory, isCurrentlyEmployed, noticePeriod
         case references
         case positionsAppliedFor, positionOther, preferredEmploymentType, earliestStartDate
-        case expectedSalary, lastDrawnSalary, willingToWorkShifts, willingToTravel
-        case hasOwnTransport, howDidYouHear, referrerName, openToOtherPositions
+        case expectedSalary, willingToWorkShifts, willingToTravel
+        case howDidYouHear, referrerName, openToOtherPositions
         case previouslyApplied, hasConnectionsAtAFF, connectionsDetails
         case hasConflictOfInterest, conflictDetails
         case hasBankruptcy, bankruptcyDetails, hasLegalProceedings, legalDetails
@@ -99,7 +99,7 @@ class ApplicantData: ObservableObject, Codable {
 
     init() {}
 
-    required init(from decoder: Decoder) throws {
+    init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         fullName = try container.decode(String.self, forKey: .fullName)
         preferredName = try container.decode(String.self, forKey: .preferredName)
@@ -137,10 +137,8 @@ class ApplicantData: ObservableObject, Codable {
         preferredEmploymentType = try container.decode(EmploymentType.self, forKey: .preferredEmploymentType)
         earliestStartDate = try container.decode(Date.self, forKey: .earliestStartDate)
         expectedSalary = try container.decode(String.self, forKey: .expectedSalary)
-        lastDrawnSalary = try container.decode(String.self, forKey: .lastDrawnSalary)
         willingToWorkShifts = try container.decode(WillingnessOption.self, forKey: .willingToWorkShifts)
         willingToTravel = try container.decode(TravelOption.self, forKey: .willingToTravel)
-        hasOwnTransport = try container.decode(Bool.self, forKey: .hasOwnTransport)
         howDidYouHear = try container.decode(HearAboutUs.self, forKey: .howDidYouHear)
         referrerName = try container.decode(String.self, forKey: .referrerName)
         openToOtherPositions = try container.decodeIfPresent(Bool.self, forKey: .openToOtherPositions) ?? true
@@ -201,10 +199,8 @@ class ApplicantData: ObservableObject, Codable {
         try container.encode(preferredEmploymentType, forKey: .preferredEmploymentType)
         try container.encode(earliestStartDate, forKey: .earliestStartDate)
         try container.encode(Validators.sanitizeInput(expectedSalary), forKey: .expectedSalary)
-        try container.encode(Validators.sanitizeInput(lastDrawnSalary), forKey: .lastDrawnSalary)
         try container.encode(willingToWorkShifts, forKey: .willingToWorkShifts)
         try container.encode(willingToTravel, forKey: .willingToTravel)
-        try container.encode(hasOwnTransport, forKey: .hasOwnTransport)
         try container.encode(howDidYouHear, forKey: .howDidYouHear)
         try container.encode(Validators.sanitizeInput(referrerName), forKey: .referrerName)
         try container.encode(openToOtherPositions, forKey: .openToOtherPositions)
@@ -229,7 +225,7 @@ class ApplicantData: ObservableObject, Codable {
 
     /// Sanitizes all string fields in-place. Called before submission to normalize data.
     /// This modifies the object directly for use in PDF generation and other non-Codable outputs.
-    func sanitizeAllFields() {
+    mutating func sanitizeAllFields() {
         fullName = Validators.sanitizeInput(fullName)
         preferredName = Validators.sanitizeInput(preferredName)
         nricFIN = nricFIN.trimmingCharacters(in: .whitespaces).uppercased()
@@ -265,6 +261,7 @@ class ApplicantData: ObservableObject, Codable {
         }
         for i in additionalQualifications.indices {
             additionalQualifications[i].qualificationOther = Validators.sanitizeInput(additionalQualifications[i].qualificationOther)
+            additionalQualifications[i].fieldOfStudy = Validators.sanitizeInput(additionalQualifications[i].fieldOfStudy)
             additionalQualifications[i].institution = Validators.sanitizeInput(additionalQualifications[i].institution)
         }
         for i in selectedLanguages.indices {
@@ -272,7 +269,6 @@ class ApplicantData: ObservableObject, Codable {
         }
         positionOther = Validators.sanitizeInput(positionOther)
         expectedSalary = Validators.sanitizeInput(expectedSalary)
-        lastDrawnSalary = Validators.sanitizeInput(lastDrawnSalary)
         referrerName = Validators.sanitizeInput(referrerName)
         connectionsDetails = Validators.sanitizeInput(connectionsDetails)
         conflictDetails = Validators.sanitizeInput(conflictDetails)
@@ -281,7 +277,7 @@ class ApplicantData: ObservableObject, Codable {
         medicalDetails = Validators.sanitizeInput(medicalDetails)
     }
 
-    func reset() {
+    mutating func reset() {
         fullName = ""
         preferredName = ""
         nricFIN = ""
@@ -447,6 +443,19 @@ enum HighestQualification: String, Codable, CaseIterable {
         default: return internationalOptions
         }
     }
+
+    /// Whether this qualification level typically has a field of study.
+    /// School-leaving exams (PSLE, O-Level, SPM, SKM, etc.) do not.
+    var hasFieldOfStudy: Bool {
+        switch self {
+        case .psle, .nLevel, .oLevel, .aLevel,
+             .upsr, .pt3, .spm, .stpm, .uec, .skm,
+             .primarySchool, .secondarySchool:
+            return false
+        default:
+            return true
+        }
+    }
 }
 
 enum TotalExperience: String, Codable, CaseIterable {
@@ -469,6 +478,7 @@ enum NoticePeriod: String, Codable, CaseIterable {
 
 enum Position: String, Codable, CaseIterable, Hashable {
     case flavorist = "Flavorist (R&D)"
+    case foodTechnologist = "Food Technologist"
     case labAnalyst = "Laboratory Analyst / Analytical Chemist"
     case qaQc = "Quality Assurance / Quality Control"
     case productionOperator = "Production Operator / Technician"
@@ -524,9 +534,10 @@ enum AppScreen: Int, CaseIterable {
     case education = 2
     case workExperience = 3
     case positionAvailability = 4
-    case declaration = 5
-    case confirmation = 6
-    case admin = 7
+    case supportingDocuments = 5
+    case declaration = 6
+    case confirmation = 7
+    case admin = 8
 
     var title: String {
         switch self {
@@ -535,6 +546,7 @@ enum AppScreen: Int, CaseIterable {
         case .education: return "Education"
         case .workExperience: return "Experience"
         case .positionAvailability: return "Position"
+        case .supportingDocuments: return "Documents"
         case .declaration: return "Declaration"
         case .confirmation: return "Confirmation"
         case .admin: return "Admin"
@@ -542,6 +554,6 @@ enum AppScreen: Int, CaseIterable {
     }
 
     static var formScreens: [AppScreen] {
-        [.personalDetails, .education, .workExperience, .positionAvailability, .declaration]
+        [.personalDetails, .education, .workExperience, .positionAvailability, .supportingDocuments, .declaration]
     }
 }

@@ -29,6 +29,9 @@ struct ContentView: View {
                 case .positionAvailability:
                     PositionAvailabilityView()
                         .transition(screenTransition)
+                case .supportingDocuments:
+                    SupportingDocumentsView()
+                        .transition(screenTransition)
                 case .declaration:
                     DeclarationConsentView()
                         .transition(screenTransition)
@@ -43,7 +46,7 @@ struct ContentView: View {
                         .transition(.opacity)
                 }
             }
-            .animation(.timingCurve(0.25, 0.1, 0.25, 1.0, duration: 0.35), value: vm.currentScreen)
+            // Note: screen transitions are handled by withAnimation in navigateForward/Back
 
             if vm.showIdleWarning {
                 IdleTimerOverlay()
@@ -53,7 +56,7 @@ struct ContentView: View {
                 submissionOverlay
             }
         }
-        .ignoresSafeArea()
+        .ignoresSafeArea(.container, edges: .all)
         .alert("Submission Issue", isPresented: Binding(
             get: { vm.submissionError != nil },
             set: { if !$0 { vm.submissionError = nil } }
@@ -64,15 +67,11 @@ struct ContentView: View {
         } message: {
             Text(vm.submissionError ?? "")
         }
-        // Block swipe-back edge gesture by consuming leading-edge drags
-        .gesture(
-            DragGesture()
-                .onChanged { _ in vm.resetIdleTimer() },
-            including: .all
+        // Reset idle timer on user interaction (non-competing gesture)
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 20)
+                .onEnded { _ in vm.resetIdleTimer() }
         )
-        .onTapGesture {
-            vm.resetIdleTimer()
-        }
         .onAppear {
             setupKeyboardObservers()
         }
@@ -83,15 +82,15 @@ struct ContentView: View {
     /// Subscribe to keyboard show/hide notifications to reset idle timer
     /// when the user interacts with text fields
     private func setupKeyboardObservers() {
+        keyboardCancellables.removeAll()
+
         NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)
-            .receive(on: DispatchQueue.main)
             .sink { _ in
                 vm.resetIdleTimer()
             }
             .store(in: &keyboardCancellables)
 
         NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)
-            .receive(on: DispatchQueue.main)
             .sink { _ in
                 vm.resetIdleTimer()
             }

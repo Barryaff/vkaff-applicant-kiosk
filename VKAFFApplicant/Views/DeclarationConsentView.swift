@@ -13,7 +13,7 @@ struct DeclarationConsentView: View {
     var body: some View {
         FormScreenLayout(
             title: "Declaration & Consent",
-            stepIndex: 4,
+            stepIndex: 5,
             onBack: { vm.navigateBack() },
             onContinue: { vm.navigateForward() },
             continueTitle: "Submit Application",

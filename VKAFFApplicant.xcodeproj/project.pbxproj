@@ -64,6 +64,8 @@
 		B1C2D3E4F5A6B7C8D9E0F1A2 /* EmergencyContact.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2D3E4F5A6B7C8D9E0F1A2B3 /* EmergencyContact.swift */; };
 		9A0B1C2D3E4F5A6B7C8D9E0F /* secrets.plist in Resources */ = {isa = PBXBuildFile; fileRef = A0B1C2D3E4F5A6B7C8D9E0F1 /* secrets.plist */; };
 		7E8F9A0B1C2D3E4F5A6B7C8D /* PhoneFieldWithCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F9A0B1C2D3E4F5A6B7C8D9E /* PhoneFieldWithCode.swift */; };
+		E5B2C3D4F6071829304A5B6C /* SupportingDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A1B2C3E5F6071829304A5B /* SupportingDocument.swift */; };
+		A7D4E5F6182930415B6C7D8E /* SupportingDocumentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6C3D4E5071829304A5B6C7D /* SupportingDocumentsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -137,6 +139,8 @@
 		8F9A0B1C2D3E4F5A6B7C8D9E /* PhoneFieldWithCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneFieldWithCode.swift; sourceTree = "<group>"; };
 		A0B1C2D3E4F5A6B7C8D9E0F1 /* secrets.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = secrets.plist; sourceTree = "<group>"; };
 		C2D3E4F5A6B7C8D9E0F1A2B3 /* EmergencyContact.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmergencyContact.swift; sourceTree = "<group>"; };
+		D4A1B2C3E5F6071829304A5B /* SupportingDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportingDocument.swift; sourceTree = "<group>"; };
+		F6C3D4E5071829304A5B6C7D /* SupportingDocumentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportingDocumentsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -173,6 +177,7 @@
 				E63FE4DA5A56828F66CB2BD7 /* EducationView.swift */,
 				7D6A544B3902AB86F6CC958C /* PersonalDetailsView.swift */,
 				DAA27C88D2F2FBA39B20A4F3 /* PositionAvailabilityView.swift */,
+				F6C3D4E5071829304A5B6C7D /* SupportingDocumentsView.swift */,
 				E4A0FC92BE33ECC8C600E7A6 /* WelcomeView.swift */,
 				C0AC19EF4ACCD14FE504F5C4 /* WorkExperienceView.swift */,
 				B0B28D8A19D4C3B15154F3FC /* Components */,
@@ -202,6 +207,7 @@
 				FF8B45D4F40AD4BE40714609 /* QualificationRecord.swift */,
 				4B5C6D7E8F9A0B1C2D3E4F5A /* ReferenceRecord.swift */,
 				AE2AC29C3703A43E073C8A44 /* SubmissionResult.swift */,
+				D4A1B2C3E5F6071829304A5B /* SupportingDocument.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -454,6 +460,8 @@
 				D138382AAFEEE55F39923D29 /* SlackService.swift in Sources */,
 				E7A40DE97A0436BA00493866 /* SubmissionResult.swift in Sources */,
 				FF8E1914AB0B8AFBA5A3A84F /* SubmissionViewModel.swift in Sources */,
+				E5B2C3D4F6071829304A5B6C /* SupportingDocument.swift in Sources */,
+				A7D4E5F6182930415B6C7D8E /* SupportingDocumentsView.swift in Sources */,
 				8F0B9B83A26A0A7F1FA92242 /* VKAFFApplicantApp.swift in Sources */,
 				A6E85D967809B0464B69D7F1 /* VKAFFButtonStyles.swift in Sources */,
 				F19EE5A8FCD9157AE5CEA13A /* VKAFFColors.swift in Sources */,

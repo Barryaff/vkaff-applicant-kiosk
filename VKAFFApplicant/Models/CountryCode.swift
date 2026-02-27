@@ -53,7 +53,11 @@ struct CountryCode: Identifiable, Hashable, Codable {
         "\(flag) \(name) (\(dialCode))"
     }
 
+    private static let dialCodeIndex: [String: CountryCode] = {
+        Dictionary(uniqueKeysWithValues: all.map { ($0.dialCode, $0) })
+    }()
+
     static func find(byDialCode code: String) -> CountryCode {
-        all.first(where: { $0.dialCode == code }) ?? singapore
+        dialCodeIndex[code] ?? singapore
     }
 }

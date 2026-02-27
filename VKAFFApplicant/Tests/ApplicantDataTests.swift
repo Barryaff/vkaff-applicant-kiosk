@@ -7,7 +7,7 @@ final class ApplicantDataTests: XCTestCase {
     // MARK: - Reset Tests
 
     func testResetClearsAllStringFieldsToEmpty() {
-        let data = ApplicantData()
+        var data = ApplicantData()
         data.fullName = "John Doe"
         data.preferredName = "Johnny"
         data.nricFIN = "S1234567A"
@@ -26,7 +26,6 @@ final class ApplicantDataTests: XCTestCase {
         data.professionalCertifications = "FSSC 22000"
         data.positionOther = "Manager"
         data.expectedSalary = "5000"
-        data.lastDrawnSalary = "4000"
         data.referrerName = "Bob"
         data.connectionsDetails = "John - cousin"
         data.conflictDetails = "Some conflict"
@@ -55,7 +54,6 @@ final class ApplicantDataTests: XCTestCase {
         XCTAssertEqual(data.professionalCertifications, "")
         XCTAssertEqual(data.positionOther, "")
         XCTAssertEqual(data.expectedSalary, "")
-        XCTAssertEqual(data.lastDrawnSalary, "")
         XCTAssertEqual(data.referrerName, "")
         XCTAssertEqual(data.connectionsDetails, "")
         XCTAssertEqual(data.conflictDetails, "")
@@ -66,11 +64,10 @@ final class ApplicantDataTests: XCTestCase {
     }
 
     func testResetClearsBoolFieldsToDefaults() {
-        let data = ApplicantData()
+        var data = ApplicantData()
         data.isCurrentlyEmployed = true
         data.declarationAccuracy = true
         data.pdpaConsent = true
-        data.hasOwnTransport = true
         data.hasWorkedInSingapore = true
         data.openToOtherPositions = false
         data.previouslyApplied = true
@@ -84,7 +81,6 @@ final class ApplicantDataTests: XCTestCase {
         XCTAssertFalse(data.isCurrentlyEmployed)
         XCTAssertFalse(data.declarationAccuracy)
         XCTAssertFalse(data.pdpaConsent)
-        XCTAssertFalse(data.hasOwnTransport)
         XCTAssertFalse(data.hasWorkedInSingapore)
         XCTAssertTrue(data.openToOtherPositions)
         XCTAssertFalse(data.previouslyApplied)
@@ -95,7 +91,7 @@ final class ApplicantDataTests: XCTestCase {
     }
 
     func testResetClearsEnumFieldsToDefaults() {
-        let data = ApplicantData()
+        var data = ApplicantData()
         data.gender = .female
         data.nationality = .filipino
         data.race = .malay
@@ -124,7 +120,7 @@ final class ApplicantDataTests: XCTestCase {
     }
 
     func testResetClearsArrayFields() {
-        let data = ApplicantData()
+        var data = ApplicantData()
         data.additionalQualifications = [QualificationRecord()]
         data.selectedLanguages = [LanguageProficiency()]
         data.employmentHistory = [EmploymentRecord()]
@@ -141,7 +137,7 @@ final class ApplicantDataTests: XCTestCase {
     }
 
     func testResetClearsEmergencyContactsToDefault() {
-        let data = ApplicantData()
+        var data = ApplicantData()
         data.emergencyContacts = [
             EmergencyContact(name: "Jane", phoneNumber: "81234567", relationship: .spouse),
             EmergencyContact(name: "Bob", phoneNumber: "91234567", relationship: .friend)
@@ -156,7 +152,7 @@ final class ApplicantDataTests: XCTestCase {
     }
 
     func testResetClearsSignatureData() {
-        let data = ApplicantData()
+        var data = ApplicantData()
         data.signatureData = Data([0x00, 0x01, 0x02])
 
         data.reset()
@@ -165,7 +161,7 @@ final class ApplicantDataTests: XCTestCase {
     }
 
     func testResetSetsYearOfGraduationToCurrentYear() {
-        let data = ApplicantData()
+        var data = ApplicantData()
         data.yearOfGraduation = 1990
 
         data.reset()
@@ -221,10 +217,8 @@ final class ApplicantDataTests: XCTestCase {
         XCTAssertEqual(decoded.positionOther, original.positionOther)
         XCTAssertEqual(decoded.preferredEmploymentType, original.preferredEmploymentType)
         XCTAssertEqual(decoded.expectedSalary, original.expectedSalary)
-        XCTAssertEqual(decoded.lastDrawnSalary, original.lastDrawnSalary)
         XCTAssertEqual(decoded.willingToWorkShifts, original.willingToWorkShifts)
         XCTAssertEqual(decoded.willingToTravel, original.willingToTravel)
-        XCTAssertEqual(decoded.hasOwnTransport, original.hasOwnTransport)
         XCTAssertEqual(decoded.howDidYouHear, original.howDidYouHear)
         XCTAssertEqual(decoded.referrerName, original.referrerName)
         XCTAssertEqual(decoded.openToOtherPositions, original.openToOtherPositions)
@@ -245,7 +239,7 @@ final class ApplicantDataTests: XCTestCase {
     }
 
     func testCodableRoundTripWithPopulatedValues() {
-        let original = ApplicantData()
+        var original = ApplicantData()
         original.fullName = "Test User"
         original.preferredName = "Testy"
         original.nricFIN = "S1234567A"
@@ -275,10 +269,8 @@ final class ApplicantDataTests: XCTestCase {
         original.positionOther = "DevOps"
         original.preferredEmploymentType = .fullTime
         original.expectedSalary = "6000"
-        original.lastDrawnSalary = "5500"
         original.willingToWorkShifts = .yes
         original.willingToTravel = .occasionally
-        original.hasOwnTransport = true
         original.howDidYouHear = .linkedIn
         original.referrerName = "Friend"
         original.openToOtherPositions = false
@@ -336,10 +328,8 @@ final class ApplicantDataTests: XCTestCase {
         XCTAssertEqual(decoded.positionOther, "DevOps")
         XCTAssertEqual(decoded.preferredEmploymentType, .fullTime)
         XCTAssertEqual(decoded.expectedSalary, "6000")
-        XCTAssertEqual(decoded.lastDrawnSalary, "5500")
         XCTAssertEqual(decoded.willingToWorkShifts, .yes)
         XCTAssertEqual(decoded.willingToTravel, .occasionally)
-        XCTAssertEqual(decoded.hasOwnTransport, true)
         XCTAssertEqual(decoded.howDidYouHear, .linkedIn)
         XCTAssertEqual(decoded.referrerName, "Friend")
         XCTAssertEqual(decoded.openToOtherPositions, false)
@@ -376,8 +366,8 @@ final class ApplicantDataTests: XCTestCase {
             "totalExperience", "employmentHistory", "isCurrentlyEmployed", "noticePeriod",
             "references",
             "positionsAppliedFor", "positionOther", "preferredEmploymentType", "earliestStartDate",
-            "expectedSalary", "lastDrawnSalary", "willingToWorkShifts", "willingToTravel",
-            "hasOwnTransport", "howDidYouHear", "referrerName", "openToOtherPositions",
+            "expectedSalary", "willingToWorkShifts", "willingToTravel",
+            "howDidYouHear", "referrerName", "openToOtherPositions",
             "previouslyApplied", "hasConnectionsAtAFF", "connectionsDetails",
             "hasConflictOfInterest", "conflictDetails",
             "hasBankruptcy", "bankruptcyDetails", "hasLegalProceedings", "legalDetails",
@@ -400,8 +390,8 @@ final class ApplicantDataTests: XCTestCase {
             return
         }
 
-        // CodingKeys has 58 cases (signatureData is intentionally excluded)
-        let expectedCount = 58
+        // CodingKeys has 56 cases (signatureData, lastDrawnSalary, hasOwnTransport intentionally excluded)
+        let expectedCount = 56
         XCTAssertEqual(json.keys.count, expectedCount,
                        "Encoded JSON should have \(expectedCount) keys, got \(json.keys.count). Keys: \(json.keys.sorted())")
     }
@@ -409,7 +399,7 @@ final class ApplicantDataTests: XCTestCase {
     // MARK: - Codable with Nested Types
 
     func testCodableRoundTripWithEmploymentHistory() {
-        let data = ApplicantData()
+        var data = ApplicantData()
         data.employmentHistory = [
             EmploymentRecord(
                 companyName: "VKAFF",
@@ -436,7 +426,7 @@ final class ApplicantDataTests: XCTestCase {
     }
 
     func testCodableRoundTripWithQualifications() {
-        let data = ApplicantData()
+        var data = ApplicantData()
         data.additionalQualifications = [
             QualificationRecord(qualification: .masters, institution: "NUS", year: 2022)
         ]
@@ -456,7 +446,7 @@ final class ApplicantDataTests: XCTestCase {
     }
 
     func testCodableRoundTripWithLanguages() {
-        let data = ApplicantData()
+        var data = ApplicantData()
         data.selectedLanguages = [
             LanguageProficiency(language: .english, proficiency: .fluent),
             LanguageProficiency(language: .mandarin, proficiency: .native)
@@ -479,7 +469,7 @@ final class ApplicantDataTests: XCTestCase {
     }
 
     func testCodableRoundTripWithEmergencyContacts() {
-        let data = ApplicantData()
+        var data = ApplicantData()
         data.emergencyContacts = [
             EmergencyContact(name: "Jane Doe", phoneNumber: "81234567", relationship: .spouse),
             EmergencyContact(name: "Bob", phoneNumber: "91234567", relationship: .friend)
@@ -503,7 +493,7 @@ final class ApplicantDataTests: XCTestCase {
     }
 
     func testCodableRoundTripWithReferences() {
-        let data = ApplicantData()
+        var data = ApplicantData()
         data.references = [
             ReferenceRecord(name: "Dr. Smith", relationship: "Former Supervisor", contactNumber: "91234567", email: "smith@example.com", yearsKnown: "5")
         ]

@@ -8,6 +8,7 @@ class RegistrationViewModel: ObservableObject {
     @Published var applicant = ApplicantData()
     @Published var navigatingForward = true
     @Published var showIdleWarning = false
+    @Published var supportingDocuments: [SupportingDocument] = []
     @Published var isSubmitting = false
     @Published var submissionError: String?
     @Published var idleCountdown: Int = 30
@@ -59,23 +60,19 @@ class RegistrationViewModel: ObservableObject {
             self?.resetToWelcome()
         }
 
-        // Forward ApplicantData changes to RegistrationViewModel so SwiftUI detects updates
-        applicant.objectWillChange
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                self?.objectWillChange.send()
+        // Sync idle timer warning state (no .receive needed — IdleTimer is @MainActor)
+        idleTimer?.$isWarningShown
+            .sink { [weak self] value in
+                guard self?.showIdleWarning != value else { return }
+                self?.showIdleWarning = value
             }
             .store(in: &cancellables)
 
-        // Sync idle timer warning state
-        idleTimer?.$isWarningShown
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] value in self?.showIdleWarning = value }
-            .store(in: &cancellables)
-
         idleTimer?.$secondsRemaining
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] value in self?.idleCountdown = value }
+            .sink { [weak self] value in
+                guard self?.idleCountdown != value else { return }
+                self?.idleCountdown = value
+            }
             .store(in: &cancellables)
 
         setupFieldObservers()
@@ -88,104 +85,59 @@ class RegistrationViewModel: ObservableObject {
     /// - If the new value is valid, a green checkmark appears right away
     /// - Errors only appear when the user presses Continue
     private func setupFieldObservers() {
-        // Full Name
-        applicant.$fullName
-            .dropFirst()
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] value in
-                self?.onFieldChanged("fullName", isValid: Validators.isNotEmpty(value))
-            }
-            .store(in: &cancellables)
+        // Single debounced subscription per field using struct key paths.
+        // With ApplicantData as a struct, $applicant emits on every mutation.
+        // .map(keyPath).removeDuplicates() ensures we only fire when THIS field changes.
+        // A short 100ms debounce clears errors quickly while avoiding per-keystroke storms.
 
-        // Preferred Name
-        applicant.$preferredName
-            .dropFirst()
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] value in
-                self?.onFieldChanged("preferredName", isValid: Validators.isNotEmpty(value))
-            }
-            .store(in: &cancellables)
+        func observe<T: Equatable>(
+            _ keyPath: KeyPath<ApplicantData, T>,
+            key: String,
+            validate: @escaping (T) -> Bool
+        ) {
+            $applicant
+                .map(keyPath)
+                .removeDuplicates()
+                .dropFirst()
+                .debounce(for: .milliseconds(100), scheduler: RunLoop.main)
+                .sink { [weak self] value in
+                    guard let self else { return }
+                    // Clear error if present
+                    if self.fieldErrors[key] != nil {
+                        self.fieldErrors.removeValue(forKey: key)
+                    }
+                    // Update valid state (guarded to prevent no-op objectWillChange)
+                    let isCurrentlyValid = validate(value)
+                    if isCurrentlyValid {
+                        if !self.validFields.contains(key) {
+                            self.validFields.insert(key)
+                        }
+                    } else {
+                        if self.validFields.contains(key) {
+                            self.validFields.remove(key)
+                        }
+                    }
+                }
+                .store(in: &cancellables)
+        }
 
-        // NRIC / FIN - show checkmark only when fully valid (including checksum)
-        applicant.$nricFIN
-            .dropFirst()
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] value in
-                self?.onFieldChanged("nricFIN", isValid: Validators.isValidNRIC(value))
-            }
-            .store(in: &cancellables)
-
-        // Contact Number
-        applicant.$contactNumber
-            .dropFirst()
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] value in
-                self?.onFieldChanged("contactNumber", isValid: Validators.isValidPhone(value))
-            }
-            .store(in: &cancellables)
-
-        // Email Address
-        applicant.$emailAddress
-            .dropFirst()
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] value in
-                self?.onFieldChanged("emailAddress", isValid: Validators.isValidEmail(value))
-            }
-            .store(in: &cancellables)
-
-        // Residential Address
-        applicant.$residentialAddress
-            .dropFirst()
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] value in
-                self?.onFieldChanged("residentialAddress", isValid: Validators.isNotEmpty(value))
-            }
-            .store(in: &cancellables)
-
-        // Postal Code
-        applicant.$postalCode
-            .dropFirst()
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] value in
-                self?.onFieldChanged("postalCode", isValid: Validators.isValidPostalCode(value))
-            }
-            .store(in: &cancellables)
-
-        // Field of Study
-        applicant.$fieldOfStudy
-            .dropFirst()
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] value in
-                self?.onFieldChanged("fieldOfStudy", isValid: Validators.isNotEmpty(value))
-            }
-            .store(in: &cancellables)
-
-        // Institution Name
-        applicant.$institutionName
-            .dropFirst()
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] value in
-                self?.onFieldChanged("institutionName", isValid: Validators.isNotEmpty(value))
-            }
-            .store(in: &cancellables)
-
-        // Expected Salary
-        applicant.$expectedSalary
-            .dropFirst()
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] value in
-                self?.onFieldChanged("expectedSalary", isValid: Validators.isNotEmpty(value))
-            }
-            .store(in: &cancellables)
-
-        // Last Drawn Salary
-        applicant.$lastDrawnSalary
-            .dropFirst()
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] value in
-                self?.onFieldChanged("lastDrawnSalary", isValid: Validators.isNotEmpty(value))
-            }
-            .store(in: &cancellables)
+        observe(\.fullName, key: "fullName") { Validators.isNotEmpty($0) }
+        observe(\.preferredName, key: "preferredName") { Validators.isNotEmpty($0) }
+        observe(\.nricFIN, key: "nricFIN") { [weak self] value in
+            Validators.isValidNRIC(value) || Validators.isNotEmpty(self?.applicant.passportNumber ?? "")
+        }
+        observe(\.passportNumber, key: "passportNumber") { [weak self] value in
+            Validators.isNotEmpty(value) || Validators.isValidNRIC(self?.applicant.nricFIN ?? "")
+        }
+        observe(\.contactNumber, key: "contactNumber") { Validators.isValidPhone($0) }
+        observe(\.emailAddress, key: "emailAddress") { Validators.isValidEmail($0) }
+        observe(\.residentialAddress, key: "residentialAddress") { Validators.isNotEmpty($0) }
+        observe(\.postalCode, key: "postalCode") { Validators.isValidPostalCode($0) }
+        observe(\.fieldOfStudy, key: "fieldOfStudy") { [weak self] value in
+            !(self?.applicant.highestQualification.hasFieldOfStudy ?? true) || Validators.isNotEmpty(value)
+        }
+        observe(\.institutionName, key: "institutionName") { Validators.isNotEmpty($0) }
+        observe(\.expectedSalary, key: "expectedSalary") { Validators.isNotEmpty($0) }
     }
 
     /// Called when any field changes. Clears the error for that field immediately
@@ -222,6 +174,8 @@ class RegistrationViewModel: ObservableObject {
             case .workExperience:
                 currentScreen = .positionAvailability
             case .positionAvailability:
+                currentScreen = .supportingDocuments
+            case .supportingDocuments:
                 currentScreen = .declaration
             case .declaration:
                 guard !isSubmitting else { return }
@@ -251,8 +205,10 @@ class RegistrationViewModel: ObservableObject {
                 currentScreen = .education
             case .positionAvailability:
                 currentScreen = .workExperience
-            case .declaration:
+            case .supportingDocuments:
                 currentScreen = .positionAvailability
+            case .declaration:
+                currentScreen = .supportingDocuments
             case .admin:
                 currentScreen = .welcome
             }
@@ -303,15 +259,33 @@ class RegistrationViewModel: ObservableObject {
             validFields.insert("preferredName")
         }
 
-        if !Validators.isValidNRIC(applicant.nricFIN) {
-            if Validators.isValidNRICFormat(applicant.nricFIN) {
+        let hasValidNRIC = Validators.isValidNRIC(applicant.nricFIN)
+        let hasPassport = Validators.isNotEmpty(applicant.passportNumber)
+
+        if !hasValidNRIC && !hasPassport {
+            // Neither provided — show error on both
+            if applicant.nricFIN.isEmpty {
+                fieldErrors["nricFIN"] = "Provide either NRIC/FIN or Passport Number"
+            } else if Validators.isValidNRICFormat(applicant.nricFIN) {
                 fieldErrors["nricFIN"] = "NRIC/FIN checksum is invalid. Please double-check the number."
             } else {
                 fieldErrors["nricFIN"] = "Enter a valid NRIC/FIN (e.g., S1234567A)"
             }
+            fieldErrors["passportNumber"] = "Provide either NRIC/FIN or Passport Number"
             isValid = false
         } else {
-            validFields.insert("nricFIN")
+            // At least one is provided
+            if hasValidNRIC { validFields.insert("nricFIN") }
+            if hasPassport { validFields.insert("passportNumber") }
+            // If NRIC was entered but is invalid, still warn (even if passport is provided)
+            if !applicant.nricFIN.isEmpty && !hasValidNRIC {
+                if Validators.isValidNRICFormat(applicant.nricFIN) {
+                    fieldErrors["nricFIN"] = "NRIC/FIN checksum is invalid. Please double-check the number."
+                } else {
+                    fieldErrors["nricFIN"] = "Invalid NRIC/FIN format"
+                }
+                // Don't block submission — passport is sufficient
+            }
         }
 
         if !Validators.isValidPhone(applicant.contactNumber) {
@@ -385,11 +359,13 @@ class RegistrationViewModel: ObservableObject {
             validFields.insert("highestQualificationOther")
         }
 
-        if !Validators.isNotEmpty(applicant.fieldOfStudy) {
-            fieldErrors["fieldOfStudy"] = "Field of study is required"
-            isValid = false
-        } else {
-            validFields.insert("fieldOfStudy")
+        if applicant.highestQualification.hasFieldOfStudy {
+            if !Validators.isNotEmpty(applicant.fieldOfStudy) {
+                fieldErrors["fieldOfStudy"] = "Field of study is required"
+                isValid = false
+            } else {
+                validFields.insert("fieldOfStudy")
+            }
         }
 
         if !Validators.isNotEmpty(applicant.institutionName) {
@@ -424,13 +400,6 @@ class RegistrationViewModel: ObservableObject {
             validFields.insert("expectedSalary")
         }
 
-        if !Validators.isNotEmpty(applicant.lastDrawnSalary) {
-            fieldErrors["lastDrawnSalary"] = "Last drawn salary is required"
-            isValid = false
-        } else {
-            validFields.insert("lastDrawnSalary")
-        }
-
         return isValid
     }
 
@@ -450,7 +419,7 @@ class RegistrationViewModel: ObservableObject {
         let haptic = UINotificationFeedbackGenerator()
 
         Task { @MainActor in
-            let result = await submissionVM.submit(applicant: applicant)
+            let result = await submissionVM.submit(applicant: applicant, supportingDocuments: supportingDocuments)
 
             isSubmitting = false
 
@@ -556,33 +525,30 @@ class RegistrationViewModel: ObservableObject {
         )
 
         idleTimer?.stop()
-        applicant.reset()
+        applicant = ApplicantData()
+        supportingDocuments.removeAll()
         fieldErrors.removeAll()
         validFields.removeAll()
         submissionError = nil
 
-        // Re-setup observers since the applicant object was reset
+        // Re-setup observers for the new struct value
         cancellables.removeAll()
-
-        // Re-forward ApplicantData changes
-        applicant.objectWillChange
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                self?.objectWillChange.send()
-            }
-            .store(in: &cancellables)
 
         setupFieldObservers()
 
-        // Re-bind idle timer publishers (using sink/store to avoid subscription accumulation)
+        // Re-bind idle timer publishers (no .receive needed — IdleTimer is @MainActor)
         idleTimer?.$isWarningShown
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] value in self?.showIdleWarning = value }
+            .sink { [weak self] value in
+                guard self?.showIdleWarning != value else { return }
+                self?.showIdleWarning = value
+            }
             .store(in: &cancellables)
 
         idleTimer?.$secondsRemaining
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] value in self?.idleCountdown = value }
+            .sink { [weak self] value in
+                guard self?.idleCountdown != value else { return }
+                self?.idleCountdown = value
+            }
             .store(in: &cancellables)
 
         withAnimation(.timingCurve(0.25, 0.1, 0.25, 1.0, duration: 0.35)) {

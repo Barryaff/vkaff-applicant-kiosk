@@ -13,7 +13,7 @@ struct PersonalDetailsView: View {
         ) {
             // Full Name
             FormField(
-                label: "Full Name (as in NRIC/FIN)",
+                label: "Full Name (as in NRIC/Passport)",
                 text: $vm.applicant.fullName,
                 placeholder: "Enter your full name",
                 maxLength: 100,
@@ -35,7 +35,12 @@ struct PersonalDetailsView: View {
                 focusValue: .preferredName
             )
 
-            // NRIC / FIN
+            // NRIC / FIN or Passport — at least one required
+            Text("Please provide either your NRIC/FIN or Passport Number (or both).")
+                .font(.system(size: 13))
+                .foregroundColor(.mediumGray)
+                .padding(.top, 4)
+
             NRICField(
                 label: "NRIC / FIN Number",
                 text: $vm.applicant.nricFIN,
@@ -45,12 +50,13 @@ struct PersonalDetailsView: View {
                 focusValue: .nricFIN
             )
 
-            // Passport Number (always visible)
             FormField(
-                label: "Passport Number (if applicable)",
+                label: "Passport Number",
                 text: $vm.applicant.passportNumber,
                 placeholder: "e.g., E12345678",
-                maxLength: 20
+                maxLength: 20,
+                errorMessage: vm.fieldErrors["passportNumber"],
+                isValid: vm.validFields.contains("passportNumber")
             )
 
             // Driving License Class (optional)

@@ -22,12 +22,13 @@ class SubmissionViewModel {
         }
     }
 
-    func submit(applicant: ApplicantData) async -> SubmissionResult {
+    func submit(applicant: ApplicantData, supportingDocuments: [SupportingDocument] = []) async -> SubmissionResult {
         // Sanitize data before submission
-        let sanitizedApplicant = applicant
+        var sanitizedApplicant = applicant
         sanitizedApplicant.sanitizeAllFields()
 
-        // Generate PDF
+        // Generate PDF (include document metadata for listing in the PDF)
+        pdfGenerator.documentMetadata = supportingDocuments.map { SupportingDocumentMetadata(from: $0) }
         let pdfData = pdfGenerator.generate(from: sanitizedApplicant)
 
         // Generate JSON
@@ -128,8 +129,20 @@ class SubmissionViewModel {
                     )
                 }
 
+                // Upload supporting documents
+                for (index, doc) in supportingDocuments.enumerated() {
+                    let docFileName = "\(baseFileName)_Doc\(index + 1)_\(doc.fileName)"
+                    try await withTimeout(seconds: 60) {
+                        try await self.driveService.uploadFile(
+                            data: doc.fileData,
+                            fileName: docFileName,
+                            mimeType: doc.mimeType
+                        )
+                    }
+                }
+
                 #if DEBUG
-                print("[SubmissionVM] Drive upload successful")
+                print("[SubmissionVM] Drive upload successful (\(supportingDocuments.count) documents attached)")
                 #endif
 
                 // Upload succeeded — remove the write-ahead backup
@@ -169,26 +182,6 @@ class SubmissionViewModel {
         // All retries failed — backup already saved by write-ahead, just return the error
         let errorMessage = userFacingMessage(for: lastError)
         return .failure(message: errorMessage)
-    }
-
-    // MARK: - Backup Helper
-
-    private func saveToBackupAndReturn(
-        pdfData: Data,
-        jsonData: Data,
-        referenceNumber: String,
-        reason: String
-    ) async -> SubmissionResult {
-        do {
-            try backupService.saveBackup(
-                pdfData: pdfData,
-                jsonData: jsonData,
-                referenceNumber: referenceNumber
-            )
-            return .failure(message: reason)
-        } catch {
-            return .failure(message: "Upload failed and local backup also failed: \(error.localizedDescription). Please contact HR.")
-        }
     }
 
     // MARK: - Timeout Helper

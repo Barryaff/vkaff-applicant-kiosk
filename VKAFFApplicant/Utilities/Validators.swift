@@ -1,6 +1,10 @@
 import Foundation
 
 enum Validators {
+    // Cached regex patterns (avoid per-call compilation)
+    private static let nricRegex = try! NSRegularExpression(pattern: "^[STFGM]\\d{7}[A-Z]$")
+    private static let emailRegex = try! NSRegularExpression(pattern: "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
+
     // MARK: - NRIC / FIN
 
     /// Validates Singapore NRIC/FIN with full checksum verification.
@@ -11,8 +15,8 @@ enum Validators {
         let trimmed = value.trimmingCharacters(in: .whitespaces).uppercased()
 
         // Basic format check: prefix letter + 7 digits + checksum letter
-        let pattern = "^[STFGM]\\d{7}[A-Z]$"
-        guard trimmed.range(of: pattern, options: .regularExpression) != nil else {
+        let range = NSRange(trimmed.startIndex..., in: trimmed)
+        guard nricRegex.firstMatch(in: trimmed, range: range) != nil else {
             return false
         }
 
@@ -60,8 +64,8 @@ enum Validators {
     /// while the user is still typing.
     static func isValidNRICFormat(_ value: String) -> Bool {
         let trimmed = value.trimmingCharacters(in: .whitespaces).uppercased()
-        let pattern = "^[STFGM]\\d{7}[A-Z]$"
-        return trimmed.range(of: pattern, options: .regularExpression) != nil
+        let range = NSRange(trimmed.startIndex..., in: trimmed)
+        return nricRegex.firstMatch(in: trimmed, range: range) != nil
     }
 
     // MARK: - Email
@@ -95,9 +99,9 @@ enum Validators {
         guard !domainPart.hasPrefix("-") else { return false }   // No leading hyphen in domain
         guard domainPart.contains(".") else { return false }     // Must have at least one dot
 
-        // Overall regex validation
-        let pattern = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
-        return trimmed.range(of: pattern, options: .regularExpression) != nil
+        // Overall regex validation (uses cached NSRegularExpression)
+        let range = NSRange(trimmed.startIndex..., in: trimmed)
+        return emailRegex.firstMatch(in: trimmed, range: range) != nil
     }
 
     // MARK: - Phone (International)

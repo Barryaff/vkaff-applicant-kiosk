@@ -33,6 +33,9 @@ class PDFGenerator {
 
     // MARK: - Public API
 
+    /// Supporting document metadata passed from the view model (binary data excluded from PDF)
+    var documentMetadata: [SupportingDocumentMetadata] = []
+
     func generate(from applicant: ApplicantData) -> Data {
         totalPages = countPages(from: applicant)
         return renderPDF(from: applicant)
@@ -58,9 +61,10 @@ class PDFGenerator {
 
         let twoColPersonal: [((String, String), (String, String))] = [
             (("Full Name", applicant.fullName), ("Preferred Name", applicant.preferredName)),
-            (("NRIC / FIN", applicant.nricFIN), ("Date of Birth", dateFormatter.string(from: applicant.dateOfBirth))),
-            (("Gender", applicant.gender.rawValue), ("Nationality", countNatDisplay)),
-            (("Race", applicant.race == .others ? applicant.raceOther : applicant.race.rawValue), ("Contact Number", applicant.contactNumber))
+            (("NRIC / FIN", applicant.nricFIN), ("Passport Number", applicant.passportNumber)),
+            (("Date of Birth", dateFormatter.string(from: applicant.dateOfBirth)), ("Gender", applicant.gender.rawValue)),
+            (("Nationality", countNatDisplay), ("Race", applicant.race == .others ? applicant.raceOther : applicant.race.rawValue)),
+            (("Contact Number", applicant.contactNumber), ("Email", applicant.emailAddress))
         ]
         for _ in twoColPersonal {
             yPosition = simulateCheckNewPage(y: yPosition, needed: 36, pageCount: &pageCount)
@@ -68,13 +72,9 @@ class PDFGenerator {
         }
 
         var singlePersonal: [(String, String)] = [
-            ("Email", applicant.emailAddress),
             ("Address", applicant.residentialAddress),
             ("Postal Code", applicant.postalCode)
         ]
-        if !applicant.passportNumber.isEmpty {
-            singlePersonal.append(("Passport Number", applicant.passportNumber))
-        }
         if !applicant.drivingLicenseClass.isEmpty {
             singlePersonal.append(("Driving License", applicant.drivingLicenseClass))
         }
@@ -181,6 +181,18 @@ class PDFGenerator {
         if applicant.hasBankruptcy { yPosition += 36 }
         if applicant.hasLegalProceedings { yPosition += 36 }
 
+        // Supporting Documents section
+        if !documentMetadata.isEmpty {
+            yPosition += 10
+            yPosition = simulateCheckNewPage(y: yPosition, needed: 44, pageCount: &pageCount)
+            yPosition = simulateSectionHeader(at: yPosition)
+            for doc in documentMetadata {
+                let h = simulateFieldHeight(value: "\(doc.fileName) (\(doc.documentType.rawValue))")
+                yPosition = simulateCheckNewPage(y: yPosition, needed: h, pageCount: &pageCount)
+                yPosition += h
+            }
+        }
+
         // Signature section
         yPosition += 20
         yPosition = simulateCheckNewPage(y: yPosition, needed: 220, pageCount: &pageCount)
@@ -249,13 +261,15 @@ class PDFGenerator {
 
             let contactDisplay = "\(applicant.contactCountryCode) \(applicant.contactNumber)"
 
-            let maskedNRIC = NRICMasker.mask(applicant.nricFIN)
+            let maskedNRIC = applicant.nricFIN.isEmpty ? "-" : NRICMasker.mask(applicant.nricFIN)
+            let passportDisplay = applicant.passportNumber.isEmpty ? "-" : applicant.passportNumber
 
             let twoColPersonal: [((String, String), (String, String))] = [
                 (("Full Name", applicant.fullName), ("Preferred Name", applicant.preferredName)),
-                (("NRIC / FIN", maskedNRIC), ("Date of Birth", dateFormatter.string(from: applicant.dateOfBirth))),
-                (("Gender", applicant.gender.rawValue), ("Nationality", nationalityDisplay)),
-                (("Race", applicant.race == .others ? applicant.raceOther : applicant.race.rawValue), ("Contact Number", contactDisplay))
+                (("NRIC / FIN", maskedNRIC), ("Passport Number", passportDisplay)),
+                (("Date of Birth", dateFormatter.string(from: applicant.dateOfBirth)), ("Gender", applicant.gender.rawValue)),
+                (("Nationality", nationalityDisplay), ("Race", applicant.race == .others ? applicant.raceOther : applicant.race.rawValue)),
+                (("Contact Number", contactDisplay), ("Email", applicant.emailAddress))
             ]
             for (left, right) in twoColPersonal {
                 yPosition = checkPageBreak(y: yPosition, needed: 36, context: context)
@@ -263,13 +277,9 @@ class PDFGenerator {
             }
 
             var singlePersonal: [(String, String)] = [
-                ("Email", applicant.emailAddress),
                 ("Address", applicant.residentialAddress),
                 ("Postal Code", applicant.postalCode)
             ]
-            if !applicant.passportNumber.isEmpty {
-                singlePersonal.append(("Passport Number", applicant.passportNumber))
-            }
             if !applicant.drivingLicenseClass.isEmpty {
                 singlePersonal.append(("Driving License", applicant.drivingLicenseClass))
             }
@@ -346,6 +356,10 @@ class PDFGenerator {
                         right: ("Institution", "\(qual.institution) (\(qual.year))"),
                         at: yPosition
                     )
+                    if !qual.fieldOfStudy.isEmpty {
+                        yPosition = checkPageBreak(y: yPosition, needed: 32, context: context)
+                        yPosition = drawField(label: "Field of Study", value: qual.fieldOfStudy, at: yPosition)
+                    }
                 }
             }
 
@@ -380,6 +394,9 @@ class PDFGenerator {
                     right: ("Period", period),
                     at: yPosition
                 )
+                if !record.lastDrawnSalary.isEmpty {
+                    yPosition = drawField(label: "Last Drawn Salary", value: "SGD $\(record.lastDrawnSalary)", at: yPosition)
+                }
                 yPosition = drawField(label: "Reason for Leaving", value: record.reasonForLeaving.rawValue, at: yPosition)
                 if !record.keyResponsibilities.isEmpty {
                     yPosition = drawField(label: "Key Responsibilities", value: record.keyResponsibilities, at: yPosition)
@@ -425,9 +442,8 @@ class PDFGenerator {
 
             let twoColPosition: [((String, String), (String, String))] = [
                 (("Employment Type", applicant.preferredEmploymentType.rawValue), ("Earliest Start", dateFormatter.string(from: applicant.earliestStartDate))),
-                (("Expected Salary", applicant.expectedSalary.isEmpty ? "-" : "SGD $\(applicant.expectedSalary)"), ("Last Drawn Salary", applicant.lastDrawnSalary.isEmpty ? "-" : "SGD $\(applicant.lastDrawnSalary)")),
-                (("Shifts", applicant.willingToWorkShifts.rawValue), ("Travel", applicant.willingToTravel.rawValue)),
-                (("Own Transport", applicant.hasOwnTransport ? "Yes" : "No"), ("Source", applicant.howDidYouHear.rawValue))
+                (("Expected Salary", applicant.expectedSalary.isEmpty ? "-" : "SGD $\(applicant.expectedSalary)"), ("Shifts", applicant.willingToWorkShifts.rawValue)),
+                (("Travel", applicant.willingToTravel.rawValue), ("Source", applicant.howDidYouHear.rawValue))
             ]
 
             for (left, right) in twoColPosition {
@@ -464,6 +480,34 @@ class PDFGenerator {
                 if value && !details.isEmpty {
                     yPosition = checkPageBreak(y: yPosition, needed: 32, context: context)
                     yPosition = drawField(label: "  Details", value: details, at: yPosition)
+                }
+            }
+
+            // =====================
+            // SUPPORTING DOCUMENTS
+            // =====================
+            if !documentMetadata.isEmpty {
+                yPosition += 10
+                yPosition = checkPageBreak(y: yPosition, needed: 44, context: context)
+                yPosition = drawSectionHeader("Supporting Documents", at: yPosition)
+
+                for (index, doc) in documentMetadata.enumerated() {
+                    let sizeStr: String
+                    let bytes = Double(doc.fileSize)
+                    if bytes < 1024 {
+                        sizeStr = "\(Int(bytes)) B"
+                    } else if bytes < 1024 * 1024 {
+                        sizeStr = String(format: "%.0f KB", bytes / 1024)
+                    } else {
+                        sizeStr = String(format: "%.1f MB", bytes / (1024 * 1024))
+                    }
+
+                    yPosition = checkPageBreak(y: yPosition, needed: 32, context: context)
+                    yPosition = drawField(
+                        label: "Document \(index + 1) — \(doc.documentType.rawValue)",
+                        value: "\(doc.fileName) (\(sizeStr))",
+                        at: yPosition
+                    )
                 }
             }
 
@@ -860,10 +904,8 @@ class PDFGenerator {
             ("Employment Type", applicant.preferredEmploymentType.rawValue),
             ("Earliest Start", dateFormatter.string(from: applicant.earliestStartDate)),
             ("Expected Salary", applicant.expectedSalary.isEmpty ? "-" : "SGD $\(applicant.expectedSalary)"),
-            ("Last Drawn Salary", applicant.lastDrawnSalary.isEmpty ? "-" : "SGD $\(applicant.lastDrawnSalary)"),
             ("Shifts", applicant.willingToWorkShifts.rawValue),
             ("Travel", applicant.willingToTravel.rawValue),
-            ("Own Transport", applicant.hasOwnTransport ? "Yes" : "No"),
             ("Source", applicant.howDidYouHear.rawValue),
             ("Open to Other Positions", applicant.openToOtherPositions ? "Yes" : "No")
         ]

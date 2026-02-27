@@ -29,17 +29,19 @@ struct EducationView: View {
                 )
             }
 
-            // Field of Study
-            FormField(
-                label: "Field of Study",
-                text: $vm.applicant.fieldOfStudy,
-                placeholder: "e.g., Chemistry, Food Science",
-                maxLength: 200,
-                errorMessage: vm.fieldErrors["fieldOfStudy"],
-                isValid: vm.validFields.contains("fieldOfStudy"),
-                educationFocusBinding: $focusedField,
-                educationFocusValue: .fieldOfStudy
-            )
+            // Field of Study (only for diploma-level and above)
+            if vm.applicant.highestQualification.hasFieldOfStudy {
+                FormField(
+                    label: "Field of Study",
+                    text: $vm.applicant.fieldOfStudy,
+                    placeholder: "e.g., Chemistry, Food Science",
+                    maxLength: 200,
+                    errorMessage: vm.fieldErrors["fieldOfStudy"],
+                    isValid: vm.validFields.contains("fieldOfStudy"),
+                    educationFocusBinding: $focusedField,
+                    educationFocusValue: .fieldOfStudy
+                )
+            }
 
             // Institution
             FormField(
@@ -104,7 +106,13 @@ struct EducationView: View {
                     )
                 }
                 FormField(
-                    label: "Institution",
+                    label: "Field of Study",
+                    text: $qual.fieldOfStudy,
+                    placeholder: "e.g., Chemistry, Food Science",
+                    maxLength: 200
+                )
+                FormField(
+                    label: "Institution Name",
                     text: $qual.institution,
                     placeholder: "Institution name",
                     maxLength: 200

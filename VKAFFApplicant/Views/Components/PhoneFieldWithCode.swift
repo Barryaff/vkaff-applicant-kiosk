@@ -105,8 +105,7 @@ struct PhoneFieldWithCode: View {
                         )
                         .overlay(
                             UnevenRoundedRectangle(topLeadingRadius: 0, bottomLeadingRadius: 0, bottomTrailingRadius: 10, topTrailingRadius: 10)
-                                .stroke(Color.affOrange.opacity(0.4 * glowOpacity), lineWidth: 3)
-                                .blur(radius: 4)
+                                .stroke(Color.affOrange.opacity(0.3 * glowOpacity), lineWidth: 2)
                                 .opacity(glowOpacity)
                         )
                         .focused($isFocused)

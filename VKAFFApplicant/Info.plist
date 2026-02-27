@@ -18,6 +18,10 @@
 	<string>1.0</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Camera access is needed to take photos of supporting documents for your application.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Photo library access is needed to select supporting documents for your application.</string>
 	<key>UILaunchScreen</key>
 	<dict/>
 </dict>

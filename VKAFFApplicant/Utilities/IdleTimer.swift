@@ -17,6 +17,7 @@ class IdleTimer: ObservableObject {
     private var backgroundEntryDate: Date?
     private var elapsedBeforeBackground: TimeInterval = 0
     private var warningScheduledDate: Date?
+    private var lastResetDate: Date = .distantPast
 
     private let logger = Logger(subsystem: "com.vkaff.applicant-kiosk", category: "IdleTimer")
 
@@ -64,6 +65,12 @@ class IdleTimer: ObservableObject {
 
     func resetActivity() {
         guard isActive, !isPaused else { return }
+
+        // Throttle: ignore resets within 2 seconds of each other to avoid
+        // timer churn from gestures/keyboard events firing per-frame
+        let now = Date()
+        guard now.timeIntervalSince(lastResetDate) > 2.0 else { return }
+        lastResetDate = now
 
         logger.debug("Activity detected — resetting idle timer")
 

@@ -1,5 +1,13 @@
 import SwiftUI
 
+// Cached formatter to avoid per-keystroke allocations in salary fields
+private let salaryFormatter: NumberFormatter = {
+    let formatter = NumberFormatter()
+    formatter.numberStyle = .decimal
+    formatter.groupingSeparator = ","
+    return formatter
+}()
+
 struct FormField: View {
     let label: String
     @Binding var text: String
@@ -45,6 +53,7 @@ struct FormField: View {
                     TextEditor(text: $text)
                         .font(.system(size: 20))
                         .foregroundColor(.darkText)
+                        .textInputAutocapitalization(.characters)
                         .scrollContentBackground(.hidden)
                         .frame(minHeight: 130)
                         .padding(12)
@@ -74,13 +83,13 @@ struct FormField: View {
                             .accessibilityLabel("\(text.count) of \(max) characters used")
                     }
                 } else {
-                    TextField(placeholder, text: isSalaryField ? salaryBinding : phoneAutoPrefix, onCommit: {
+                    TextField(placeholder, text: isSalaryField ? salaryBinding : $text, onCommit: {
                         onCommit?()
                     })
                     .font(.system(size: 20))
                     .foregroundColor(.darkText)
                     .keyboardType(keyboardType)
-                    .textInputAutocapitalization(keyboardType == .emailAddress ? .never : .characters)
+                    .textInputAutocapitalization(.characters)
                     .autocorrectionDisabled()
                     .padding(.horizontal, 16)
                     .padding(.vertical, 14)
@@ -112,7 +121,7 @@ struct FormField: View {
             }
             .offset(x: shakeOffset)
             .onChange(of: isFocused) { _, focused in
-                withAnimation(.easeInOut(duration: 0.3)) {
+                withAnimation(.easeInOut(duration: 0.15)) {
                     glowOpacity = focused ? 1 : 0
                 }
                 if focused {
@@ -185,24 +194,21 @@ struct FormField: View {
     }
 
     // MARK: - Phone binding (no auto-prefix — supports international numbers)
-    private var phoneAutoPrefix: Binding<String> {
-        return $text
-    }
+    // phoneAutoPrefix removed — use $text directly
 
     // MARK: - Salary auto-formatting binding
     private var salaryBinding: Binding<String> {
         Binding(
             get: { text },
             set: { newValue in
-                // Strip non-numeric characters
-                let digits = newValue.filter { $0.isNumber }
-                // Format with comma separators
-                if let number = Int(digits) {
-                    let formatter = NumberFormatter()
-                    formatter.numberStyle = .decimal
-                    formatter.groupingSeparator = ","
-                    text = formatter.string(from: NSNumber(value: number)) ?? digits
-                } else if digits.isEmpty {
+                let newDigits = newValue.filter { $0.isNumber }
+                let oldDigits = text.filter { $0.isNumber }
+                guard newDigits != oldDigits else { return }
+
+                if let number = Int(newDigits) {
+                    let formatted = salaryFormatter.string(from: NSNumber(value: number)) ?? newDigits
+                    if text != formatted { text = formatted }
+                } else if newDigits.isEmpty && !text.isEmpty {
                     text = ""
                 }
             }
@@ -237,8 +243,7 @@ struct FormField: View {
         if let binding = positionFocusBinding, let value = positionFocusValue {
             switch value {
             case .positionOther: binding.wrappedValue = .expectedSalary
-            case .expectedSalary: binding.wrappedValue = .lastDrawnSalary
-            case .lastDrawnSalary: binding.wrappedValue = .referrerName
+            case .expectedSalary: binding.wrappedValue = .referrerName
             case .referrerName: binding.wrappedValue = nil
             }
         }
@@ -260,8 +265,7 @@ struct FormField: View {
 
     private var focusGlow: some View {
         RoundedRectangle(cornerRadius: 10)
-            .stroke(Color.affOrange.opacity(0.4 * glowOpacity), lineWidth: 3)
-            .blur(radius: 4)
+            .stroke(Color.affOrange.opacity(0.3 * glowOpacity), lineWidth: 2)
             .opacity(glowOpacity)
     }
 }
@@ -278,7 +282,7 @@ enum EducationFocus: Hashable {
 }
 
 enum PositionFocus: Hashable {
-    case positionOther, expectedSalary, lastDrawnSalary, referrerName
+    case positionOther, expectedSalary, referrerName
 }
 
 // MARK: - Focus binding helpers
@@ -346,7 +350,7 @@ struct NRICField: View {
             return text
         }
         // When not focused, report the masked value
-        if Validators.isValidNRIC(text) {
+        if isValid {
             return "Masked as \(NRICMasker.mask(text))"
         }
         return text
@@ -387,8 +391,7 @@ struct NRICField: View {
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.affOrange.opacity(0.4 * glowOpacity), lineWidth: 3)
-                            .blur(radius: 4)
+                            .stroke(Color.affOrange.opacity(0.3 * glowOpacity), lineWidth: 2)
                             .opacity(glowOpacity)
                     )
                     .focused($isFocused)
@@ -407,7 +410,7 @@ struct NRICField: View {
             }
             .offset(x: shakeOffset)
             .onChange(of: isFocused) { _, focused in
-                withAnimation(.easeInOut(duration: 0.3)) {
+                withAnimation(.easeInOut(duration: 0.15)) {
                     glowOpacity = focused ? 1 : 0
                 }
                 if focused {
@@ -416,7 +419,7 @@ struct NRICField: View {
                 }
             }
 
-            if !isFocused && !text.isEmpty && Validators.isValidNRIC(text) {
+            if !isFocused && !text.isEmpty && isValid {
                 Text("Displayed as: \(NRICMasker.mask(text))")
                     .font(.system(size: 12))
                     .foregroundColor(.mediumGray)

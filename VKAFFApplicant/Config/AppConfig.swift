@@ -24,4 +24,6 @@ enum AppConfig {
     static let maxEmploymentRecords = 5
     static let maxReferences = 2
     static let maxEmergencyContacts = 3
+    static let maxSupportingDocuments = 5
+    static let maxDocumentSizeMB = 10
 }
