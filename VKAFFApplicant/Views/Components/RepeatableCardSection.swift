@@ -26,7 +26,7 @@ struct RepeatableCardSection<T: Identifiable, Content: View>: View {
                         Image(systemName: "xmark")
                             .font(.system(size: 14, weight: .medium))
                             .foregroundColor(.mediumGray)
-                            .frame(width: 32, height: 32)
+                            .frame(width: 44, height: 44)
                     }
                     .accessibilityLabel("Remove this \(title.lowercased())")
                     .accessibilityHint("Double tap to remove")

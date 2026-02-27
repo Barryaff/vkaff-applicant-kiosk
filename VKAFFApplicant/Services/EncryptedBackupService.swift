@@ -42,7 +42,7 @@ class EncryptedBackupService {
     private var backupDirectory: URL {
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         let dir = docs.appendingPathComponent("PendingUploads")
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true, attributes: [.protectionKey: FileProtectionType.complete])
         return dir
     }
 
@@ -201,8 +201,10 @@ class EncryptedBackupService {
 
         for ref in pending {
             if let data = getPendingData(for: ref) {
-                try? data.pdf.write(to: exportDir.appendingPathComponent("\(ref).pdf"))
-                try? data.json.write(to: exportDir.appendingPathComponent("\(ref).json"))
+                let pdfURL = exportDir.appendingPathComponent("\(ref).pdf")
+                let jsonURL = exportDir.appendingPathComponent("\(ref).json")
+                try? data.pdf.write(to: pdfURL, options: .completeFileProtection)
+                try? data.json.write(to: jsonURL, options: .completeFileProtection)
             }
         }
 

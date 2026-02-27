@@ -74,18 +74,16 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         }
 
         // Monitor screen recording state changes
-        if #available(iOS 11.0, *) {
-            NotificationCenter.default.addObserver(
-                forName: UIScreen.capturedDidChangeNotification,
-                object: nil,
-                queue: .main
-            ) { [weak self] _ in
-                let isCaptured = UIScreen.main.isCaptured
-                if isCaptured {
-                    self?.logger.warning("Screen recording started on kiosk device")
-                } else {
-                    self?.logger.info("Screen recording stopped")
-                }
+        NotificationCenter.default.addObserver(
+            forName: UIScreen.capturedDidChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            let isCaptured = (notification.object as? UIScreen)?.isCaptured ?? false
+            if isCaptured {
+                self?.logger.warning("Screen recording started on kiosk device")
+            } else {
+                self?.logger.info("Screen recording stopped")
             }
         }
     }

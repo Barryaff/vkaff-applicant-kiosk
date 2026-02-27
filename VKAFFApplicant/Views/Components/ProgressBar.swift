@@ -40,7 +40,7 @@ struct ProgressBar: View {
                     if UIDevice.current.userInterfaceIdiom == .pad {
                         Text(step.title)
                             .font(.system(size: 11, weight: index == currentStep ? .semibold : .regular))
-                            .foregroundColor(index == currentStep ? .navy : (index < currentStep ? .navy.opacity(0.6) : .bodyGray.opacity(0.5)))
+                            .foregroundColor(index == currentStep ? .navy : (index < currentStep ? .navy.opacity(0.6) : .mediumGray.opacity(0.5)))
                             .tracking(index == currentStep ? 0 : 0.3)
                             .padding(.leading, 6)
                             .accessibilityHidden(true)

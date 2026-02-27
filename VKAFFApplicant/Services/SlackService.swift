@@ -59,7 +59,6 @@ class SlackService {
         let timestamp = timestampFormatter.string(from: Date())
 
         let positions = applicant.positionsAppliedFor.map(\.rawValue).joined(separator: ", ")
-        let salary = applicant.expectedSalary.isEmpty ? "Not specified" : "SGD $\(applicant.expectedSalary)"
         let driveURL = "https://drive.google.com/drive/search?q=\(applicant.referenceNumber)"
 
         let blocks: [[String: Any]] = [
@@ -76,35 +75,21 @@ class SlackService {
             [
                 "type": "divider"
             ],
-            // Applicant identity section - two column fields
+            // Application reference section (no PII per PDPA)
             [
                 "type": "section",
                 "fields": [
                     [
                         "type": "mrkdwn",
-                        "text": "*Name:*\n\(applicant.fullName) (\(applicant.preferredName))"
+                        "text": "*Application:*\n`\(applicant.referenceNumber)`"
                     ],
                     [
                         "type": "mrkdwn",
-                        "text": "*Reference:*\n`\(applicant.referenceNumber)`"
+                        "text": "*Employment Type:*\n\(applicant.preferredEmploymentType.rawValue)"
                     ]
                 ]
             ],
-            // Nationality section
-            [
-                "type": "section",
-                "fields": [
-                    [
-                        "type": "mrkdwn",
-                        "text": "*Nationality:*\n\(applicant.nationality == .others ? (applicant.nationalityOther.isEmpty ? "Others" : applicant.nationalityOther) : applicant.nationality.rawValue)"
-                    ],
-                    [
-                        "type": "mrkdwn",
-                        "text": "*Experience:*\n\(applicant.totalExperience.rawValue)"
-                    ]
-                ]
-            ],
-            // Position & salary section - two column fields
+            // Experience & position section
             [
                 "type": "section",
                 "fields": [
@@ -114,7 +99,7 @@ class SlackService {
                     ],
                     [
                         "type": "mrkdwn",
-                        "text": "*Expected Salary:*\n\(salary)"
+                        "text": "*Experience:*\n\(applicant.totalExperience.rawValue)"
                     ]
                 ]
             ],
@@ -164,7 +149,11 @@ class SlackService {
             ]
         ]
 
-        return ["blocks": blocks]
+        // Include text fallback for notification previews and non-Block Kit clients (no PII per PDPA)
+        return [
+            "text": "New application received — \(positions) [\(applicant.referenceNumber)]",
+            "blocks": blocks
+        ]
     }
 }
 

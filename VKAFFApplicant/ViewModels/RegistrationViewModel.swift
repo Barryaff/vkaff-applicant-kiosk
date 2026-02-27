@@ -36,8 +36,25 @@ class RegistrationViewModel: ObservableObject {
     private var idleTimer: IdleTimer?
     private var cancellables = Set<AnyCancellable>()
     private let submissionVM = SubmissionViewModel()
+    private var autoReturnTask: Task<Void, Never>?
+
+    private static let adminLockoutEndTimeKey = "adminLockoutEndTime"
 
     init() {
+        // Restore admin lockout state if persisted
+        let lockoutEndTime = UserDefaults.standard.double(forKey: Self.adminLockoutEndTimeKey)
+        if lockoutEndTime > Date().timeIntervalSince1970 {
+            adminLocked = true
+            adminFailedAttempts = maxAdminAttempts
+            let remaining = lockoutEndTime - Date().timeIntervalSince1970
+            Task { @MainActor [weak self] in
+                try? await Task.sleep(nanoseconds: UInt64(remaining * 1_000_000_000))
+                self?.adminLocked = false
+                self?.adminFailedAttempts = 0
+                UserDefaults.standard.removeObject(forKey: Self.adminLockoutEndTimeKey)
+            }
+        }
+
         idleTimer = IdleTimer { [weak self] in
             self?.resetToWelcome()
         }
@@ -53,11 +70,13 @@ class RegistrationViewModel: ObservableObject {
         // Sync idle timer warning state
         idleTimer?.$isWarningShown
             .receive(on: DispatchQueue.main)
-            .assign(to: &$showIdleWarning)
+            .sink { [weak self] value in self?.showIdleWarning = value }
+            .store(in: &cancellables)
 
         idleTimer?.$secondsRemaining
             .receive(on: DispatchQueue.main)
-            .assign(to: &$idleCountdown)
+            .sink { [weak self] value in self?.idleCountdown = value }
+            .store(in: &cancellables)
 
         setupFieldObservers()
     }
@@ -205,6 +224,7 @@ class RegistrationViewModel: ObservableObject {
             case .positionAvailability:
                 currentScreen = .declaration
             case .declaration:
+                guard !isSubmitting else { return }
                 submitApplication()
             case .confirmation, .admin:
                 break
@@ -213,6 +233,7 @@ class RegistrationViewModel: ObservableObject {
     }
 
     func navigateBack() {
+        guard !isSubmitting else { return }
         navigatingForward = false
         let haptic = UIImpactFeedbackGenerator(style: .light)
         haptic.impactOccurred()
@@ -321,6 +342,21 @@ class RegistrationViewModel: ObservableObject {
             validFields.insert("postalCode")
         }
 
+        // Validate "Others" specify fields
+        if applicant.nationality == .others && !Validators.isNotEmpty(applicant.nationalityOther) {
+            fieldErrors["nationalityOther"] = "Please specify your nationality"
+            isValid = false
+        } else if applicant.nationality == .others {
+            validFields.insert("nationalityOther")
+        }
+
+        if applicant.race == .others && !Validators.isNotEmpty(applicant.raceOther) {
+            fieldErrors["raceOther"] = "Please specify your race"
+            isValid = false
+        } else if applicant.race == .others {
+            validFields.insert("raceOther")
+        }
+
         // At least one emergency contact with name and phone required
         if applicant.emergencyContacts.isEmpty || !Validators.isNotEmpty(applicant.emergencyContacts[0].name) {
             fieldErrors["emergencyContactName"] = "At least one emergency contact is required"
@@ -341,6 +377,13 @@ class RegistrationViewModel: ObservableObject {
 
     private func validateEducation() -> Bool {
         var isValid = true
+
+        if applicant.highestQualification == .others && !Validators.isNotEmpty(applicant.highestQualificationOther) {
+            fieldErrors["highestQualificationOther"] = "Please specify your qualification"
+            isValid = false
+        } else if applicant.highestQualification == .others {
+            validFields.insert("highestQualificationOther")
+        }
 
         if !Validators.isNotEmpty(applicant.fieldOfStudy) {
             fieldErrors["fieldOfStudy"] = "Field of study is required"
@@ -365,6 +408,13 @@ class RegistrationViewModel: ObservableObject {
         if applicant.positionsAppliedFor.isEmpty {
             fieldErrors["positions"] = "Select at least one position"
             isValid = false
+        }
+
+        if applicant.positionsAppliedFor.contains(.others) && !Validators.isNotEmpty(applicant.positionOther) {
+            fieldErrors["positionOther"] = "Please specify the position"
+            isValid = false
+        } else if applicant.positionsAppliedFor.contains(.others) {
+            validFields.insert("positionOther")
         }
 
         if !Validators.isNotEmpty(applicant.expectedSalary) {
@@ -417,10 +467,13 @@ class RegistrationViewModel: ObservableObject {
                 currentScreen = .confirmation
             }
 
-            // Auto-return after confirmation
-            try? await Task.sleep(nanoseconds: UInt64(AppConfig.confirmationAutoReturnSeconds * 1_000_000_000))
-            if currentScreen == .confirmation {
-                resetToWelcome()
+            // Auto-return after confirmation (stored so it can be cancelled on manual reset)
+            autoReturnTask = Task { @MainActor [weak self] in
+                try? await Task.sleep(nanoseconds: UInt64(AppConfig.confirmationAutoReturnSeconds * 1_000_000_000))
+                guard !Task.isCancelled else { return }
+                if self?.currentScreen == .confirmation {
+                    self?.resetToWelcome()
+                }
             }
         }
     }
@@ -478,10 +531,12 @@ class RegistrationViewModel: ObservableObject {
             adminFailedAttempts += 1
             if adminFailedAttempts >= maxAdminAttempts {
                 adminLocked = true
-                Task { @MainActor in
-                    try? await Task.sleep(nanoseconds: UInt64(adminLockoutSeconds * 1_000_000_000))
-                    adminLocked = false
-                    adminFailedAttempts = 0
+                UserDefaults.standard.set(Date().timeIntervalSince1970 + adminLockoutSeconds, forKey: Self.adminLockoutEndTimeKey)
+                Task { @MainActor [weak self] in
+                    try? await Task.sleep(nanoseconds: UInt64((self?.adminLockoutSeconds ?? 60) * 1_000_000_000))
+                    self?.adminLocked = false
+                    self?.adminFailedAttempts = 0
+                    UserDefaults.standard.removeObject(forKey: Self.adminLockoutEndTimeKey)
                 }
             }
         }
@@ -490,6 +545,10 @@ class RegistrationViewModel: ObservableObject {
     // MARK: - Reset
 
     func resetToWelcome() {
+        // Cancel any pending auto-return task from previous submission
+        autoReturnTask?.cancel()
+        autoReturnTask = nil
+
         // Dismiss any active keyboard before resetting
         UIApplication.shared.sendAction(
             #selector(UIResponder.resignFirstResponder),
@@ -515,14 +574,16 @@ class RegistrationViewModel: ObservableObject {
 
         setupFieldObservers()
 
-        // Re-bind idle timer publishers
+        // Re-bind idle timer publishers (using sink/store to avoid subscription accumulation)
         idleTimer?.$isWarningShown
             .receive(on: DispatchQueue.main)
-		            .assign(to: &$showIdleWarning)
+            .sink { [weak self] value in self?.showIdleWarning = value }
+            .store(in: &cancellables)
 
         idleTimer?.$secondsRemaining
             .receive(on: DispatchQueue.main)
-            .assign(to: &$idleCountdown)
+            .sink { [weak self] value in self?.idleCountdown = value }
+            .store(in: &cancellables)
 
         withAnimation(.timingCurve(0.25, 0.1, 0.25, 1.0, duration: 0.35)) {
             currentScreen = .welcome

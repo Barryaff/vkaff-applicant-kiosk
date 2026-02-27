@@ -37,7 +37,7 @@ struct LabelStyle: ViewModifier {
     func body(content: Content) -> some View {
         content
             .font(.system(size: 15, weight: .medium, design: .default))
-            .foregroundColor(.bodyGray)
+            .foregroundColor(.mediumGray)
     }
 }
 
@@ -63,7 +63,7 @@ struct CaptionStyle: ViewModifier {
     func body(content: Content) -> some View {
         content
             .font(.system(size: 14, weight: .regular, design: .default))
-            .foregroundColor(.bodyGray)
+            .foregroundColor(.mediumGray)
     }
 }
 

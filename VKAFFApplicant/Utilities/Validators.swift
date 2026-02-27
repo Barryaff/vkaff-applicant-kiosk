@@ -120,14 +120,16 @@ enum Validators {
         return true
     }
 
-    // MARK: - Postal Code (International)
+    // MARK: - Postal Code (Singapore)
 
-    /// Validates postal/zip codes — accepts international formats (3-10 alphanumeric characters).
+    /// Validates Singapore postal codes — exactly 6 digits, district 01-82.
     static func isValidPostalCode(_ value: String) -> Bool {
-        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
-        // Allow alphanumeric + spaces/hyphens (e.g., "SW1A 1AA", "100-0001")
-        let alphanumOnly = trimmed.filter { $0.isLetter || $0.isNumber }
-        return alphanumOnly.count >= 3 && alphanumOnly.count <= 10
+        let digits = value.filter { $0.isNumber }
+        guard digits.count == 6 else { return false }
+
+        // District is the first two digits; valid range is 01-82
+        let district = Int(digits.prefix(2)) ?? 0
+        return district >= 1 && district <= 82
     }
 
     // MARK: - Non-empty
@@ -185,8 +187,8 @@ enum Validators {
         return cleaned
     }
 
-    /// Trims and normalizes postal/zip code for storage.
+    /// Strips non-digit characters from postal code for consistent storage.
     static func sanitizePostalCode(_ value: String) -> String {
-        return value.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        return value.filter { $0.isNumber }
     }
 }

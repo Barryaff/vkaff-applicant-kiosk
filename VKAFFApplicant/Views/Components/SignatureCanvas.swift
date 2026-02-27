@@ -3,6 +3,7 @@ import PencilKit
 
 struct SignatureCanvas: UIViewRepresentable {
     @Binding var signatureData: Data?
+    var canvasRef: ((PKCanvasView) -> Void)? = nil
 
     func makeUIView(context: Context) -> PKCanvasView {
         let canvas = PKCanvasView()
@@ -22,6 +23,10 @@ struct SignatureCanvas: UIViewRepresentable {
         canvas.layer.shadowOpacity = 0.05
         canvas.layer.shadowRadius = 4
 
+        DispatchQueue.main.async {
+            canvasRef?(canvas)
+        }
+
         return canvas
     }
 
@@ -39,8 +44,12 @@ struct SignatureCanvas: UIViewRepresentable {
         }
 
         func canvasViewDrawingDidChange(_ canvasView: PKCanvasView) {
-            let image = canvasView.drawing.image(from: canvasView.bounds, scale: 2.0)
-            signatureData = image.pngData()
+            if canvasView.drawing.strokes.isEmpty {
+                signatureData = nil
+            } else {
+                let image = canvasView.drawing.image(from: canvasView.bounds, scale: 2.0)
+                signatureData = image.pngData()
+            }
         }
     }
 }
@@ -48,6 +57,7 @@ struct SignatureCanvas: UIViewRepresentable {
 struct SignatureField: View {
     @Binding var signatureData: Data?
     @State private var canvasKey = UUID()
+    @State private var canvasView: PKCanvasView?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -56,20 +66,42 @@ struct SignatureField: View {
                 .foregroundColor(.vkaPurple)
                 .accessibilityAddTraits(.isHeader)
 
-            SignatureCanvas(signatureData: $signatureData)
-                .id(canvasKey)
-                .frame(height: 200)
-                .frame(maxWidth: 600)
-                .accessibilityLabel("Signature canvas. Draw your signature here")
-                .accessibilityAddTraits(.allowsDirectInteraction)
-                .accessibilityValue(signatureData != nil ? "Signature provided" : "No signature yet")
-                .accessibilityHint("Use your finger or Apple Pencil to draw your signature")
+            SignatureCanvas(signatureData: $signatureData) { canvas in
+                canvasView = canvas
+            }
+            .id(canvasKey)
+            .frame(height: 200)
+            .frame(maxWidth: 600)
+            .accessibilityLabel("Signature canvas. Draw your signature here")
+            .accessibilityAddTraits(.allowsDirectInteraction)
+            .accessibilityValue(signatureData != nil ? "Signature provided" : "No signature yet")
+            .accessibilityHint("Use your finger or Apple Pencil to draw your signature")
 
-            HStack {
+            HStack(spacing: 20) {
+                Button {
+                    guard let canvas = canvasView, !canvas.drawing.strokes.isEmpty else { return }
+                    let haptic = UIImpactFeedbackGenerator(style: .light)
+                    haptic.impactOccurred()
+                    var drawing = canvas.drawing
+                    drawing.strokes.removeLast()
+                    canvas.drawing = drawing
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "arrow.uturn.backward")
+                            .font(.system(size: 13))
+                        Text("Undo")
+                            .font(.system(size: 14))
+                    }
+                    .foregroundColor(.mediumGray)
+                }
+                .accessibilityLabel("Undo last stroke")
+                .accessibilityHint("Removes the last drawn stroke from your signature")
+
                 Button {
                     let haptic = UIImpactFeedbackGenerator(style: .light)
                     haptic.impactOccurred()
                     signatureData = nil
+                    canvasView = nil
                     canvasKey = UUID()
                 } label: {
                     Text("Clear Signature")

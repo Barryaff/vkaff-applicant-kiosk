@@ -84,6 +84,11 @@ struct PhoneFieldWithCode: View {
                         .keyboardType(.phonePad)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
+                        .onChange(of: phoneNumber) { _, newValue in
+                            if newValue.count > 15 {
+                                phoneNumber = String(newValue.prefix(15))
+                            }
+                        }
                         .padding(.horizontal, 12)
                         .padding(.vertical, 14)
                         .background(

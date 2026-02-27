@@ -47,5 +47,8 @@ struct IdleTimerOverlay: View {
             .accessibilityAddTraits(.isModal)
         }
         .transition(.opacity)
+        .onAppear {
+            UIAccessibility.post(notification: .screenChanged, argument: "Your session will reset in \(vm.idleCountdown) seconds. Tap Yes I'm here to continue.")
+        }
     }
 }

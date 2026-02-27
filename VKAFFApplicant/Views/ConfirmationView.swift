@@ -54,7 +54,7 @@ struct ConfirmationView: View {
 
                 Text("Your application has been received successfully.\nOur HR team will review and be in touch shortly.")
                     .font(.system(size: 19, weight: .regular))
-                    .foregroundColor(.white.opacity(0.45))
+                    .foregroundColor(.white.opacity(0.65))
                     .multilineTextAlignment(.center)
                     .lineSpacing(8)
                     .padding(.top, 20)

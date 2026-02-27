@@ -31,13 +31,15 @@ struct WorkExperienceView: View {
                 FormField(
                     label: "Company Name",
                     text: $record.companyName,
-                    placeholder: "Company name"
+                    placeholder: "Company name",
+                    maxLength: 200
                 )
 
                 FormField(
                     label: "Job Title",
                     text: $record.jobTitle,
-                    placeholder: "Your role"
+                    placeholder: "Your role",
+                    maxLength: 200
                 )
 
                 FormDropdown(
@@ -50,20 +52,27 @@ struct WorkExperienceView: View {
                     VStack(alignment: .leading, spacing: 6) {
                         Text("From")
                             .formLabelStyle()
-                        DatePicker("", selection: $record.fromDate, displayedComponents: .date)
+                        DatePicker("", selection: $record.fromDate, in: ...Date(), displayedComponents: .date)
                             .datePickerStyle(.compact)
                             .tint(.affOrange)
                             .labelsHidden()
+                            .accessibilityLabel("Employment start date")
+                            .onChange(of: record.fromDate) { _, newFromDate in
+                                if record.toDate < newFromDate {
+                                    record.toDate = newFromDate
+                                }
+                            }
                     }
 
                     if !record.isCurrentPosition {
                         VStack(alignment: .leading, spacing: 6) {
                             Text("To")
                                 .formLabelStyle()
-                            DatePicker("", selection: $record.toDate, displayedComponents: .date)
+                            DatePicker("", selection: $record.toDate, in: record.fromDate..., displayedComponents: .date)
                                 .datePickerStyle(.compact)
                                 .tint(.affOrange)
                                 .labelsHidden()
+                                .accessibilityLabel("Employment end date")
                         }
                     }
                 }
@@ -110,13 +119,15 @@ struct WorkExperienceView: View {
                 FormField(
                     label: "Full Name",
                     text: $record.name,
-                    placeholder: "Reference's full name"
+                    placeholder: "Reference's full name",
+                    maxLength: 100
                 )
 
                 FormField(
                     label: "Relationship",
                     text: $record.relationship,
-                    placeholder: "e.g., Former Supervisor, Colleague"
+                    placeholder: "e.g., Former Supervisor, Colleague",
+                    maxLength: 200
                 )
 
                 HStack(spacing: 16) {
@@ -131,7 +142,8 @@ struct WorkExperienceView: View {
                         label: "Email Address",
                         text: $record.email,
                         placeholder: "reference@email.com",
-                        keyboardType: .emailAddress
+                        keyboardType: .emailAddress,
+                        maxLength: 254
                     )
                 }
 
@@ -139,7 +151,8 @@ struct WorkExperienceView: View {
                     label: "Years Known",
                     text: $record.yearsKnown,
                     placeholder: "e.g., 3 years",
-                    keyboardType: .numberPad
+                    keyboardType: .numberPad,
+                    maxLength: 10
                 )
             }
         }

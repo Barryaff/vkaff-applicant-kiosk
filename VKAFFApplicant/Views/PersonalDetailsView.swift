@@ -16,6 +16,7 @@ struct PersonalDetailsView: View {
                 label: "Full Name (as in NRIC/FIN)",
                 text: $vm.applicant.fullName,
                 placeholder: "Enter your full name",
+                maxLength: 100,
                 errorMessage: vm.fieldErrors["fullName"],
                 isValid: vm.validFields.contains("fullName"),
                 focusBinding: $focusedField,
@@ -27,6 +28,7 @@ struct PersonalDetailsView: View {
                 label: "Preferred Name",
                 text: $vm.applicant.preferredName,
                 placeholder: "What should we call you?",
+                maxLength: 100,
                 errorMessage: vm.fieldErrors["preferredName"],
                 isValid: vm.validFields.contains("preferredName"),
                 focusBinding: $focusedField,
@@ -47,26 +49,29 @@ struct PersonalDetailsView: View {
             FormField(
                 label: "Passport Number (if applicable)",
                 text: $vm.applicant.passportNumber,
-                placeholder: "e.g., E12345678"
+                placeholder: "e.g., E12345678",
+                maxLength: 20
             )
 
             // Driving License Class (optional)
             FormField(
                 label: "Driving License Class (if any)",
                 text: $vm.applicant.drivingLicenseClass,
-                placeholder: "e.g., Class 3, Class 4"
+                placeholder: "e.g., Class 3, Class 4",
+                maxLength: 50
             )
 
             // Date of Birth
             VStack(alignment: .leading, spacing: 6) {
                 Text("Date of Birth")
                     .formLabelStyle()
-                DatePicker("", selection: $vm.applicant.dateOfBirth, displayedComponents: .date)
+                DatePicker("", selection: $vm.applicant.dateOfBirth, in: ...Date(), displayedComponents: .date)
                     .datePickerStyle(.wheel)
                     .tint(.affOrange)
                     .labelsHidden()
                     .frame(height: 120)
                     .clipped()
+                    .accessibilityLabel("Date of Birth")
             }
 
             // Gender
@@ -79,7 +84,10 @@ struct PersonalDetailsView: View {
                 FormField(
                     label: "Please specify your nationality",
                     text: $vm.applicant.nationalityOther,
-                    placeholder: "Enter your nationality"
+                    placeholder: "Enter your nationality",
+                    maxLength: 100,
+                    errorMessage: vm.fieldErrors["nationalityOther"],
+                    isValid: vm.validFields.contains("nationalityOther")
                 )
             }
 
@@ -102,10 +110,15 @@ struct PersonalDetailsView: View {
                                         .font(.system(size: 16))
                                         .foregroundColor(.darkText)
                                 }
-                                .padding(.vertical, 6)
-                                .padding(.horizontal, 12)
+                                .padding(.vertical, 12)
+                                .padding(.horizontal, 16)
                             }
                             .buttonStyle(.plain)
+                            .accessibilityElement(children: .ignore)
+                            .accessibilityLabel("Have you worked in Singapore before: \(option ? "Yes" : "No")")
+                            .accessibilityValue(vm.applicant.hasWorkedInSingapore == option ? "selected" : "not selected")
+                            .accessibilityAddTraits(vm.applicant.hasWorkedInSingapore == option ? [.isButton, .isSelected] : [.isButton])
+                            .accessibilityHint("Double tap to select \(option ? "Yes" : "No")")
                         }
                     }
                 }
@@ -118,7 +131,10 @@ struct PersonalDetailsView: View {
                 FormField(
                     label: "Please specify",
                     text: $vm.applicant.raceOther,
-                    placeholder: "Enter your race"
+                    placeholder: "Enter your race",
+                    maxLength: 100,
+                    errorMessage: vm.fieldErrors["raceOther"],
+                    isValid: vm.validFields.contains("raceOther")
                 )
             }
 
@@ -140,6 +156,7 @@ struct PersonalDetailsView: View {
                     text: $vm.applicant.emailAddress,
                     placeholder: "your@email.com",
                     keyboardType: .emailAddress,
+                    maxLength: 254,
                     errorMessage: vm.fieldErrors["emailAddress"],
                     isValid: vm.validFields.contains("emailAddress"),
                     focusBinding: $focusedField,
@@ -153,6 +170,7 @@ struct PersonalDetailsView: View {
                 text: $vm.applicant.residentialAddress,
                 placeholder: "Block, street, unit number",
                 isMultiline: true,
+                maxLength: 500,
                 errorMessage: vm.fieldErrors["residentialAddress"],
                 isValid: vm.validFields.contains("residentialAddress"),
                 focusBinding: $focusedField,
@@ -164,6 +182,7 @@ struct PersonalDetailsView: View {
                 label: "Postal / Zip Code",
                 text: $vm.applicant.postalCode,
                 placeholder: "e.g., 408832",
+                maxLength: 6,
                 errorMessage: vm.fieldErrors["postalCode"],
                 isValid: vm.validFields.contains("postalCode"),
                 focusBinding: $focusedField,
@@ -189,7 +208,8 @@ struct PersonalDetailsView: View {
                 FormField(
                     label: "Full Name",
                     text: $contact.name,
-                    placeholder: "Emergency contact's full name"
+                    placeholder: "Emergency contact's full name",
+                    maxLength: 100
                 )
 
                 HStack(spacing: 16) {
@@ -210,7 +230,8 @@ struct PersonalDetailsView: View {
                     FormField(
                         label: "Please specify relationship",
                         text: $contact.relationshipOther,
-                        placeholder: "e.g., Colleague, Roommate"
+                        placeholder: "e.g., Colleague, Roommate",
+                        maxLength: 100
                     )
                 }
 
@@ -218,14 +239,16 @@ struct PersonalDetailsView: View {
                     label: "Email (optional)",
                     text: $contact.email,
                     placeholder: "contact@email.com",
-                    keyboardType: .emailAddress
+                    keyboardType: .emailAddress,
+                    maxLength: 254
                 )
 
                 FormField(
                     label: "Address (optional)",
                     text: $contact.address,
                     placeholder: "Block, street, unit number",
-                    isMultiline: true
+                    isMultiline: true,
+                    maxLength: 500
                 )
             }
         }

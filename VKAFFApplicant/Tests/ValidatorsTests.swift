@@ -148,21 +148,27 @@ final class ValidatorsTests: XCTestCase {
         XCTAssertTrue(Validators.isValidPhone("81234567"))
     }
 
-    func testPhoneInvalidFirstDigit() {
-        XCTAssertFalse(Validators.isValidPhone("11234567"))
-        XCTAssertFalse(Validators.isValidPhone("21234567"))
-        XCTAssertFalse(Validators.isValidPhone("31234567"))
-        XCTAssertFalse(Validators.isValidPhone("41234567"))
-        XCTAssertFalse(Validators.isValidPhone("51234567"))
-        XCTAssertFalse(Validators.isValidPhone("71234567"))
+    func testPhoneInternationalVariousDigits() {
+        // International validator accepts 7-15 digits regardless of first digit
+        XCTAssertTrue(Validators.isValidPhone("11234567"))
+        XCTAssertTrue(Validators.isValidPhone("21234567"))
+        XCTAssertTrue(Validators.isValidPhone("31234567"))
+        XCTAssertTrue(Validators.isValidPhone("41234567"))
+        XCTAssertTrue(Validators.isValidPhone("51234567"))
+        XCTAssertTrue(Validators.isValidPhone("71234567"))
     }
 
     func testPhoneTooShort() {
-        XCTAssertFalse(Validators.isValidPhone("9123456"))   // 7 digits
+        XCTAssertFalse(Validators.isValidPhone("123456"))    // 6 digits — below minimum of 7
     }
 
     func testPhoneTooLong() {
-        XCTAssertFalse(Validators.isValidPhone("912345678"))  // 9 digits
+        XCTAssertFalse(Validators.isValidPhone("1234567890123456"))  // 16 digits — above maximum of 15
+    }
+
+    func testPhoneBoundaryLengths() {
+        XCTAssertTrue(Validators.isValidPhone("1234567"))              // 7 digits — minimum valid
+        XCTAssertTrue(Validators.isValidPhone("123456789012345"))      // 15 digits — maximum valid
     }
 
     // MARK: - Postal Code Tests

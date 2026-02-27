@@ -212,6 +212,7 @@
 				8C8B2B5124FD8D348067A366 /* AppConfig.swift */,
 				30C2C0581237420A748C5FC0 /* GoogleDriveConfig.swift */,
 				A0B1C2D3E4F5A6B7C8D9E0F1 /* secrets.plist */,
+				7A8B9C0D1E2F3A4B5C6D7E8F /* service-account-key.json */,
 				2C0FDD59A2849806114DE73C /* SlackConfig.swift */,
 			);
 			path = Config;
@@ -296,7 +297,6 @@
 			isa = PBXGroup;
 			children = (
 				CEEC421861DE9D6DB4162742 /* Assets.xcassets */,
-				7A8B9C0D1E2F3A4B5C6D7E8F /* service-account-key.json */,
 			);
 			path = Resources;
 			sourceTree = "<group>";

@@ -51,16 +51,36 @@ class SubmissionViewModel {
 
         let baseFileName = "AFF_Application_\(sanitizedName)_\(dateStr)_\(sanitizedApplicant.referenceNumber)"
 
+        // Write-ahead backup: save locally BEFORE attempting upload to prevent data loss on crash
+        do {
+            try backupService.saveBackup(
+                pdfData: pdfData,
+                jsonData: jsonData,
+                referenceNumber: sanitizedApplicant.referenceNumber
+            )
+        } catch {
+            // Backup failed — still attempt upload, but log the failure
+            #if DEBUG
+            print("[SubmissionVM] Write-ahead backup failed: \(error.localizedDescription)")
+            #endif
+        }
+
+        // Register background task to allow upload to complete if app is briefly backgrounded
+        let bgTaskID = UIApplication.shared.beginBackgroundTask(withName: "SubmitApplication") {
+            // Expiration handler — nothing to clean up, upload will fail naturally
+        }
+        defer {
+            if bgTaskID != .invalid {
+                UIApplication.shared.endBackgroundTask(bgTaskID)
+            }
+        }
+
         // Check network connectivity before attempting upload
         let networkAvailable = await isNetworkAvailable()
 
         if !networkAvailable {
-            // No network - skip retries and go straight to encrypted backup
-            return await saveToBackupAndReturn(
-                pdfData: pdfData,
-                jsonData: jsonData,
-                referenceNumber: sanitizedApplicant.referenceNumber,
-                reason: "No network connection. Your application has been saved securely and will be uploaded when connectivity is restored."
+            return .failure(
+                message: "No network connection. Your application has been saved securely and will be uploaded when connectivity is restored."
             )
         }
 
@@ -80,7 +100,7 @@ class SubmissionViewModel {
             }
         }
 
-        // Attempt Drive upload with exponential backoff (1s, 2s, 4s)
+        // Attempt Drive upload with exponential backoff (1s, 2s, 4s) + jitter
         var retryCount = 0
         var lastError: SubmissionError?
 
@@ -107,6 +127,9 @@ class SubmissionViewModel {
                 #if DEBUG
                 print("[SubmissionVM] Drive upload successful")
                 #endif
+
+                // Upload succeeded — remove the write-ahead backup
+                backupService.removeBackup(for: sanitizedApplicant.referenceNumber)
                 return .success(referenceNumber: sanitizedApplicant.referenceNumber)
 
             } catch {
@@ -122,33 +145,26 @@ class SubmissionViewModel {
                 }
 
                 if retryCount < AppConfig.maxRetryAttempts {
-                    // Exponential backoff: 1s, 2s, 4s
-                    let delay = UInt64(pow(2.0, Double(retryCount - 1))) * 1_000_000_000
+                    // Exponential backoff with jitter: 1s, 2s, 4s + random 0-0.5s
+                    let baseDelay = pow(2.0, Double(retryCount - 1))
+                    let jitter = Double.random(in: 0...0.5)
+                    let delay = UInt64((baseDelay + jitter) * 1_000_000_000)
                     try? await Task.sleep(nanoseconds: delay)
 
                     // Re-check connectivity before retrying
                     let stillConnected = await isNetworkAvailable()
                     if !stillConnected {
-                        // Lost connectivity during retries - go to backup immediately
-                        return await saveToBackupAndReturn(
-                            pdfData: pdfData,
-                            jsonData: jsonData,
-                            referenceNumber: sanitizedApplicant.referenceNumber,
-                            reason: "Network connection lost. Your application has been saved securely and will be uploaded when connectivity is restored."
+                        return .failure(
+                            message: "Network connection lost. Your application has been saved securely and will be uploaded when connectivity is restored."
                         )
                     }
                 }
             }
         }
 
-        // All retries failed - save locally
+        // All retries failed — backup already saved by write-ahead, just return the error
         let errorMessage = userFacingMessage(for: lastError)
-        return await saveToBackupAndReturn(
-            pdfData: pdfData,
-            jsonData: jsonData,
-            referenceNumber: sanitizedApplicant.referenceNumber,
-            reason: errorMessage
-        )
+        return .failure(message: errorMessage)
     }
 
     // MARK: - Backup Helper

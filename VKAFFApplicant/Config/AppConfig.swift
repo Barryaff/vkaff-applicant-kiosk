@@ -1,11 +1,7 @@
 import Foundation
 
 enum AppConfig {
-    #if DEBUG
-    static let skipValidation = false  // Set true only during development testing
-    #else
     static let skipValidation = false
-    #endif
 
     static let appVersion = "1.0.0"
     static let referencePrefix = "AFF"

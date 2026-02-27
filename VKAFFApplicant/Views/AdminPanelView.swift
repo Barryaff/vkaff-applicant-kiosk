@@ -111,6 +111,7 @@ struct AdminPanelView: View {
             Circle()
                 .fill(isOnline ? Color.successGreen : Color.errorRed)
                 .frame(width: 10, height: 10)
+                .accessibilityHidden(true)
 
             Text(isOnline ? "Online" : "Offline")
                 .font(.system(size: 13, weight: .medium))
@@ -123,6 +124,7 @@ struct AdminPanelView: View {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 12))
                         .foregroundColor(.successGreen)
+                        .accessibilityHidden(true)
                     Text("Last upload: \(formattedDate(lastUpload))")
                         .font(.system(size: 12))
                         .foregroundColor(.mediumGray)
@@ -139,6 +141,8 @@ struct AdminPanelView: View {
         .padding(.horizontal, 24)
         .padding(.vertical, 10)
         .background(Color.white.opacity(0.7))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Network status: \(isOnline ? "Online" : "Offline")")
     }
 
     // MARK: - Empty State
@@ -217,6 +221,8 @@ struct AdminPanelView: View {
                 }
             }
             .disabled(isRetrying)
+            .accessibilityLabel("Retry upload for \(ref)")
+            .accessibilityHint(isRetryingThis ? "Upload in progress" : "Double tap to retry uploading this application")
 
             Image(systemName: "clock")
                 .foregroundColor(.affOrange)
@@ -315,6 +321,7 @@ struct AdminPanelView: View {
 
         Task {
             var success = false
+            var lastErrorMessage: String?
             if let data = backupService.getPendingData(for: ref) {
                 do {
                     try await driveService.uploadFile(
@@ -330,7 +337,7 @@ struct AdminPanelView: View {
                     backupService.removeBackup(for: ref)
                     success = true
                 } catch {
-                    // Upload failed
+                    lastErrorMessage = error.localizedDescription
                 }
             }
 
@@ -341,7 +348,13 @@ struct AdminPanelView: View {
                 loadPendingData()
                 isRetrying = false
                 retryingReference = nil
-                statusMessage = success ? "Upload complete for \(ref)." : "Upload failed for \(ref)."
+                if success {
+                    statusMessage = "Upload complete for \(ref)."
+                } else if let errorMsg = lastErrorMessage {
+                    statusMessage = "Upload failed for \(ref): \(errorMsg)"
+                } else {
+                    statusMessage = "Upload failed for \(ref): No backup data found."
+                }
             }
         }
     }
@@ -369,7 +382,9 @@ struct AdminPanelView: View {
                         backupService.removeBackup(for: ref)
                         anySuccess = true
                     } catch {
-                        // Continue with next
+                        #if DEBUG
+                        print("[AdminPanel] Retry failed for \(ref): \(error.localizedDescription)")
+                        #endif
                     }
                 }
             }
@@ -393,8 +408,10 @@ struct AdminPanelView: View {
     }
 
     private func exportAll() {
-        if let exportURL = backupService.exportAll() {
-            statusMessage = "Exported to: \(exportURL.path)"
+        if backupService.exportAll() != nil {
+            statusMessage = "Files exported successfully. Use the Files app to access them."
+        } else {
+            statusMessage = "No pending uploads to export."
         }
     }
 
@@ -420,6 +437,7 @@ struct AdminPanelView: View {
 
 // MARK: - Network Monitor
 
+@MainActor
 class NetworkMonitor: ObservableObject {
     @Published var isConnected = true
 
@@ -428,7 +446,7 @@ class NetworkMonitor: ObservableObject {
 
     init() {
         monitor.pathUpdateHandler = { [weak self] path in
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 self?.isConnected = path.status == .satisfied
             }
         }

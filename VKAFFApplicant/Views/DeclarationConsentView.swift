@@ -37,7 +37,8 @@ struct DeclarationConsentView: View {
                 FormField(
                     label: "Please provide name(s) and relationship",
                     text: $vm.applicant.connectionsDetails,
-                    placeholder: "e.g., John Tan — cousin"
+                    placeholder: "e.g., John Tan — cousin",
+                    maxLength: 500
                 )
             }
 
@@ -50,7 +51,8 @@ struct DeclarationConsentView: View {
                 FormField(
                     label: "Please provide details",
                     text: $vm.applicant.conflictDetails,
-                    placeholder: "Describe the conflict of interest"
+                    placeholder: "Describe the conflict of interest",
+                    maxLength: 500
                 )
             }
 
@@ -63,7 +65,8 @@ struct DeclarationConsentView: View {
                 FormField(
                     label: "Please provide details",
                     text: $vm.applicant.bankruptcyDetails,
-                    placeholder: "Provide relevant details"
+                    placeholder: "Provide relevant details",
+                    maxLength: 500
                 )
             }
 
@@ -76,7 +79,8 @@ struct DeclarationConsentView: View {
                 FormField(
                     label: "Please provide details",
                     text: $vm.applicant.legalDetails,
-                    placeholder: "Provide relevant details"
+                    placeholder: "Provide relevant details",
+                    maxLength: 500
                 )
             }
 
@@ -123,7 +127,7 @@ struct DeclarationConsentView: View {
                                 .font(.system(size: 16))
                                 .foregroundColor(.darkText)
                         }
-                        .padding(.vertical, 4)
+                        .padding(.vertical, 10)
                     }
                     .buttonStyle(.plain)
                     .accessibilityElement(children: .ignore)
@@ -138,7 +142,8 @@ struct DeclarationConsentView: View {
                         label: "Please provide details (strictly confidential)",
                         text: $vm.applicant.medicalDetails,
                         placeholder: "Describe any relevant conditions",
-                        isMultiline: true
+                        isMultiline: true,
+                        maxLength: 1000
                     )
                 }
             }
@@ -263,10 +268,15 @@ struct YesNoQuestion: View {
                                 .font(.system(size: 16))
                                 .foregroundColor(.darkText)
                         }
-                        .padding(.vertical, 6)
-                        .padding(.horizontal, 12)
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 16)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("\(question): \(option ? "Yes" : "No")")
+                    .accessibilityValue(value == option ? "selected" : "not selected")
+                    .accessibilityAddTraits(value == option ? [.isButton, .isSelected] : [.isButton])
+                    .accessibilityHint("Double tap to select \(option ? "Yes" : "No")")
                 }
             }
         }

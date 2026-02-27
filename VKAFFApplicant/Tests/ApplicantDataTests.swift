@@ -15,8 +15,12 @@ final class ApplicantDataTests: XCTestCase {
         data.emailAddress = "john@example.com"
         data.residentialAddress = "123 Main St"
         data.postalCode = "408832"
-        data.emergencyContactName = "Jane"
-        data.emergencyContactNumber = "81234567"
+        data.nationalityOther = "Brazilian"
+        data.raceOther = "Eurasian"
+        data.contactCountryCode = "+1"
+        data.passportNumber = "E12345678"
+        data.drivingLicenseClass = "Class 3"
+        data.highestQualificationOther = "Trade Certificate"
         data.fieldOfStudy = "Chemistry"
         data.institutionName = "NUS"
         data.professionalCertifications = "FSSC 22000"
@@ -24,6 +28,10 @@ final class ApplicantDataTests: XCTestCase {
         data.expectedSalary = "5000"
         data.lastDrawnSalary = "4000"
         data.referrerName = "Bob"
+        data.connectionsDetails = "John - cousin"
+        data.conflictDetails = "Some conflict"
+        data.bankruptcyDetails = "Some details"
+        data.legalDetails = "Some proceedings"
         data.medicalDetails = "None"
         data.referenceNumber = "AFF-20260226-0001"
 
@@ -36,8 +44,12 @@ final class ApplicantDataTests: XCTestCase {
         XCTAssertEqual(data.emailAddress, "")
         XCTAssertEqual(data.residentialAddress, "")
         XCTAssertEqual(data.postalCode, "")
-        XCTAssertEqual(data.emergencyContactName, "")
-        XCTAssertEqual(data.emergencyContactNumber, "")
+        XCTAssertEqual(data.nationalityOther, "")
+        XCTAssertEqual(data.raceOther, "")
+        XCTAssertEqual(data.contactCountryCode, "+65")
+        XCTAssertEqual(data.passportNumber, "")
+        XCTAssertEqual(data.drivingLicenseClass, "")
+        XCTAssertEqual(data.highestQualificationOther, "")
         XCTAssertEqual(data.fieldOfStudy, "")
         XCTAssertEqual(data.institutionName, "")
         XCTAssertEqual(data.professionalCertifications, "")
@@ -45,6 +57,10 @@ final class ApplicantDataTests: XCTestCase {
         XCTAssertEqual(data.expectedSalary, "")
         XCTAssertEqual(data.lastDrawnSalary, "")
         XCTAssertEqual(data.referrerName, "")
+        XCTAssertEqual(data.connectionsDetails, "")
+        XCTAssertEqual(data.conflictDetails, "")
+        XCTAssertEqual(data.bankruptcyDetails, "")
+        XCTAssertEqual(data.legalDetails, "")
         XCTAssertEqual(data.medicalDetails, "")
         XCTAssertEqual(data.referenceNumber, "")
     }
@@ -54,24 +70,35 @@ final class ApplicantDataTests: XCTestCase {
         data.isCurrentlyEmployed = true
         data.declarationAccuracy = true
         data.pdpaConsent = true
-        data.backgroundCheckConsent = true
         data.hasOwnTransport = true
+        data.hasWorkedInSingapore = true
+        data.openToOtherPositions = false
+        data.previouslyApplied = true
+        data.hasConnectionsAtAFF = true
+        data.hasConflictOfInterest = true
+        data.hasBankruptcy = true
+        data.hasLegalProceedings = true
 
         data.reset()
 
         XCTAssertFalse(data.isCurrentlyEmployed)
         XCTAssertFalse(data.declarationAccuracy)
         XCTAssertFalse(data.pdpaConsent)
-        XCTAssertFalse(data.backgroundCheckConsent)
         XCTAssertFalse(data.hasOwnTransport)
+        XCTAssertFalse(data.hasWorkedInSingapore)
+        XCTAssertTrue(data.openToOtherPositions)
+        XCTAssertFalse(data.previouslyApplied)
+        XCTAssertFalse(data.hasConnectionsAtAFF)
+        XCTAssertFalse(data.hasConflictOfInterest)
+        XCTAssertFalse(data.hasBankruptcy)
+        XCTAssertFalse(data.hasLegalProceedings)
     }
 
     func testResetClearsEnumFieldsToDefaults() {
         let data = ApplicantData()
         data.gender = .female
-        data.nationality = .employmentPass
+        data.nationality = .filipino
         data.race = .malay
-        data.emergencyContactRelationship = .spouse
         data.highestQualification = .masters
         data.totalExperience = .tenPlus
         data.noticePeriod = .threeMonths
@@ -84,9 +111,8 @@ final class ApplicantDataTests: XCTestCase {
         data.reset()
 
         XCTAssertEqual(data.gender, .male)
-        XCTAssertEqual(data.nationality, .singaporeCitizen)
+        XCTAssertEqual(data.nationality, .singaporean)
         XCTAssertEqual(data.race, .chinese)
-        XCTAssertEqual(data.emergencyContactRelationship, .parent)
         XCTAssertEqual(data.highestQualification, .diploma)
         XCTAssertEqual(data.totalExperience, .freshGraduate)
         XCTAssertEqual(data.noticePeriod, .immediate)
@@ -102,6 +128,7 @@ final class ApplicantDataTests: XCTestCase {
         data.additionalQualifications = [QualificationRecord()]
         data.selectedLanguages = [LanguageProficiency()]
         data.employmentHistory = [EmploymentRecord()]
+        data.references = [ReferenceRecord()]
         data.positionsAppliedFor = [.flavorist, .labAnalyst]
 
         data.reset()
@@ -109,7 +136,23 @@ final class ApplicantDataTests: XCTestCase {
         XCTAssertTrue(data.additionalQualifications.isEmpty)
         XCTAssertTrue(data.selectedLanguages.isEmpty)
         XCTAssertTrue(data.employmentHistory.isEmpty)
+        XCTAssertTrue(data.references.isEmpty)
         XCTAssertTrue(data.positionsAppliedFor.isEmpty)
+    }
+
+    func testResetClearsEmergencyContactsToDefault() {
+        let data = ApplicantData()
+        data.emergencyContacts = [
+            EmergencyContact(name: "Jane", phoneNumber: "81234567", relationship: .spouse),
+            EmergencyContact(name: "Bob", phoneNumber: "91234567", relationship: .friend)
+        ]
+
+        data.reset()
+
+        XCTAssertEqual(data.emergencyContacts.count, 1)
+        XCTAssertEqual(data.emergencyContacts[0].name, "")
+        XCTAssertEqual(data.emergencyContacts[0].phoneNumber, "")
+        XCTAssertEqual(data.emergencyContacts[0].relationship, .parent)
     }
 
     func testResetClearsSignatureData() {
@@ -153,16 +196,20 @@ final class ApplicantDataTests: XCTestCase {
         XCTAssertEqual(decoded.nricFIN, original.nricFIN)
         XCTAssertEqual(decoded.gender, original.gender)
         XCTAssertEqual(decoded.nationality, original.nationality)
+        XCTAssertEqual(decoded.nationalityOther, original.nationalityOther)
+        XCTAssertEqual(decoded.hasWorkedInSingapore, original.hasWorkedInSingapore)
         XCTAssertEqual(decoded.race, original.race)
         XCTAssertEqual(decoded.raceOther, original.raceOther)
+        XCTAssertEqual(decoded.contactCountryCode, original.contactCountryCode)
         XCTAssertEqual(decoded.contactNumber, original.contactNumber)
         XCTAssertEqual(decoded.emailAddress, original.emailAddress)
         XCTAssertEqual(decoded.residentialAddress, original.residentialAddress)
         XCTAssertEqual(decoded.postalCode, original.postalCode)
-        XCTAssertEqual(decoded.emergencyContactName, original.emergencyContactName)
-        XCTAssertEqual(decoded.emergencyContactNumber, original.emergencyContactNumber)
-        XCTAssertEqual(decoded.emergencyContactRelationship, original.emergencyContactRelationship)
+        XCTAssertEqual(decoded.passportNumber, original.passportNumber)
+        XCTAssertEqual(decoded.drivingLicenseClass, original.drivingLicenseClass)
+        XCTAssertEqual(decoded.emergencyContacts.count, original.emergencyContacts.count)
         XCTAssertEqual(decoded.highestQualification, original.highestQualification)
+        XCTAssertEqual(decoded.highestQualificationOther, original.highestQualificationOther)
         XCTAssertEqual(decoded.fieldOfStudy, original.fieldOfStudy)
         XCTAssertEqual(decoded.institutionName, original.institutionName)
         XCTAssertEqual(decoded.yearOfGraduation, original.yearOfGraduation)
@@ -180,9 +227,18 @@ final class ApplicantDataTests: XCTestCase {
         XCTAssertEqual(decoded.hasOwnTransport, original.hasOwnTransport)
         XCTAssertEqual(decoded.howDidYouHear, original.howDidYouHear)
         XCTAssertEqual(decoded.referrerName, original.referrerName)
+        XCTAssertEqual(decoded.openToOtherPositions, original.openToOtherPositions)
+        XCTAssertEqual(decoded.previouslyApplied, original.previouslyApplied)
+        XCTAssertEqual(decoded.hasConnectionsAtAFF, original.hasConnectionsAtAFF)
+        XCTAssertEqual(decoded.connectionsDetails, original.connectionsDetails)
+        XCTAssertEqual(decoded.hasConflictOfInterest, original.hasConflictOfInterest)
+        XCTAssertEqual(decoded.conflictDetails, original.conflictDetails)
+        XCTAssertEqual(decoded.hasBankruptcy, original.hasBankruptcy)
+        XCTAssertEqual(decoded.bankruptcyDetails, original.bankruptcyDetails)
+        XCTAssertEqual(decoded.hasLegalProceedings, original.hasLegalProceedings)
+        XCTAssertEqual(decoded.legalDetails, original.legalDetails)
         XCTAssertEqual(decoded.declarationAccuracy, original.declarationAccuracy)
         XCTAssertEqual(decoded.pdpaConsent, original.pdpaConsent)
-        XCTAssertEqual(decoded.backgroundCheckConsent, original.backgroundCheckConsent)
         XCTAssertEqual(decoded.hasMedicalCondition, original.hasMedicalCondition)
         XCTAssertEqual(decoded.medicalDetails, original.medicalDetails)
         XCTAssertEqual(decoded.referenceNumber, original.referenceNumber)
@@ -194,17 +250,20 @@ final class ApplicantDataTests: XCTestCase {
         original.preferredName = "Testy"
         original.nricFIN = "S1234567A"
         original.gender = .female
-        original.nationality = .singaporePR
+        original.nationality = .malaysian
+        original.nationalityOther = ""
+        original.hasWorkedInSingapore = true
         original.race = .indian
         original.raceOther = ""
+        original.contactCountryCode = "+60"
         original.contactNumber = "+6591234567"
         original.emailAddress = "test@example.com"
         original.residentialAddress = "123 Test Road"
         original.postalCode = "408832"
-        original.emergencyContactName = "Emergency Person"
-        original.emergencyContactNumber = "+6581234567"
-        original.emergencyContactRelationship = .spouse
+        original.passportNumber = "A12345678"
+        original.drivingLicenseClass = "Class 3"
         original.highestQualification = .bachelors
+        original.highestQualificationOther = ""
         original.fieldOfStudy = "Computer Science"
         original.institutionName = "NTU"
         original.yearOfGraduation = 2020
@@ -222,9 +281,18 @@ final class ApplicantDataTests: XCTestCase {
         original.hasOwnTransport = true
         original.howDidYouHear = .linkedIn
         original.referrerName = "Friend"
+        original.openToOtherPositions = false
+        original.previouslyApplied = true
+        original.hasConnectionsAtAFF = true
+        original.connectionsDetails = "John - cousin"
+        original.hasConflictOfInterest = false
+        original.conflictDetails = ""
+        original.hasBankruptcy = false
+        original.bankruptcyDetails = ""
+        original.hasLegalProceedings = false
+        original.legalDetails = ""
         original.declarationAccuracy = true
         original.pdpaConsent = true
-        original.backgroundCheckConsent = true
         original.hasMedicalCondition = .no
         original.medicalDetails = ""
         original.referenceNumber = "AFF-20260226-0001"
@@ -246,15 +314,16 @@ final class ApplicantDataTests: XCTestCase {
         XCTAssertEqual(decoded.preferredName, "Testy")
         XCTAssertEqual(decoded.nricFIN, "S1234567A")
         XCTAssertEqual(decoded.gender, .female)
-        XCTAssertEqual(decoded.nationality, .singaporePR)
+        XCTAssertEqual(decoded.nationality, .malaysian)
+        XCTAssertEqual(decoded.hasWorkedInSingapore, true)
         XCTAssertEqual(decoded.race, .indian)
+        XCTAssertEqual(decoded.contactCountryCode, "+60")
         XCTAssertEqual(decoded.contactNumber, "+6591234567")
         XCTAssertEqual(decoded.emailAddress, "test@example.com")
         XCTAssertEqual(decoded.residentialAddress, "123 Test Road")
         XCTAssertEqual(decoded.postalCode, "408832")
-        XCTAssertEqual(decoded.emergencyContactName, "Emergency Person")
-        XCTAssertEqual(decoded.emergencyContactNumber, "+6581234567")
-        XCTAssertEqual(decoded.emergencyContactRelationship, .spouse)
+        XCTAssertEqual(decoded.passportNumber, "A12345678")
+        XCTAssertEqual(decoded.drivingLicenseClass, "Class 3")
         XCTAssertEqual(decoded.highestQualification, .bachelors)
         XCTAssertEqual(decoded.fieldOfStudy, "Computer Science")
         XCTAssertEqual(decoded.institutionName, "NTU")
@@ -273,9 +342,12 @@ final class ApplicantDataTests: XCTestCase {
         XCTAssertEqual(decoded.hasOwnTransport, true)
         XCTAssertEqual(decoded.howDidYouHear, .linkedIn)
         XCTAssertEqual(decoded.referrerName, "Friend")
+        XCTAssertEqual(decoded.openToOtherPositions, false)
+        XCTAssertEqual(decoded.previouslyApplied, true)
+        XCTAssertEqual(decoded.hasConnectionsAtAFF, true)
+        XCTAssertEqual(decoded.connectionsDetails, "John - cousin")
         XCTAssertEqual(decoded.declarationAccuracy, true)
         XCTAssertEqual(decoded.pdpaConsent, true)
-        XCTAssertEqual(decoded.backgroundCheckConsent, true)
         XCTAssertEqual(decoded.hasMedicalCondition, .no)
         XCTAssertEqual(decoded.medicalDetails, "")
         XCTAssertEqual(decoded.referenceNumber, "AFF-20260226-0001")
@@ -293,18 +365,23 @@ final class ApplicantDataTests: XCTestCase {
             return
         }
 
-        // Verify every CodingKey case is present in the encoded JSON
         let expectedKeys: [String] = [
             "fullName", "preferredName", "nricFIN", "dateOfBirth", "gender", "nationality",
-            "race", "raceOther", "contactNumber", "emailAddress", "residentialAddress", "postalCode",
-            "emergencyContactName", "emergencyContactNumber", "emergencyContactRelationship",
-            "highestQualification", "fieldOfStudy", "institutionName", "yearOfGraduation",
-            "additionalQualifications", "professionalCertifications", "selectedLanguages",
+            "nationalityOther", "hasWorkedInSingapore",
+            "race", "raceOther", "contactCountryCode", "contactNumber", "emailAddress",
+            "residentialAddress", "postalCode", "passportNumber", "drivingLicenseClass",
+            "emergencyContacts",
+            "highestQualification", "highestQualificationOther", "fieldOfStudy", "institutionName",
+            "yearOfGraduation", "additionalQualifications", "professionalCertifications", "selectedLanguages",
             "totalExperience", "employmentHistory", "isCurrentlyEmployed", "noticePeriod",
+            "references",
             "positionsAppliedFor", "positionOther", "preferredEmploymentType", "earliestStartDate",
             "expectedSalary", "lastDrawnSalary", "willingToWorkShifts", "willingToTravel",
-            "hasOwnTransport", "howDidYouHear", "referrerName",
-            "declarationAccuracy", "pdpaConsent", "backgroundCheckConsent",
+            "hasOwnTransport", "howDidYouHear", "referrerName", "openToOtherPositions",
+            "previouslyApplied", "hasConnectionsAtAFF", "connectionsDetails",
+            "hasConflictOfInterest", "conflictDetails",
+            "hasBankruptcy", "bankruptcyDetails", "hasLegalProceedings", "legalDetails",
+            "declarationAccuracy", "pdpaConsent",
             "hasMedicalCondition", "medicalDetails", "submissionDate", "referenceNumber"
         ]
 
@@ -323,8 +400,8 @@ final class ApplicantDataTests: XCTestCase {
             return
         }
 
-        // CodingKeys has 38 cases (count the enum cases)
-        let expectedCount = 38
+        // CodingKeys has 58 cases (signatureData is intentionally excluded)
+        let expectedCount = 58
         XCTAssertEqual(json.keys.count, expectedCount,
                        "Encoded JSON should have \(expectedCount) keys, got \(json.keys.count). Keys: \(json.keys.sorted())")
     }
@@ -401,6 +478,51 @@ final class ApplicantDataTests: XCTestCase {
         XCTAssertEqual(decoded.selectedLanguages[1].proficiency, .native)
     }
 
+    func testCodableRoundTripWithEmergencyContacts() {
+        let data = ApplicantData()
+        data.emergencyContacts = [
+            EmergencyContact(name: "Jane Doe", phoneNumber: "81234567", relationship: .spouse),
+            EmergencyContact(name: "Bob", phoneNumber: "91234567", relationship: .friend)
+        ]
+
+        let encoder = JSONEncoder()
+        let decoder = JSONDecoder()
+
+        guard let encoded = try? encoder.encode(data),
+              let decoded = try? decoder.decode(ApplicantData.self, from: encoded) else {
+            XCTFail("Failed Codable round-trip with emergency contacts")
+            return
+        }
+
+        XCTAssertEqual(decoded.emergencyContacts.count, 2)
+        XCTAssertEqual(decoded.emergencyContacts[0].name, "Jane Doe")
+        XCTAssertEqual(decoded.emergencyContacts[0].phoneNumber, "81234567")
+        XCTAssertEqual(decoded.emergencyContacts[0].relationship, .spouse)
+        XCTAssertEqual(decoded.emergencyContacts[1].name, "Bob")
+        XCTAssertEqual(decoded.emergencyContacts[1].relationship, .friend)
+    }
+
+    func testCodableRoundTripWithReferences() {
+        let data = ApplicantData()
+        data.references = [
+            ReferenceRecord(name: "Dr. Smith", relationship: "Former Supervisor", contactNumber: "91234567", email: "smith@example.com", yearsKnown: "5")
+        ]
+
+        let encoder = JSONEncoder()
+        let decoder = JSONDecoder()
+
+        guard let encoded = try? encoder.encode(data),
+              let decoded = try? decoder.decode(ApplicantData.self, from: encoded) else {
+            XCTFail("Failed Codable round-trip with references")
+            return
+        }
+
+        XCTAssertEqual(decoded.references.count, 1)
+        XCTAssertEqual(decoded.references[0].name, "Dr. Smith")
+        XCTAssertEqual(decoded.references[0].relationship, "Former Supervisor")
+        XCTAssertEqual(decoded.references[0].email, "smith@example.com")
+    }
+
     // MARK: - Default Initialization
 
     func testDefaultInitialization() {
@@ -408,14 +530,24 @@ final class ApplicantDataTests: XCTestCase {
 
         XCTAssertEqual(data.fullName, "")
         XCTAssertEqual(data.gender, .male)
-        XCTAssertEqual(data.nationality, .singaporeCitizen)
+        XCTAssertEqual(data.nationality, .singaporean)
         XCTAssertEqual(data.race, .chinese)
         XCTAssertFalse(data.isCurrentlyEmployed)
         XCTAssertTrue(data.positionsAppliedFor.isEmpty)
         XCTAssertTrue(data.employmentHistory.isEmpty)
         XCTAssertTrue(data.additionalQualifications.isEmpty)
         XCTAssertTrue(data.selectedLanguages.isEmpty)
+        XCTAssertTrue(data.references.isEmpty)
         XCTAssertNil(data.signatureData)
         XCTAssertEqual(data.referenceNumber, "")
+        XCTAssertEqual(data.emergencyContacts.count, 1)
+        XCTAssertEqual(data.emergencyContacts[0].name, "")
+        XCTAssertEqual(data.emergencyContacts[0].relationship, .parent)
+        XCTAssertTrue(data.openToOtherPositions)
+        XCTAssertFalse(data.previouslyApplied)
+        XCTAssertFalse(data.hasConnectionsAtAFF)
+        XCTAssertFalse(data.hasConflictOfInterest)
+        XCTAssertFalse(data.hasBankruptcy)
+        XCTAssertFalse(data.hasLegalProceedings)
     }
 }

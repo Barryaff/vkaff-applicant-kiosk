@@ -15,11 +15,11 @@ struct PrimaryButtonStyle: ButtonStyle {
             .padding(.vertical, 16)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(isEnabled ? (configuration.isPressed ? Color.orangePress : Color.affOrange) : Color.bodyGray.opacity(0.3))
+                    .fill(isEnabled ? (configuration.isPressed ? Color.orangePress : Color.affOrange) : Color.mediumGray.opacity(0.3))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(isEnabled ? Color.affOrange : Color.bodyGray.opacity(0.2), lineWidth: 1.5)
+                    .stroke(isEnabled ? Color.affOrange : Color.mediumGray.opacity(0.2), lineWidth: 1.5)
             )
             .offset(y: configuration.isPressed ? 0 : -1)
             .animation(.timingCurve(0.16, 1, 0.3, 1, duration: 0.4), value: configuration.isPressed)
@@ -55,7 +55,7 @@ struct DestructiveButtonStyle: ButtonStyle {
         configuration.label
             .font(.system(size: 14, weight: .medium))
             .tracking(0.5)
-            .foregroundColor(configuration.isPressed ? .errorRed : .bodyGray)
+            .foregroundColor(configuration.isPressed ? .errorRed : .mediumGray)
             .padding(.horizontal, 24)
             .padding(.vertical, 10)
             .background(

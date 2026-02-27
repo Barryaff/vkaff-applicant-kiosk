@@ -22,7 +22,10 @@ struct EducationView: View {
                 FormField(
                     label: "Please specify your qualification",
                     text: $vm.applicant.highestQualificationOther,
-                    placeholder: "e.g., Diploma in Engineering"
+                    placeholder: "e.g., Diploma in Engineering",
+                    maxLength: 200,
+                    errorMessage: vm.fieldErrors["highestQualificationOther"],
+                    isValid: vm.validFields.contains("highestQualificationOther")
                 )
             }
 
@@ -31,6 +34,7 @@ struct EducationView: View {
                 label: "Field of Study",
                 text: $vm.applicant.fieldOfStudy,
                 placeholder: "e.g., Chemistry, Food Science",
+                maxLength: 200,
                 errorMessage: vm.fieldErrors["fieldOfStudy"],
                 isValid: vm.validFields.contains("fieldOfStudy"),
                 educationFocusBinding: $focusedField,
@@ -42,6 +46,7 @@ struct EducationView: View {
                 label: "Institution Name",
                 text: $vm.applicant.institutionName,
                 placeholder: "e.g., Singapore Polytechnic",
+                maxLength: 200,
                 errorMessage: vm.fieldErrors["institutionName"],
                 isValid: vm.validFields.contains("institutionName"),
                 educationFocusBinding: $focusedField,
@@ -60,6 +65,7 @@ struct EducationView: View {
                     }
                 }
                 .pickerStyle(.menu)
+                .accessibilityLabel("Year of Graduation")
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
                 .background(
@@ -93,13 +99,15 @@ struct EducationView: View {
                     FormField(
                         label: "Please specify",
                         text: $qual.qualificationOther,
-                        placeholder: "e.g., Trade Certificate"
+                        placeholder: "e.g., Trade Certificate",
+                        maxLength: 200
                     )
                 }
                 FormField(
                     label: "Institution",
                     text: $qual.institution,
-                    placeholder: "Institution name"
+                    placeholder: "Institution name",
+                    maxLength: 200
                 )
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Year")
@@ -110,6 +118,7 @@ struct EducationView: View {
                         }
                     }
                     .pickerStyle(.menu)
+                    .accessibilityLabel("Year of qualification")
                 }
             }
 
@@ -119,6 +128,7 @@ struct EducationView: View {
                 text: $vm.applicant.professionalCertifications,
                 placeholder: "e.g., WSQ certifications, food safety, forklift license, ISO auditor, etc.",
                 isMultiline: true,
+                maxLength: 1000,
                 educationFocusBinding: $focusedField,
                 educationFocusValue: .certifications
             )

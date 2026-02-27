@@ -76,7 +76,8 @@ struct LanguageChipSelector: View {
                             }
                         }
                     ),
-                    placeholder: "Enter language name"
+                    placeholder: "Enter language name",
+                    maxLength: 50
                 )
             }
         }

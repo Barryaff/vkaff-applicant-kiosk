@@ -42,6 +42,9 @@ struct PositionAvailabilityView: View {
                         label: "Please specify",
                         text: $vm.applicant.positionOther,
                         placeholder: "Enter position title",
+                        maxLength: 200,
+                        errorMessage: vm.fieldErrors["positionOther"],
+                        isValid: vm.validFields.contains("positionOther"),
                         positionFocusBinding: $focusedField,
                         positionFocusValue: .positionOther
                     )
@@ -60,10 +63,11 @@ struct PositionAvailabilityView: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text("Earliest Available Start Date")
                     .formLabelStyle()
-                DatePicker("", selection: $vm.applicant.earliestStartDate, displayedComponents: .date)
+                DatePicker("", selection: $vm.applicant.earliestStartDate, in: Date()..., displayedComponents: .date)
                     .datePickerStyle(.compact)
                     .tint(.affOrange)
                     .labelsHidden()
+                    .accessibilityLabel("Earliest Available Start Date")
             }
 
             // Salary
@@ -73,6 +77,7 @@ struct PositionAvailabilityView: View {
                     text: $vm.applicant.expectedSalary,
                     placeholder: "e.g., 3,500",
                     keyboardType: .numberPad,
+                    maxLength: 15,
                     errorMessage: vm.fieldErrors["expectedSalary"],
                     isValid: vm.validFields.contains("expectedSalary"),
                     isSalaryField: true,
@@ -85,6 +90,7 @@ struct PositionAvailabilityView: View {
                     text: $vm.applicant.lastDrawnSalary,
                     placeholder: "e.g., 3,000",
                     keyboardType: .numberPad,
+                    maxLength: 15,
                     errorMessage: vm.fieldErrors["lastDrawnSalary"],
                     isValid: vm.validFields.contains("lastDrawnSalary"),
                     isSalaryField: true,
@@ -130,6 +136,7 @@ struct PositionAvailabilityView: View {
                     label: "Referrer's Name",
                     text: $vm.applicant.referrerName,
                     placeholder: "Who referred you?",
+                    maxLength: 100,
                     positionFocusBinding: $focusedField,
                     positionFocusValue: .referrerName
                 )

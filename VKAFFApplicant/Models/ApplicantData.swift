@@ -251,6 +251,25 @@ class ApplicantData: ObservableObject, Codable {
         fieldOfStudy = Validators.sanitizeInput(fieldOfStudy)
         institutionName = Validators.sanitizeInput(institutionName)
         professionalCertifications = Validators.sanitizeInput(professionalCertifications)
+        for i in employmentHistory.indices {
+            employmentHistory[i].companyName = Validators.sanitizeInput(employmentHistory[i].companyName)
+            employmentHistory[i].jobTitle = Validators.sanitizeInput(employmentHistory[i].jobTitle)
+            employmentHistory[i].keyResponsibilities = Validators.sanitizeInput(employmentHistory[i].keyResponsibilities)
+        }
+        for i in references.indices {
+            references[i].name = Validators.sanitizeInput(references[i].name)
+            references[i].relationship = Validators.sanitizeInput(references[i].relationship)
+            references[i].contactNumber = Validators.sanitizePhone(references[i].contactNumber)
+            references[i].email = references[i].email.trimmingCharacters(in: .whitespaces).lowercased()
+            references[i].yearsKnown = Validators.sanitizeInput(references[i].yearsKnown)
+        }
+        for i in additionalQualifications.indices {
+            additionalQualifications[i].qualificationOther = Validators.sanitizeInput(additionalQualifications[i].qualificationOther)
+            additionalQualifications[i].institution = Validators.sanitizeInput(additionalQualifications[i].institution)
+        }
+        for i in selectedLanguages.indices {
+            selectedLanguages[i].customLanguage = Validators.sanitizeInput(selectedLanguages[i].customLanguage)
+        }
         positionOther = Validators.sanitizeInput(positionOther)
         expectedSalary = Validators.sanitizeInput(expectedSalary)
         lastDrawnSalary = Validators.sanitizeInput(lastDrawnSalary)

@@ -125,12 +125,12 @@ struct WelcomeView: View {
 
                         Text("Your information is collected in accordance with Singapore's PDPA.")
                             .font(.system(size: 12, weight: .light))
-                            .foregroundColor(.white.opacity(0.18))
+                            .foregroundColor(.white.opacity(0.50))
                             .accessibilityLabel("Your information is collected in accordance with Singapore's Personal Data Protection Act.")
 
                         Text("Advanced Flavors & Fragrances Pte. Ltd.")
                             .font(.system(size: 11, weight: .light))
-                            .foregroundColor(.white.opacity(0.10))
+                            .foregroundColor(.white.opacity(0.35))
                             .tracking(1.5)
                             .accessibilityHidden(true)
                     }
