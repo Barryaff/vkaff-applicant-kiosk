@@ -249,9 +249,11 @@ class PDFGenerator {
 
             let contactDisplay = "\(applicant.contactCountryCode) \(applicant.contactNumber)"
 
+            let maskedNRIC = NRICMasker.mask(applicant.nricFIN)
+
             let twoColPersonal: [((String, String), (String, String))] = [
                 (("Full Name", applicant.fullName), ("Preferred Name", applicant.preferredName)),
-                (("NRIC / FIN", applicant.nricFIN), ("Date of Birth", dateFormatter.string(from: applicant.dateOfBirth))),
+                (("NRIC / FIN", maskedNRIC), ("Date of Birth", dateFormatter.string(from: applicant.dateOfBirth))),
                 (("Gender", applicant.gender.rawValue), ("Nationality", nationalityDisplay)),
                 (("Race", applicant.race == .others ? applicant.raceOther : applicant.race.rawValue), ("Contact Number", contactDisplay))
             ]

@@ -1,12 +1,25 @@
 import Foundation
 
 enum AppConfig {
-    /// Set to true to skip all form validation (for testing). Remember to set back to false before release.
-    static let skipValidation = true
+    #if DEBUG
+    static let skipValidation = false  // Set true only during development testing
+    #else
+    static let skipValidation = false
+    #endif
 
     static let appVersion = "1.0.0"
     static let referencePrefix = "AFF"
-    static let adminPIN = "000000"
+
+    /// Admin PIN loaded from secrets.plist at runtime. Fallback to empty (login always fails).
+    static var adminPIN: String {
+        guard let path = Bundle.main.path(forResource: "secrets", ofType: "plist"),
+              let dict = NSDictionary(contentsOfFile: path),
+              let pin = dict["AdminPIN"] as? String,
+              !pin.isEmpty else {
+            return ""
+        }
+        return pin
+    }
     static let idleWarningSeconds: TimeInterval = 600
     static let idleResetSeconds: TimeInterval = 630
     static let confirmationAutoReturnSeconds: TimeInterval = 15

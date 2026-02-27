@@ -20,6 +20,10 @@ class RegistrationViewModel: ObservableObject {
     @Published var showAdminPIN = false
     @Published var adminPINEntry = ""
     @Published var welcomeTapCount = 0
+    @Published var adminLocked = false
+    private var adminFailedAttempts = 0
+    private let maxAdminAttempts = 5
+    private let adminLockoutSeconds: TimeInterval = 60
 
     // MARK: - Computed Properties
 
@@ -455,9 +459,15 @@ class RegistrationViewModel: ObservableObject {
     }
 
     func attemptAdminLogin() {
+        guard !adminLocked else {
+            adminPINEntry = ""
+            return
+        }
+
         if adminPINEntry == AppConfig.adminPIN {
             showAdminPIN = false
             adminPINEntry = ""
+            adminFailedAttempts = 0
             // Pause idle timer while admin panel is active
             pauseIdleTimer()
             withAnimation {
@@ -465,6 +475,15 @@ class RegistrationViewModel: ObservableObject {
             }
         } else {
             adminPINEntry = ""
+            adminFailedAttempts += 1
+            if adminFailedAttempts >= maxAdminAttempts {
+                adminLocked = true
+                Task { @MainActor in
+                    try? await Task.sleep(nanoseconds: UInt64(adminLockoutSeconds * 1_000_000_000))
+                    adminLocked = false
+                    adminFailedAttempts = 0
+                }
+            }
         }
     }
 
@@ -499,7 +518,7 @@ class RegistrationViewModel: ObservableObject {
         // Re-bind idle timer publishers
         idleTimer?.$isWarningShown
             .receive(on: DispatchQueue.main)
-            .assign(to: &$showIdleWarning)
+		            .assign(to: &$showIdleWarning)
 
         idleTimer?.$secondsRemaining
             .receive(on: DispatchQueue.main)

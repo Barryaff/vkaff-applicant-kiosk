@@ -67,7 +67,9 @@ class GoogleDriveService {
         guard (200...299).contains(httpResponse.statusCode) else {
             // Parse error response from Google Drive API
             let rawBody = String(data: responseData, encoding: .utf8) ?? "no body"
+            #if DEBUG
             print("[GoogleDrive] Upload failed HTTP \(httpResponse.statusCode): \(rawBody)")
+            #endif
             let errorMessage = parseGoogleDriveError(from: responseData, statusCode: httpResponse.statusCode)
 
             // If we got a 401, invalidate the cached token so the next attempt refreshes it
@@ -172,15 +174,21 @@ class GoogleDriveService {
 
         let signingInput = "\(headerBase64).\(claimsBase64)"
 
+        #if DEBUG
         print("[GoogleDrive] JWT claims: iss=\(GoogleDriveConfig.serviceAccountEmail), sub=\(GoogleDriveConfig.impersonateEmail), scope=drive")
+        #endif
 
         // Load private key from bundled service account JSON
         let privateKey: SecKey
         do {
             privateKey = try loadPrivateKey()
+            #if DEBUG
             print("[GoogleDrive] Private key loaded successfully")
+            #endif
         } catch {
+            #if DEBUG
             print("[GoogleDrive] Failed to load private key: \(error)")
+            #endif
             throw error
         }
 
@@ -222,17 +230,23 @@ class GoogleDriveService {
                 let errorType = json["error"] as? String ?? ""
                 let errorDesc = json["error_description"] as? String ?? ""
                 errorDetail = "HTTP \(httpResponse.statusCode) - \(errorType): \(errorDesc)"
+                #if DEBUG
                 print("[GoogleDrive] Token request failed: \(errorDetail)")
+                #endif
             } else {
                 let bodyStr = String(data: data, encoding: .utf8) ?? "no body"
                 errorDetail = "HTTP \(httpResponse.statusCode): \(bodyStr)"
+                #if DEBUG
                 print("[GoogleDrive] Token request failed: \(errorDetail)")
+                #endif
             }
             throw DriveError.tokenRequestFailed(detail: errorDetail)
         }
 
         let tokenResponse = try JSONDecoder().decode(TokenResponse.self, from: data)
+        #if DEBUG
         print("[GoogleDrive] Token obtained successfully, expires in \(tokenResponse.expiresIn)s")
+        #endif
 
         // Cache the token with a refresh margin (refresh 5 minutes before actual expiry)
         GoogleDriveService.cachedToken = tokenResponse.accessToken

@@ -8,7 +8,9 @@ enum SlackConfig {
               let dict = NSDictionary(contentsOfFile: path),
               let url = dict["SlackWebhookURL"] as? String,
               !url.isEmpty else {
+            #if DEBUG
             print("[Slack] Warning: No webhook URL found in secrets.plist")
+            #endif
             return ""
         }
         return url

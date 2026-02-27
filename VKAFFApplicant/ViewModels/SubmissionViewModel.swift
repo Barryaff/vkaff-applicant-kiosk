@@ -70,9 +70,13 @@ class SubmissionViewModel {
                 try await withTimeout(seconds: 15) {
                     try await self.slackService.sendNotification(for: sanitizedApplicant)
                 }
+                #if DEBUG
                 print("[SubmissionVM] Slack notification sent successfully")
+                #endif
             } catch {
+                #if DEBUG
                 print("[SubmissionVM] Slack notification failed (non-critical): \(error.localizedDescription)")
+                #endif
             }
         }
 
@@ -100,13 +104,17 @@ class SubmissionViewModel {
                     )
                 }
 
+                #if DEBUG
                 print("[SubmissionVM] Drive upload successful")
+                #endif
                 return .success(referenceNumber: sanitizedApplicant.referenceNumber)
 
             } catch {
                 retryCount += 1
                 lastError = classifyError(error)
+                #if DEBUG
                 print("[SubmissionVM] Drive upload attempt \(retryCount) failed: \(error.localizedDescription)")
+                #endif
 
                 // Don't retry auth errors - they won't resolve with retries
                 if case .authError = lastError {

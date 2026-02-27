@@ -90,41 +90,27 @@ class SlackService {
                     ]
                 ]
             ],
-            // Contact & nationality section - two column fields
+            // Nationality section
             [
                 "type": "section",
                 "fields": [
                     [
                         "type": "mrkdwn",
-                        "text": "*Contact:*\n\(applicant.contactNumber)"
+                        "text": "*Nationality:*\n\(applicant.nationality == .others ? (applicant.nationalityOther.isEmpty ? "Others" : applicant.nationalityOther) : applicant.nationality.rawValue)"
                     ],
                     [
                         "type": "mrkdwn",
-                        "text": "*Email:*\n\(applicant.emailAddress)"
+                        "text": "*Experience:*\n\(applicant.totalExperience.rawValue)"
                     ]
                 ]
             ],
-            // Position & experience section - two column fields
+            // Position & salary section - two column fields
             [
                 "type": "section",
                 "fields": [
                     [
                         "type": "mrkdwn",
                         "text": "*Position(s):*\n\(positions)"
-                    ],
-                    [
-                        "type": "mrkdwn",
-                        "text": "*Nationality:*\n\(applicant.nationality == .others ? (applicant.nationalityOther.isEmpty ? "Others" : applicant.nationalityOther) : applicant.nationality.rawValue)"
-                    ]
-                ]
-            ],
-            // Salary & availability section - two column fields
-            [
-                "type": "section",
-                "fields": [
-                    [
-                        "type": "mrkdwn",
-                        "text": "*Experience:*\n\(applicant.totalExperience.rawValue)"
                     ],
                     [
                         "type": "mrkdwn",
