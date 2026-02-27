@@ -66,12 +66,16 @@ class SubmissionViewModel {
         }
 
         // Register background task to allow upload to complete if app is briefly backgrounded
-        let bgTaskID = UIApplication.shared.beginBackgroundTask(withName: "SubmitApplication") {
-            // Expiration handler — nothing to clean up, upload will fail naturally
+        let bgTaskID = await MainActor.run {
+            UIApplication.shared.beginBackgroundTask(withName: "SubmitApplication") {
+                // Expiration handler — nothing to clean up, upload will fail naturally
+            }
         }
         defer {
             if bgTaskID != .invalid {
-                UIApplication.shared.endBackgroundTask(bgTaskID)
+                Task { @MainActor in
+                    UIApplication.shared.endBackgroundTask(bgTaskID)
+                }
             }
         }
 
