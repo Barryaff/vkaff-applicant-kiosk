@@ -19,14 +19,13 @@ struct ProgressBar: View {
                                 .font(.system(size: 10, weight: .bold))
                                 .foregroundColor(.gold)
                         } else if index == currentStep {
-                            // Current — orange with pulse
+                            // Current — orange with static white dot
                             Circle()
                                 .fill(Color.affOrange)
                                 .frame(width: 26, height: 26)
                             Circle()
                                 .fill(Color.white)
                                 .frame(width: 8, height: 8)
-                                .modifier(PulseModifier())
                         } else {
                             // Upcoming — subtle
                             Circle()
@@ -65,20 +64,3 @@ struct ProgressBar: View {
     }
 }
 
-// MARK: - Pulse Animation
-
-struct PulseModifier: ViewModifier {
-    @Environment(\.accessibilityReduceMotion) var reduceMotion
-    @State private var isPulsing = false
-
-    func body(content: Content) -> some View {
-        content
-            .scaleEffect(isPulsing && !reduceMotion ? 1.3 : 1.0)
-            .opacity(isPulsing && !reduceMotion ? 0.6 : 1.0)
-            .animation(
-                reduceMotion ? nil : .easeInOut(duration: 1.2).repeatForever(autoreverses: true),
-                value: isPulsing
-            )
-            .onAppear { isPulsing = true }
-    }
-}

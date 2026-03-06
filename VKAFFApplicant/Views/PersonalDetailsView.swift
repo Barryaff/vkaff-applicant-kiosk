@@ -264,37 +264,6 @@ struct PersonalDetailsView: View {
                 )
             }
         }
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                if focusedField != .emergencyContactNumber {
-                    Button("Next") {
-                        advanceFocus()
-                    }
-                    .foregroundColor(.affOrange)
-                }
-                Spacer()
-                Button("Done") {
-                    focusedField = nil
-                }
-                .fontWeight(.semibold)
-                .foregroundColor(.affOrange)
-            }
-        }
-    }
-
-    private func advanceFocus() {
-        switch focusedField {
-        case .fullName: focusedField = .preferredName
-        case .preferredName: focusedField = .nricFIN
-        case .nricFIN: focusedField = .contactNumber
-        case .contactNumber: focusedField = .emailAddress
-        case .emailAddress: focusedField = .residentialAddress
-        case .residentialAddress: focusedField = .postalCode
-        case .postalCode: focusedField = .emergencyContactName
-        case .emergencyContactName: focusedField = .emergencyContactNumber
-        case .emergencyContactNumber: focusedField = nil
-        case nil: break
-        }
     }
 }
 
@@ -310,11 +279,7 @@ struct FormScreenLayout<Content: View>: View {
     var isContinueEnabled: Bool = true
     @ViewBuilder let content: Content
 
-    private var bottomSafeArea: CGFloat {
-        UIApplication.shared.connectedScenes
-            .compactMap { ($0 as? UIWindowScene)?.keyWindow?.safeAreaInsets.bottom }
-            .first ?? 0
-    }
+    @State private var bottomSafeArea: CGFloat = 0
 
     var body: some View {
         VStack(spacing: 0) {
@@ -389,6 +354,7 @@ struct FormScreenLayout<Content: View>: View {
             }
             .background(Color.lightBackground)
             .scrollDismissesKeyboard(.immediately)
+            .ignoresSafeArea(.keyboard)
             .dynamicTypeSize(.large ... .accessibility3)
 
             // Bottom navigation
@@ -401,5 +367,10 @@ struct FormScreenLayout<Content: View>: View {
             .padding(.bottom, bottomSafeArea)
         }
         .ignoresSafeArea(edges: .bottom)
+        .onAppear {
+            bottomSafeArea = UIApplication.shared.connectedScenes
+                .compactMap { ($0 as? UIWindowScene)?.keyWindow?.safeAreaInsets.bottom }
+                .first ?? 0
+        }
     }
 }

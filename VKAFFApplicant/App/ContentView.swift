@@ -77,7 +77,7 @@ struct ContentView: View {
         // Reset idle timer on user interaction (simultaneous — does not block child gestures)
         .simultaneousGesture(
             TapGesture()
-                .onEnded { vm.resetIdleTimer() }
+                .onEnded { DispatchQueue.main.async { vm.resetIdleTimer() } }
         )
         .onAppear {
             setupKeyboardObservers()

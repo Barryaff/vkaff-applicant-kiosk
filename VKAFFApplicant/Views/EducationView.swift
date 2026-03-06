@@ -147,30 +147,6 @@ struct EducationView: View {
 
             LanguageChipSelector(selectedLanguages: $vm.applicant.selectedLanguages)
         }
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                if focusedField != .certifications {
-                    Button("Next") {
-                        advanceFocus()
-                    }
-                    .foregroundColor(.affOrange)
-                }
-                Spacer()
-                Button("Done") {
-                    focusedField = nil
-                }
-                .fontWeight(.semibold)
-                .foregroundColor(.affOrange)
-            }
-        }
     }
 
-    private func advanceFocus() {
-        switch focusedField {
-        case .fieldOfStudy: focusedField = .institutionName
-        case .institutionName: focusedField = .certifications
-        case .certifications: focusedField = nil
-        case nil: break
-        }
-    }
 }

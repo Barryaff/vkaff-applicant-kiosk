@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// A phone number input with a country code dropdown.
-/// Singapore (+65) and Malaysia (+60) are pinned at the top.
+/// Uses UIKit text field for zero-lag typing.
 struct PhoneFieldWithCode: View {
     let label: String
     @Binding var countryCode: String
@@ -12,15 +12,13 @@ struct PhoneFieldWithCode: View {
     var focusBinding: FocusState<PersonalDetailsFocus?>.Binding? = nil
     var focusValue: PersonalDetailsFocus? = nil
 
-    @FocusState private var isFocused: Bool
+    @State private var isFieldFocused: Bool = false
+    @State private var localPhone: String = ""
+    @State private var needsInit: Bool = true
     @State private var shakeOffset: CGFloat = 0
     @State private var glowOpacity: Double = 0
     @State private var errorVisible: Bool = false
     @State private var borderPulse: Bool = false
-
-    // Local text buffer for keystroke isolation
-    @State private var localPhone: String = ""
-    @State private var syncTask: Task<Void, Never>?
 
     private var selectedCode: CountryCode {
         CountryCode.find(byDialCode: countryCode)
@@ -35,7 +33,6 @@ struct PhoneFieldWithCode: View {
             HStack(spacing: 0) {
                 // Country code picker
                 Menu {
-                    // Pinned section
                     Section("Frequently Used") {
                         codeButton(CountryCode.singapore)
                         codeButton(CountryCode.malaysia)
@@ -61,13 +58,13 @@ struct PhoneFieldWithCode: View {
                     .padding(.vertical, 14)
                     .background(
                         UnevenRoundedRectangle(topLeadingRadius: 10, bottomLeadingRadius: 10, bottomTrailingRadius: 0, topTrailingRadius: 0)
-                            .fill(isFocused ? Color.orangeLight : Color.lightBackground)
+                            .fill(isFieldFocused ? Color.orangeLight : Color.lightBackground)
                     )
                     .overlay(
                         UnevenRoundedRectangle(topLeadingRadius: 10, bottomLeadingRadius: 10, bottomTrailingRadius: 0, topTrailingRadius: 0)
                             .stroke(
                                 errorMessage != nil ? Color.errorRed :
-                                    (isFocused ? Color.affOrange : Color.dividerSubtle),
+                                    (isFieldFocused ? Color.affOrange : Color.dividerSubtle),
                                 lineWidth: errorMessage != nil ? (borderPulse ? 2.5 : 1.5) : 1
                             )
                             .allowsHitTesting(false)
@@ -81,48 +78,49 @@ struct PhoneFieldWithCode: View {
                     .frame(width: 1)
                     .padding(.vertical, 6)
 
-                // Phone number field
+                // Phone number field — UIKit backed
                 ZStack(alignment: .trailing) {
-                    TextField(placeholder, text: $localPhone)
-                        .font(.system(size: 20))
-                        .foregroundColor(.darkText)
-                        .keyboardType(.phonePad)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                        .onChange(of: localPhone) { _, newValue in
-                            if newValue.count > 15 {
-                                localPhone = String(newValue.prefix(15))
-                                return
-                            }
-                            // No sync during typing — flush happens on focus loss
+                    UIKitTextField(
+                        initialText: localPhone,
+                        placeholder: placeholder,
+                        keyboardType: .phonePad,
+                        autocapitalization: .none,
+                        maxLength: 15,
+                        font: .systemFont(ofSize: 20),
+                        textColor: UIColor(named: "DarkText") ?? .label,
+                        textInsets: UIEdgeInsets(top: 14, left: 12, bottom: 14, right: 12),
+                        onTextCommit: { newValue in
+                            localPhone = newValue
+                            phoneNumber = newValue
+                        },
+                        onFocusChange: { focused in
+                            isFieldFocused = focused
+                            glowOpacity = focused ? 1 : 0
                         }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 14)
-                        .background(
-                            UnevenRoundedRectangle(topLeadingRadius: 0, bottomLeadingRadius: 0, bottomTrailingRadius: 10, topTrailingRadius: 10)
-                                .fill(isFocused ? Color.orangeLight : Color.lightBackground)
-                        )
-                        .overlay(
-                            UnevenRoundedRectangle(topLeadingRadius: 0, bottomLeadingRadius: 0, bottomTrailingRadius: 10, topTrailingRadius: 10)
-                                .stroke(
-                                    errorMessage != nil ? Color.errorRed :
-                                        (isFocused ? Color.affOrange : Color.dividerSubtle),
-                                    lineWidth: errorMessage != nil ? (borderPulse ? 2.5 : 1.5) : 1
-                                )
-                                .allowsHitTesting(false)
-                        )
-                        .overlay(
-                            UnevenRoundedRectangle(topLeadingRadius: 0, bottomLeadingRadius: 0, bottomTrailingRadius: 10, topTrailingRadius: 10)
-                                .stroke(Color.affOrange.opacity(0.3 * glowOpacity), lineWidth: 2)
-                                .opacity(glowOpacity)
-                                .allowsHitTesting(false)
-                        )
-                        .focused($isFocused)
-                        .applyFocus(focusBinding: focusBinding, value: focusValue)
-                        .accessibilityLabel("\(label), phone number")
-                        .accessibilityValue(localPhone.isEmpty ? "empty" : localPhone)
+                    )
+                    .frame(height: 52)
+                    .background(
+                        UnevenRoundedRectangle(topLeadingRadius: 0, bottomLeadingRadius: 0, bottomTrailingRadius: 10, topTrailingRadius: 10)
+                            .fill(isFieldFocused ? Color.orangeLight : Color.lightBackground)
+                    )
+                    .overlay(
+                        UnevenRoundedRectangle(topLeadingRadius: 0, bottomLeadingRadius: 0, bottomTrailingRadius: 10, topTrailingRadius: 10)
+                            .stroke(
+                                errorMessage != nil ? Color.errorRed :
+                                    (isFieldFocused ? Color.affOrange : Color.dividerSubtle),
+                                lineWidth: errorMessage != nil ? (borderPulse ? 2.5 : 1.5) : 1
+                            )
+                            .allowsHitTesting(false)
+                    )
+                    .overlay(
+                        UnevenRoundedRectangle(topLeadingRadius: 0, bottomLeadingRadius: 0, bottomTrailingRadius: 10, topTrailingRadius: 10)
+                            .stroke(Color.affOrange.opacity(0.3 * glowOpacity), lineWidth: 2)
+                            .opacity(glowOpacity)
+                            .allowsHitTesting(false)
+                    )
+                    .accessibilityLabel("\(label), phone number")
 
-                    if isValid && !isFocused {
+                    if isValid && !isFieldFocused {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundColor(.successGreen)
                             .font(.system(size: 20))
@@ -134,12 +132,6 @@ struct PhoneFieldWithCode: View {
             }
             .contentShape(Rectangle())
             .offset(x: shakeOffset)
-            .onChange(of: isFocused) { _, focused in
-                glowOpacity = focused ? 1 : 0
-                if !focused {
-                    Task { @MainActor in flushToBinding() }
-                }
-            }
 
             if let error = errorMessage {
                 Text(error)
@@ -158,17 +150,12 @@ struct PhoneFieldWithCode: View {
                     .accessibilityHidden(true)
             }
         }
-        .onAppear { localPhone = phoneNumber }
-        .onChange(of: phoneNumber) { _, newValue in
-            if localPhone != newValue { localPhone = newValue }
+        .onAppear {
+            if needsInit {
+                localPhone = phoneNumber
+                needsInit = false
+            }
         }
-    }
-
-    // MARK: - Local Buffer Sync
-
-    private func flushToBinding() {
-        syncTask?.cancel()
-        if phoneNumber != localPhone { phoneNumber = localPhone }
     }
 
     private func codeButton(_ code: CountryCode) -> some View {

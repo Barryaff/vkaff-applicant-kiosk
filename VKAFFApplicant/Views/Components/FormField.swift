@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 // Cached formatter to avoid per-keystroke allocations in salary fields
 private let salaryFormatter: NumberFormatter = {
@@ -7,6 +8,168 @@ private let salaryFormatter: NumberFormatter = {
     formatter.groupingSeparator = ","
     return formatter
 }()
+
+// MARK: - Padded UITextField
+
+/// UITextField subclass with configurable text insets for internal padding.
+/// Ensures the entire visual field area is tappable (no padding outside the UITextField).
+class PaddedUITextField: UITextField {
+    var textInsets = UIEdgeInsets(top: 14, left: 16, bottom: 14, right: 16)
+
+    override func textRect(forBounds bounds: CGRect) -> CGRect {
+        bounds.inset(by: textInsets)
+    }
+
+    override func editingRect(forBounds bounds: CGRect) -> CGRect {
+        bounds.inset(by: textInsets)
+    }
+
+    override func placeholderRect(forBounds bounds: CGRect) -> CGRect {
+        bounds.inset(by: textInsets)
+    }
+}
+
+// MARK: - UIKit Text Field (UIViewRepresentable)
+
+/// Zero-lag text input backed by UIKit's UITextField.
+/// NO SwiftUI binding — text is synced via onTextCommit callback on focus loss only.
+/// NO SwiftUI focus integration — UIKit manages its own first responder.
+/// This completely severs the observation chain during typing.
+struct UIKitTextField: UIViewRepresentable {
+    var initialText: String
+    var placeholder: String = ""
+    var keyboardType: UIKeyboardType = .default
+    var autocapitalization: UITextAutocapitalizationType = .allCharacters
+    var maxLength: Int? = nil
+    var isSalaryField: Bool = false
+    var font: UIFont = .systemFont(ofSize: 20)
+    var textColor: UIColor = .label
+    var textInsets: UIEdgeInsets = UIEdgeInsets(top: 14, left: 16, bottom: 14, right: 16)
+    var onTextCommit: ((String) -> Void)? = nil
+    var onReturn: (() -> Void)? = nil
+    var onFocusChange: ((Bool) -> Void)? = nil
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(parent: self)
+    }
+
+    func makeUIView(context: Context) -> PaddedUITextField {
+        let tf = PaddedUITextField()
+        tf.delegate = context.coordinator
+        context.coordinator.textField = tf
+        tf.textInsets = textInsets
+        tf.font = font
+        tf.textColor = textColor
+        tf.placeholder = placeholder
+        tf.keyboardType = keyboardType
+        tf.autocapitalizationType = autocapitalization
+        tf.autocorrectionType = .no
+        tf.spellCheckingType = .no
+        tf.text = initialText
+        tf.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        tf.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+
+        // Input accessory view with Done button
+        let toolbar = UIToolbar(frame: CGRect(x: 0, y: 0, width: 100, height: 44))
+        toolbar.items = [
+            UIBarButtonItem.flexibleSpace(),
+            UIBarButtonItem(
+                title: "Done",
+                style: .done,
+                target: context.coordinator,
+                action: #selector(Coordinator.doneTapped)
+            )
+        ]
+        toolbar.tintColor = UIColor(named: "AFFOrange") ?? .systemOrange
+        tf.inputAccessoryView = toolbar
+
+        if isSalaryField {
+            tf.addTarget(
+                context.coordinator,
+                action: #selector(Coordinator.salaryEditingChanged(_:)),
+                for: .editingChanged
+            )
+        }
+
+        return tf
+    }
+
+    func updateUIView(_ tf: PaddedUITextField, context: Context) {
+        context.coordinator.parent = self
+        // Only populate text before the user has ever edited this field.
+        // After first edit, UIKit owns the text — never overwrite.
+        if !context.coordinator.isEditing && !context.coordinator.hasBeenEdited {
+            if tf.text != initialText {
+                tf.text = initialText
+            }
+        }
+    }
+
+    class Coordinator: NSObject, UITextFieldDelegate {
+        var parent: UIKitTextField
+        var isEditing = false
+        var hasBeenEdited = false
+        weak var textField: UITextField?
+
+        init(parent: UIKitTextField) {
+            self.parent = parent
+        }
+
+        func textFieldDidBeginEditing(_ textField: UITextField) {
+            isEditing = true
+            hasBeenEdited = true
+            parent.onFocusChange?(true)
+        }
+
+        func textFieldDidEndEditing(_ textField: UITextField) {
+            isEditing = false
+            let finalText = textField.text ?? ""
+            parent.onTextCommit?(finalText)
+            parent.onFocusChange?(false)
+        }
+
+        func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+            parent.onReturn?()
+            textField.resignFirstResponder()
+            return true
+        }
+
+        func textField(
+            _ textField: UITextField,
+            shouldChangeCharactersIn range: NSRange,
+            replacementString string: String
+        ) -> Bool {
+            guard let currentText = textField.text,
+                  let swiftRange = Range(range, in: currentText) else {
+                return true
+            }
+            let newText = currentText.replacingCharacters(in: swiftRange, with: string)
+            if let max = parent.maxLength, newText.count > max {
+                return false
+            }
+            return true
+        }
+
+        @objc func salaryEditingChanged(_ textField: UITextField) {
+            let raw = textField.text ?? ""
+            let digits = raw.filter { $0.isNumber }
+            if let number = Int(digits) {
+                let formatted = salaryFormatter.string(from: NSNumber(value: number)) ?? digits
+                if textField.text != formatted {
+                    textField.text = formatted
+                }
+            } else if digits.isEmpty {
+                textField.text = ""
+            }
+        }
+
+        @objc func doneTapped() {
+            textField?.resignFirstResponder()
+        }
+    }
+}
+
+// MARK: - FormField
 
 struct FormField: View {
     let label: String
@@ -27,19 +190,22 @@ struct FormField: View {
     var positionFocusBinding: FocusState<PositionFocus?>.Binding? = nil
     var positionFocusValue: PositionFocus? = nil
 
-    @FocusState private var isFocused: Bool
+    // Visual focus state — @State (NOT @FocusState) to avoid SwiftUI focus system conflicts
+    @State private var isFieldFocused: Bool = false
+    // SwiftUI FocusState only used for multiline TextEditor
+    @FocusState private var isTextEditorFocused: Bool
+
     @State private var shakeOffset: CGFloat = 0
     @State private var glowOpacity: Double = 0
     @State private var errorVisible: Bool = false
     @State private var borderPulse: Bool = false
 
-    // Local text buffer — isolates per-keystroke re-renders to this view only.
-    // Syncs back to the binding on focus loss so the struct mutation (which
-    // triggers full view-hierarchy invalidation) is batched.
-    @State private var localText: String = ""
-    @State private var isShaking: Bool = false
+    // Single-line: local value initialized from binding once, synced back on commit only
+    @State private var localValue: String = ""
+    @State private var needsInit: Bool = true
 
-    @Environment(\.accessibilityReduceMotion) var reduceMotion
+    // Multiline: local text buffer (synced on focus loss)
+    @State private var localText: String = ""
 
     private var accessibilityLabelText: String {
         var labelText = label
@@ -51,6 +217,14 @@ struct FormField: View {
         return labelText
     }
 
+    private var uiKitAutocapitalization: UITextAutocapitalizationType {
+        let desc = String(describing: autocapitalization)
+        if desc.contains("never") { return .none }
+        if desc.contains("words") { return .words }
+        if desc.contains("sentences") { return .sentences }
+        return .allCharacters
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(label)
@@ -59,71 +233,13 @@ struct FormField: View {
 
             ZStack(alignment: .trailing) {
                 if isMultiline {
-                    TextEditor(text: $localText)
-                        .font(.system(size: 20))
-                        .foregroundColor(.darkText)
-                        .textInputAutocapitalization(autocapitalization)
-                        .scrollContentBackground(.hidden)
-                        .frame(minHeight: 130)
-                        .padding(12)
-                        .background(fieldBackground)
-                        .overlay(fieldBorder)
-                        .overlay(focusGlow)
-                        .focused($isFocused)
-                        .applyFocus(focusBinding: focusBinding, value: focusValue)
-                        .applyEducationFocus(focusBinding: educationFocusBinding, value: educationFocusValue)
-                        .applyPositionFocus(focusBinding: positionFocusBinding, value: positionFocusValue)
-                        .onChange(of: localText) { _, newValue in
-                            if let max = maxLength, newValue.count > max {
-                                localText = String(newValue.prefix(max))
-                                return
-                            }
-                            // No sync during typing — flush happens on focus loss
-                        }
-                        .accessibilityLabel(accessibilityLabelText)
-                        .accessibilityHint(placeholder.isEmpty ? "Enter \(label.lowercased())" : placeholder)
-                        .accessibilityValue(localText.isEmpty ? "empty" : localText)
-
-                    if let max = maxLength {
-                        Text("\(localText.count)/\(max)")
-                            .font(.system(size: 12))
-                            .foregroundColor(.mediumGray)
-                            .padding(.trailing, 16)
-                            .padding(.bottom, 8)
-                            .frame(maxHeight: .infinity, alignment: .bottomTrailing)
-                            .accessibilityLabel("\(localText.count) of \(max) characters used")
-                    }
+                    multilineEditor
                 } else {
-                    TextField(placeholder, text: isSalaryField ? localSalaryBinding : $localText, onCommit: {
-                        onCommit?()
-                    })
-                    .font(.system(size: 20))
-                    .foregroundColor(.darkText)
-                    .keyboardType(keyboardType)
-                    .textInputAutocapitalization(autocapitalization)
-                    .autocorrectionDisabled()
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 14)
-                    .background(fieldBackground)
-                    .overlay(fieldBorder)
-                    .overlay(focusGlow)
-                    .focused($isFocused)
-                    .applyFocus(focusBinding: focusBinding, value: focusValue)
-                    .accessibilityLabel(accessibilityLabelText)
-                    .accessibilityHint(placeholder.isEmpty ? "Enter \(label.lowercased())" : placeholder)
-                    .applyEducationFocus(focusBinding: educationFocusBinding, value: educationFocusValue)
-                    .applyPositionFocus(focusBinding: positionFocusBinding, value: positionFocusValue)
-                    .onChange(of: localText) { _, newValue in
-                        if let max = maxLength, newValue.count > max {
-                            localText = String(newValue.prefix(max))
-                            return
-                        }
-                        // No sync during typing — flush happens on focus loss
-                    }
+                    singleLineField
                 }
 
                 // Valid checkmark
-                if isValid && !isFocused {
+                if isValid && !isFieldFocused {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(.successGreen)
                         .font(.system(size: 20))
@@ -134,23 +250,22 @@ struct FormField: View {
             }
             .contentShape(Rectangle())
             .offset(x: shakeOffset)
-            .onChange(of: isFocused) { _, focused in
+            .onChange(of: isFieldFocused) { _, focused in
                 glowOpacity = focused ? 1 : 0
-                if !focused {
-                    flushToBinding()
+                if !focused && isMultiline {
+                    // Flush multiline local buffer on focus loss
+                    if text != localText { text = localText }
                 }
             }
 
-            // Error message -- slides in from below with fade
+            // Error message
             if let error = errorMessage {
                 Text(error)
                     .font(.system(size: 14))
                     .foregroundColor(.errorRed)
                     .opacity(errorVisible ? 1 : 0)
                     .offset(y: errorVisible ? 0 : 6)
-                    .onAppear {
-                        triggerErrorAnimation()
-                    }
+                    .onAppear { triggerErrorAnimation() }
                     .onDisappear {
                         errorVisible = false
                         borderPulse = false
@@ -158,137 +273,108 @@ struct FormField: View {
                     .accessibilityHidden(true)
             }
         }
-        .onAppear { localText = text }
-        .onChange(of: text) { _, newValue in
-            if localText != newValue { localText = newValue }
+        .onAppear {
+            if needsInit {
+                localValue = text
+                localText = text
+                needsInit = false
+            }
         }
     }
 
-    // MARK: - Local Buffer Sync
+    // MARK: - Single-line UIKit field
 
-    private func flushToBinding() {
-        if text != localText { text = localText }
+    private var singleLineField: some View {
+        UIKitTextField(
+            initialText: localValue,
+            placeholder: placeholder,
+            keyboardType: keyboardType,
+            autocapitalization: uiKitAutocapitalization,
+            maxLength: maxLength,
+            isSalaryField: isSalaryField,
+            font: .systemFont(ofSize: 20),
+            textColor: UIColor(named: "DarkText") ?? .label,
+            onTextCommit: { newValue in
+                localValue = newValue
+                text = newValue
+            },
+            onReturn: onCommit,
+            onFocusChange: { focused in
+                isFieldFocused = focused
+            }
+        )
+        .frame(height: 52)
+        .background(fieldBackground)
+        .overlay(fieldBorder)
+        .overlay(focusGlow)
+        .accessibilityLabel(accessibilityLabelText)
+        .accessibilityHint(placeholder.isEmpty ? "Enter \(label.lowercased())" : placeholder)
+    }
+
+    // MARK: - Multiline SwiftUI TextEditor
+
+    @ViewBuilder
+    private var multilineEditor: some View {
+        TextEditor(text: $localText)
+            .font(.system(size: 20))
+            .foregroundColor(.darkText)
+            .textInputAutocapitalization(autocapitalization)
+            .scrollContentBackground(.hidden)
+            .frame(minHeight: 130)
+            .padding(12)
+            .background(fieldBackground)
+            .overlay(fieldBorder)
+            .overlay(focusGlow)
+            .focused($isTextEditorFocused)
+            .applyFocus(focusBinding: focusBinding, value: focusValue)
+            .applyEducationFocus(focusBinding: educationFocusBinding, value: educationFocusValue)
+            .applyPositionFocus(focusBinding: positionFocusBinding, value: positionFocusValue)
+            .onChange(of: localText) { _, newValue in
+                if let max = maxLength, newValue.count > max {
+                    localText = String(newValue.prefix(max))
+                }
+            }
+            .onChange(of: isTextEditorFocused) { _, focused in
+                isFieldFocused = focused
+            }
+            .accessibilityLabel(accessibilityLabelText)
+            .accessibilityHint(placeholder.isEmpty ? "Enter \(label.lowercased())" : placeholder)
+            .accessibilityValue(localText.isEmpty ? "empty" : localText)
+
+        if let max = maxLength {
+            Text("\(localText.count)/\(max)")
+                .font(.system(size: 12))
+                .foregroundColor(.mediumGray)
+                .padding(.trailing, 16)
+                .padding(.bottom, 8)
+                .frame(maxHeight: .infinity, alignment: .bottomTrailing)
+                .accessibilityLabel("\(localText.count) of \(max) characters used")
+        }
     }
 
     // MARK: - Error Animation
 
     private func triggerErrorAnimation() {
-        guard !isShaking else { return }
-        isShaking = true
-
-        // Slide error text in from below
-        withAnimation(.easeOut(duration: 0.2)) {
-            errorVisible = true
-        }
-
-        if !reduceMotion {
-            // Smooth spring shake: 3 cycles, 6pt amplitude
-            let shakeAnim = Animation.spring(response: 0.08, dampingFraction: 0.3)
-            withAnimation(shakeAnim) { shakeOffset = 6 }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
-                withAnimation(shakeAnim) { shakeOffset = -6 }
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) {
-                withAnimation(shakeAnim) { shakeOffset = 6 }
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.24) {
-                withAnimation(shakeAnim) { shakeOffset = -6 }
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.32) {
-                withAnimation(shakeAnim) { shakeOffset = 4 }
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.40) {
-                withAnimation(.spring(response: 0.12, dampingFraction: 0.5)) {
-                    shakeOffset = 0
-                }
-                isShaking = false
-            }
-        } else {
-            isShaking = false
-        }
-
-        // Red border pulse once
-        withAnimation(.easeIn(duration: 0.15)) {
-            borderPulse = true
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-            withAnimation(.easeOut(duration: 0.25)) {
-                borderPulse = false
-            }
-        }
-
-        // Warning haptic on error
-        let haptic = UINotificationFeedbackGenerator()
-        haptic.notificationOccurred(.warning)
-    }
-
-    // MARK: - Phone binding (no auto-prefix — supports international numbers)
-    // phoneAutoPrefix removed — use $text directly
-
-    // MARK: - Salary auto-formatting binding (operates on local buffer)
-    private var localSalaryBinding: Binding<String> {
-        Binding(
-            get: { localText },
-            set: { newValue in
-                let newDigits = newValue.filter { $0.isNumber }
-                let oldDigits = localText.filter { $0.isNumber }
-                guard newDigits != oldDigits else { return }
-
-                if let number = Int(newDigits) {
-                    let formatted = salaryFormatter.string(from: NSNumber(value: number)) ?? newDigits
-                    if localText != formatted { localText = formatted }
-                } else if newDigits.isEmpty && !localText.isEmpty {
-                    localText = ""
-                }
-                // No sync during typing — flush happens on focus loss
-            }
-        )
-    }
-
-    // MARK: - Focus advance helper
-    private func advanceFocus() {
-        // Advance personal details focus
-        if let binding = focusBinding, let value = focusValue {
-            switch value {
-            case .fullName: binding.wrappedValue = .preferredName
-            case .preferredName: binding.wrappedValue = .nricFIN
-            case .nricFIN: binding.wrappedValue = .contactNumber
-            case .contactNumber: binding.wrappedValue = .emailAddress
-            case .emailAddress: binding.wrappedValue = .residentialAddress
-            case .residentialAddress: binding.wrappedValue = .postalCode
-            case .postalCode: binding.wrappedValue = .emergencyContactName
-            case .emergencyContactName: binding.wrappedValue = .emergencyContactNumber
-            case .emergencyContactNumber: binding.wrappedValue = nil
-            }
-        }
-        // Advance education focus
-        if let binding = educationFocusBinding, let value = educationFocusValue {
-            switch value {
-            case .fieldOfStudy: binding.wrappedValue = .institutionName
-            case .institutionName: binding.wrappedValue = .certifications
-            case .certifications: binding.wrappedValue = nil
-            }
-        }
-        // Advance position focus
-        if let binding = positionFocusBinding, let value = positionFocusValue {
-            switch value {
-            case .positionOther: binding.wrappedValue = .expectedSalary
-            case .expectedSalary: binding.wrappedValue = .referrerName
-            case .referrerName: binding.wrappedValue = nil
-            }
+        errorVisible = true
+        borderPulse = true
+        UINotificationFeedbackGenerator().notificationOccurred(.warning)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            borderPulse = false
         }
     }
+
+    // MARK: - Visual Components
 
     private var fieldBackground: some View {
         RoundedRectangle(cornerRadius: 10)
-            .fill(isFocused ? Color.orangeLight : Color.lightBackground)
+            .fill(isFieldFocused ? Color.orangeLight : Color.lightBackground)
     }
 
     private var fieldBorder: some View {
         RoundedRectangle(cornerRadius: 10)
             .stroke(
                 errorMessage != nil ? Color.errorRed :
-                    (isFocused ? Color.affOrange : Color.dividerSubtle),
+                    (isFieldFocused ? Color.affOrange : Color.dividerSubtle),
                 lineWidth: errorMessage != nil ? (borderPulse ? 2.5 : 1.5) : 1
             )
             .allowsHitTesting(false)
@@ -317,7 +403,7 @@ enum PositionFocus: Hashable {
     case positionOther, expectedSalary, referrerName
 }
 
-// MARK: - Focus binding helpers
+// MARK: - Focus binding helpers (for multiline TextEditor only)
 
 extension View {
     @ViewBuilder
@@ -358,17 +444,13 @@ struct NRICField: View {
     var focusBinding: FocusState<PersonalDetailsFocus?>.Binding? = nil
     var focusValue: PersonalDetailsFocus? = nil
 
-    @FocusState private var isFocused: Bool
+    @State private var isFieldFocused: Bool = false
+    @State private var localValue: String = ""
+    @State private var needsInit: Bool = true
     @State private var shakeOffset: CGFloat = 0
     @State private var glowOpacity: Double = 0
     @State private var errorVisible: Bool = false
     @State private var borderPulse: Bool = false
-
-    // Local text buffer for keystroke isolation
-    @State private var localText: String = ""
-    @State private var isShaking: Bool = false
-
-    @Environment(\.accessibilityReduceMotion) var reduceMotion
 
     private var accessibilityLabelText: String {
         var labelText = label
@@ -380,25 +462,11 @@ struct NRICField: View {
         return labelText
     }
 
-    private var accessibilityValueText: String {
-        if localText.isEmpty {
-            return "empty"
-        }
-        if isFocused {
-            return localText
-        }
-        // When not focused, report the masked value
-        if isValid {
-            return "Masked as \(NRICMasker.mask(localText))"
-        }
-        return localText
-    }
-
     private var displayText: String {
-        if isFocused || localText.isEmpty {
-            return localText
+        if isFieldFocused || localValue.isEmpty {
+            return localValue
         }
-        return NRICMasker.mask(localText)
+        return NRICMasker.mask(localValue)
     }
 
     var body: some View {
@@ -408,44 +476,48 @@ struct NRICField: View {
                 .accessibilityHidden(true)
 
             ZStack(alignment: .trailing) {
-                TextField("e.g., S1234567A", text: $localText)
-                    .font(.system(size: 20))
-                    .foregroundColor(.darkText)
-                    .textInputAutocapitalization(.characters)
-                    .autocorrectionDisabled()
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 14)
-                    .background(
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(isFocused ? Color.orangeLight : Color.lightBackground)
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(
-                                errorMessage != nil ? Color.errorRed :
-                                    (isFocused ? Color.affOrange : Color.dividerSubtle),
-                                lineWidth: errorMessage != nil ? (borderPulse ? 2.5 : 1.5) : 1
-                            )
-                            .allowsHitTesting(false)
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.affOrange.opacity(0.3 * glowOpacity), lineWidth: 2)
-                            .opacity(glowOpacity)
-                            .allowsHitTesting(false)
-                    )
-                    .focused($isFocused)
-                    .applyFocus(focusBinding: focusBinding, value: focusValue)
-                    .accessibilityLabel(accessibilityLabelText)
-                    .accessibilityValue(accessibilityValueText)
-                    .accessibilityHint("Enter your NRIC or FIN number, for example S1234567A. It will be masked when not editing.")
-                    .onChange(of: localText) { _, _ in
-                        // No sync during typing — flush happens on focus loss
+                // UIKit text field — always present, receives taps through masked overlay
+                UIKitTextField(
+                    initialText: localValue,
+                    placeholder: "e.g., S1234567A",
+                    autocapitalization: .allCharacters,
+                    font: .systemFont(ofSize: 20),
+                    textColor: UIColor(named: "DarkText") ?? .label,
+                    onTextCommit: { newValue in
+                        localValue = newValue
+                        text = newValue
+                    },
+                    onFocusChange: { focused in
+                        isFieldFocused = focused
+                        glowOpacity = focused ? 1 : 0
                     }
-                    .opacity(isFocused || localText.isEmpty ? 1 : 0)
+                )
+                .frame(height: 52)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(isFieldFocused ? Color.orangeLight : Color.lightBackground)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(
+                            errorMessage != nil ? Color.errorRed :
+                                (isFieldFocused ? Color.affOrange : Color.dividerSubtle),
+                            lineWidth: errorMessage != nil ? (borderPulse ? 2.5 : 1.5) : 1
+                        )
+                        .allowsHitTesting(false)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.affOrange.opacity(0.3 * glowOpacity), lineWidth: 2)
+                        .opacity(glowOpacity)
+                        .allowsHitTesting(false)
+                )
+                .accessibilityLabel(accessibilityLabelText)
+                .accessibilityHint("Enter your NRIC or FIN number. It will be masked when not editing.")
 
-                // Masked overlay — covers TextField when unfocused to hide raw NRIC on public kiosk
-                if !isFocused && !localText.isEmpty {
+                // Masked overlay — hides raw NRIC on public kiosk when not editing.
+                // allowsHitTesting(false) lets taps pass through to the UIKit text field behind.
+                if !isFieldFocused && !localValue.isEmpty {
                     Text(displayText)
                         .font(.system(size: 20))
                         .foregroundColor(.darkText)
@@ -464,10 +536,10 @@ struct NRICField: View {
                                 )
                                 .allowsHitTesting(false)
                         )
-                        .onTapGesture { isFocused = true }
+                        .allowsHitTesting(false)
                 }
 
-                if isValid && !isFocused {
+                if isValid && !isFieldFocused {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(.successGreen)
                         .font(.system(size: 20))
@@ -478,12 +550,6 @@ struct NRICField: View {
             }
             .contentShape(Rectangle())
             .offset(x: shakeOffset)
-            .onChange(of: isFocused) { _, focused in
-                glowOpacity = focused ? 1 : 0
-                if !focused {
-                    flushToBinding()
-                }
-            }
 
             if let error = errorMessage {
                 Text(error)
@@ -491,9 +557,7 @@ struct NRICField: View {
                     .foregroundColor(.errorRed)
                     .opacity(errorVisible ? 1 : 0)
                     .offset(y: errorVisible ? 0 : 6)
-                    .onAppear {
-                        triggerNRICErrorAnimation()
-                    }
+                    .onAppear { triggerNRICErrorAnimation() }
                     .onDisappear {
                         errorVisible = false
                         borderPulse = false
@@ -501,67 +565,22 @@ struct NRICField: View {
                     .accessibilityHidden(true)
             }
         }
-        .onAppear { localText = text }
-        .onChange(of: text) { _, newValue in
-            if localText != newValue { localText = newValue }
+        .onAppear {
+            if needsInit {
+                localValue = text
+                needsInit = false
+            }
         }
-    }
-
-    // MARK: - Local Buffer Sync
-
-    private func flushToBinding() {
-        if text != localText { text = localText }
     }
 
     // MARK: - Error Animation
 
     private func triggerNRICErrorAnimation() {
-        guard !isShaking else { return }
-        isShaking = true
-
-        // Slide error text in from below
-        withAnimation(.easeOut(duration: 0.2)) {
-            errorVisible = true
+        errorVisible = true
+        borderPulse = true
+        UINotificationFeedbackGenerator().notificationOccurred(.warning)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            borderPulse = false
         }
-
-        if !reduceMotion {
-            // Smooth spring shake: 3 cycles, 6pt amplitude
-            let shakeAnim = Animation.spring(response: 0.08, dampingFraction: 0.3)
-            withAnimation(shakeAnim) { shakeOffset = 6 }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
-                withAnimation(shakeAnim) { shakeOffset = -6 }
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) {
-                withAnimation(shakeAnim) { shakeOffset = 6 }
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.24) {
-                withAnimation(shakeAnim) { shakeOffset = -6 }
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.32) {
-                withAnimation(shakeAnim) { shakeOffset = 4 }
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.40) {
-                withAnimation(.spring(response: 0.12, dampingFraction: 0.5)) {
-                    shakeOffset = 0
-                }
-                isShaking = false
-            }
-        } else {
-            isShaking = false
-        }
-
-        // Red border pulse once
-        withAnimation(.easeIn(duration: 0.15)) {
-            borderPulse = true
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-            withAnimation(.easeOut(duration: 0.25)) {
-                borderPulse = false
-            }
-        }
-
-        // Warning haptic on error
-        let haptic = UINotificationFeedbackGenerator()
-        haptic.notificationOccurred(.warning)
     }
 }

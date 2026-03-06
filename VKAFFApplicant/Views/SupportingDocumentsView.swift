@@ -136,16 +136,6 @@ struct SupportingDocumentsView: View {
         } message: {
             Text("The selected file exceeds the maximum size of \(AppConfig.maxDocumentSizeMB)MB. Please choose a smaller file.")
         }
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button("Done") {
-                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                }
-                .fontWeight(.semibold)
-                .foregroundColor(.affOrange)
-            }
-        }
     }
 
     // MARK: - Photo Loading

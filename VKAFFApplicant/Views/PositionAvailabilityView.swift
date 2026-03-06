@@ -119,32 +119,8 @@ struct PositionAvailabilityView: View {
                 )
             }
         }
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                if focusedField != .referrerName {
-                    Button("Next") {
-                        advanceFocus()
-                    }
-                    .foregroundColor(.affOrange)
-                }
-                Spacer()
-                Button("Done") {
-                    focusedField = nil
-                }
-                .fontWeight(.semibold)
-                .foregroundColor(.affOrange)
-            }
-        }
     }
 
-    private func advanceFocus() {
-        switch focusedField {
-        case .positionOther: focusedField = .expectedSalary
-        case .expectedSalary: focusedField = .referrerName
-        case .referrerName: focusedField = nil
-        case nil: break
-        }
-    }
 }
 
 // MARK: - Position Checkbox
