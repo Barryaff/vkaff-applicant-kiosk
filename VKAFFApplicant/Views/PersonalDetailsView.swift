@@ -1,10 +1,11 @@
 import SwiftUI
 
 struct PersonalDetailsView: View {
-    @EnvironmentObject var vm: RegistrationViewModel
+    @Environment(RegistrationViewModel.self) var vm
     @FocusState private var focusedField: PersonalDetailsFocus?
 
     var body: some View {
+        @Bindable var vm = vm
         FormScreenLayout(
             title: "Personal Details",
             stepIndex: 0,
@@ -72,12 +73,17 @@ struct PersonalDetailsView: View {
                 Text("Date of Birth")
                     .formLabelStyle()
                 DatePicker("", selection: $vm.applicant.dateOfBirth, in: ...Date(), displayedComponents: .date)
-                    .datePickerStyle(.wheel)
+                    .datePickerStyle(.compact)
                     .tint(.affOrange)
                     .labelsHidden()
                     .frame(height: 120)
                     .clipped()
                     .accessibilityLabel("Date of Birth")
+                if let error = vm.fieldErrors["dateOfBirth"] {
+                    Text(error)
+                        .font(.system(size: 14))
+                        .foregroundColor(.errorRed)
+                }
             }
 
             // Gender
@@ -295,6 +301,7 @@ struct PersonalDetailsView: View {
 // MARK: - Reusable Form Screen Layout
 
 struct FormScreenLayout<Content: View>: View {
+    @Environment(RegistrationViewModel.self) var vm
     let title: String
     let stepIndex: Int
     let onBack: (() -> Void)?
@@ -302,6 +309,12 @@ struct FormScreenLayout<Content: View>: View {
     var continueTitle: String = "Continue"
     var isContinueEnabled: Bool = true
     @ViewBuilder let content: Content
+
+    private var bottomSafeArea: CGFloat {
+        UIApplication.shared.connectedScenes
+            .compactMap { ($0 as? UIWindowScene)?.keyWindow?.safeAreaInsets.bottom }
+            .first ?? 0
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -333,39 +346,49 @@ struct FormScreenLayout<Content: View>: View {
 
             // Scrollable content
             ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    // Section label + title
-                    VStack(alignment: .leading, spacing: 10) {
-                        // Gold uppercase section label
-                        Text("STEP \(stepIndex + 1)")
-                            .font(.system(size: 11, weight: .semibold))
-                            .tracking(3)
-                            .foregroundColor(.gold)
-                            .accessibilityHidden(true)
+                ScrollViewReader { proxy in
+                    VStack(alignment: .leading, spacing: 0) {
+                        // Hidden anchor for scroll-to-top on validation failure
+                        Color.clear.frame(height: 0).id("formTop")
 
-                        Text(title)
-                            .headingStyle(size: 32)
-                            .accessibilityAddTraits(.isHeader)
+                        // Section label + title
+                        VStack(alignment: .leading, spacing: 10) {
+                            // Gold uppercase section label
+                            Text("STEP \(stepIndex + 1)")
+                                .font(.system(size: 11, weight: .semibold))
+                                .tracking(3)
+                                .foregroundColor(.gold)
+                                .accessibilityHidden(true)
 
-                        Rectangle()
-                            .fill(Color.affOrange)
-                            .frame(width: 48, height: 2)
-                            .accessibilityHidden(true)
+                            Text(title)
+                                .headingStyle(size: 32)
+                                .accessibilityAddTraits(.isHeader)
+
+                            Rectangle()
+                                .fill(Color.affOrange)
+                                .frame(width: 48, height: 2)
+                                .accessibilityHidden(true)
+                        }
+                        .padding(.bottom, 32)
+
+                        // Form card
+                        FormCard {
+                            content
+                        }
                     }
-                    .padding(.bottom, 32)
-
-                    // Form card
-                    FormCard {
-                        content
+                    .padding(.horizontal, 48)
+                    .padding(.vertical, 32)
+                    .padding(.bottom, 100)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .onChange(of: vm.scrollToTopTrigger) { _, _ in
+                        withAnimation(.easeOut(duration: 0.3)) {
+                            proxy.scrollTo("formTop", anchor: .top)
+                        }
                     }
                 }
-                .padding(.horizontal, 48)
-                .padding(.vertical, 32)
-                .padding(.bottom, 100)
-                .frame(maxWidth: .infinity, alignment: .leading)
             }
             .background(Color.lightBackground)
-            .scrollDismissesKeyboard(.interactively)
+            .scrollDismissesKeyboard(.immediately)
             .dynamicTypeSize(.large ... .accessibility3)
 
             // Bottom navigation
@@ -375,6 +398,7 @@ struct FormScreenLayout<Content: View>: View {
                 continueTitle: continueTitle,
                 isEnabled: isContinueEnabled
             )
+            .padding(.bottom, bottomSafeArea)
         }
         .ignoresSafeArea(edges: .bottom)
     }

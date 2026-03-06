@@ -66,10 +66,21 @@ struct SignatureField: View {
                 .foregroundColor(.vkaPurple)
                 .accessibilityAddTraits(.isHeader)
 
-            SignatureCanvas(signatureData: $signatureData) { canvas in
-                canvasView = canvas
+            ZStack {
+                SignatureCanvas(signatureData: $signatureData) { canvas in
+                    canvasView = canvas
+                }
+                .id(canvasKey)
+                .frame(height: 200)
+                .frame(maxWidth: 600)
+
+                if signatureData == nil {
+                    Text("Sign here")
+                        .font(.system(size: 18, weight: .light))
+                        .foregroundColor(.mediumGray.opacity(0.3))
+                        .allowsHitTesting(false)
+                }
             }
-            .id(canvasKey)
             .frame(height: 200)
             .frame(maxWidth: 600)
             .accessibilityLabel("Signature canvas. Draw your signature here")

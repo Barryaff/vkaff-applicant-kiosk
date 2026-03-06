@@ -1,9 +1,10 @@
 import SwiftUI
 
 struct WorkExperienceView: View {
-    @EnvironmentObject var vm: RegistrationViewModel
+    @Environment(RegistrationViewModel.self) var vm
 
     var body: some View {
+        @Bindable var vm = vm
         FormScreenLayout(
             title: "Work Experience",
             stepIndex: 2,
@@ -78,6 +79,11 @@ struct WorkExperienceView: View {
                 }
 
                 FormToggle(label: "Currently working here", isOn: $record.isCurrentPosition)
+                    .onChange(of: record.isCurrentPosition) { _, isCurrentNow in
+                        if isCurrentNow {
+                            record.toDate = Date()
+                        }
+                    }
 
                 FormField(
                     label: "Last Drawn Salary (SGD)",
@@ -157,9 +163,9 @@ struct WorkExperienceView: View {
                 }
 
                 FormField(
-                    label: "Years Known",
+                    label: "Years Known (approx.)",
                     text: $record.yearsKnown,
-                    placeholder: "e.g., 3 years",
+                    placeholder: "e.g., 5",
                     keyboardType: .numberPad,
                     maxLength: 10
                 )

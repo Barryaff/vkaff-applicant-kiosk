@@ -2,10 +2,13 @@ import SwiftUI
 import Combine
 
 struct ContentView: View {
-    @EnvironmentObject var vm: RegistrationViewModel
+    @Environment(RegistrationViewModel.self) var vm
 
     /// Tracks keyboard visibility for idle timer resets
     @State private var keyboardCancellables = Set<AnyCancellable>()
+
+    /// Cycling status message shown during submission overlay
+    @State private var submissionMessage: String = "Submitting your application..."
 
     var body: some View {
         ZStack {
@@ -61,19 +64,37 @@ struct ContentView: View {
             get: { vm.submissionError != nil },
             set: { if !$0 { vm.submissionError = nil } }
         )) {
-            Button("OK") {
+            Button("Try Again") {
+                vm.submissionError = nil
+                vm.retrySubmission()
+            }
+            Button("OK", role: .cancel) {
                 vm.submissionError = nil
             }
         } message: {
             Text(vm.submissionError ?? "")
         }
-        // Reset idle timer on user interaction (non-competing gesture)
+        // Reset idle timer on user interaction (simultaneous — does not block child gestures)
         .simultaneousGesture(
-            DragGesture(minimumDistance: 20)
-                .onEnded { _ in vm.resetIdleTimer() }
+            TapGesture()
+                .onEnded { vm.resetIdleTimer() }
         )
         .onAppear {
             setupKeyboardObservers()
+        }
+        .onChange(of: vm.isSubmitting) { _, isSubmitting in
+            if isSubmitting {
+                submissionMessage = "Submitting your application..."
+                // Cycle messages for user reassurance
+                DispatchQueue.main.asyncAfter(deadline: .now() + 8) {
+                    if vm.isSubmitting { submissionMessage = "Uploading documents..." }
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 18) {
+                    if vm.isSubmitting { submissionMessage = "Almost there..." }
+                }
+            } else {
+                submissionMessage = "Submitting your application..."
+            }
         }
     }
 
@@ -126,7 +147,7 @@ struct ContentView: View {
 
             VStack(spacing: 24) {
                 BrandedSpinner()
-                Text("Submitting your application...")
+                Text(submissionMessage)
                     .font(.system(size: 17, weight: .medium))
                     .foregroundColor(.white.opacity(0.7))
                     .tracking(0.5)

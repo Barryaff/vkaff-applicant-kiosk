@@ -24,6 +24,11 @@ enum ReferenceNumberGenerator {
             UserDefaults.standard.set(todayStr, forKey: lastDateKey)
         }
 
+        // Safety: reset if sequence exceeds 4-digit range (physically impossible on a kiosk)
+        if sequence > 9999 {
+            sequence = 1
+        }
+
         UserDefaults.standard.set(sequence, forKey: lastSequenceKey)
 
         let paddedSequence = String(format: "%04d", sequence)

@@ -10,6 +10,7 @@ class GoogleDriveService {
     private static var cachedToken: String?
     private static var tokenExpiry: Date?
     private static let tokenRefreshMargin: TimeInterval = 300 // 5 minutes early
+    private static let tokenLock = NSLock()
 
     // MARK: - URLSession with Timeout
 
@@ -26,7 +27,9 @@ class GoogleDriveService {
         let accessToken = try await getAccessToken()
 
         let boundary = UUID().uuidString
-        let url = URL(string: "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true")!
+        guard let url = URL(string: "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true") else {
+            throw DriveError.uploadFailed(statusCode: nil, message: "Invalid upload URL")
+        }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -74,8 +77,10 @@ class GoogleDriveService {
 
             // If we got a 401, invalidate the cached token so the next attempt refreshes it
             if httpResponse.statusCode == 401 {
+                GoogleDriveService.tokenLock.lock()
                 GoogleDriveService.cachedToken = nil
                 GoogleDriveService.tokenExpiry = nil
+                GoogleDriveService.tokenLock.unlock()
             }
 
             throw DriveError.uploadFailed(statusCode: httpResponse.statusCode, message: errorMessage)
@@ -137,9 +142,14 @@ class GoogleDriveService {
     // MARK: - JWT Authentication with Token Caching
 
     private func getAccessToken() async throws -> String {
-        // Return cached token if still valid
-        if let token = GoogleDriveService.cachedToken,
-           let expiry = GoogleDriveService.tokenExpiry,
+        // Return cached token if still valid (thread-safe read)
+        GoogleDriveService.tokenLock.lock()
+        let existingToken = GoogleDriveService.cachedToken
+        let existingExpiry = GoogleDriveService.tokenExpiry
+        GoogleDriveService.tokenLock.unlock()
+
+        if let token = existingToken,
+           let expiry = existingExpiry,
            Date() < expiry {
             return token
         }
@@ -210,7 +220,9 @@ class GoogleDriveService {
         let jwt = "\(signingInput).\(signatureBase64)"
 
         // Exchange JWT for access token
-        let tokenURL = URL(string: "https://oauth2.googleapis.com/token")!
+        guard let tokenURL = URL(string: "https://oauth2.googleapis.com/token") else {
+            throw DriveError.jwtCreationFailed
+        }
         var tokenRequest = URLRequest(url: tokenURL)
         tokenRequest.httpMethod = "POST"
         tokenRequest.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
@@ -248,11 +260,13 @@ class GoogleDriveService {
         print("[GoogleDrive] Token obtained successfully, expires in \(tokenResponse.expiresIn)s")
         #endif
 
-        // Cache the token with a refresh margin (refresh 5 minutes before actual expiry)
+        // Cache the token with a refresh margin (thread-safe write)
+        GoogleDriveService.tokenLock.lock()
         GoogleDriveService.cachedToken = tokenResponse.accessToken
         GoogleDriveService.tokenExpiry = now.addingTimeInterval(
             TimeInterval(tokenResponse.expiresIn) - GoogleDriveService.tokenRefreshMargin
         )
+        GoogleDriveService.tokenLock.unlock()
 
         return tokenResponse.accessToken
     }

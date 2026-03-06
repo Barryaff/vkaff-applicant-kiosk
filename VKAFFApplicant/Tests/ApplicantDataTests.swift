@@ -390,8 +390,8 @@ final class ApplicantDataTests: XCTestCase {
             return
         }
 
-        // CodingKeys has 56 cases (signatureData, lastDrawnSalary, hasOwnTransport intentionally excluded)
-        let expectedCount = 56
+        // CodingKeys includes all model properties (signatureData encoded via encodeIfPresent when non-nil)
+        let expectedCount = 58
         XCTAssertEqual(json.keys.count, expectedCount,
                        "Encoded JSON should have \(expectedCount) keys, got \(json.keys.count). Keys: \(json.keys.sorted())")
     }

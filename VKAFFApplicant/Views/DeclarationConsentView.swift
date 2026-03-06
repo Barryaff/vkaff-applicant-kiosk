@@ -1,16 +1,27 @@
 import SwiftUI
 
 struct DeclarationConsentView: View {
-    @EnvironmentObject var vm: RegistrationViewModel
+    @Environment(RegistrationViewModel.self) var vm
+    @State private var showSubmitGuidance: Bool = false
 
     private var canSubmit: Bool {
         if AppConfig.skipValidation { return true }
-        return vm.applicant.declarationAccuracy
-            && vm.applicant.pdpaConsent
-            && vm.applicant.signatureData != nil
+        guard vm.applicant.declarationAccuracy,
+              vm.applicant.pdpaConsent,
+              vm.applicant.signatureData != nil else { return false }
+
+        // Validate conditional detail fields are filled when user answered "Yes"
+        if vm.applicant.hasConnectionsAtAFF && vm.applicant.connectionsDetails.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return false }
+        if vm.applicant.hasConflictOfInterest && vm.applicant.conflictDetails.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return false }
+        if vm.applicant.hasBankruptcy && vm.applicant.bankruptcyDetails.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return false }
+        if vm.applicant.hasLegalProceedings && vm.applicant.legalDetails.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return false }
+        if vm.applicant.hasMedicalCondition == .yes && vm.applicant.medicalDetails.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return false }
+
+        return true
     }
 
     var body: some View {
+        @Bindable var vm = vm
         FormScreenLayout(
             title: "Declaration & Consent",
             stepIndex: 5,
@@ -38,7 +49,8 @@ struct DeclarationConsentView: View {
                     label: "Please provide name(s) and relationship",
                     text: $vm.applicant.connectionsDetails,
                     placeholder: "e.g., John Tan — cousin",
-                    maxLength: 500
+                    maxLength: 500,
+                    errorMessage: vm.fieldErrors["connectionsDetails"]
                 )
             }
 
@@ -52,7 +64,8 @@ struct DeclarationConsentView: View {
                     label: "Please provide details",
                     text: $vm.applicant.conflictDetails,
                     placeholder: "Describe the conflict of interest",
-                    maxLength: 500
+                    maxLength: 500,
+                    errorMessage: vm.fieldErrors["conflictDetails"]
                 )
             }
 
@@ -66,7 +79,8 @@ struct DeclarationConsentView: View {
                     label: "Please provide details",
                     text: $vm.applicant.bankruptcyDetails,
                     placeholder: "Provide relevant details",
-                    maxLength: 500
+                    maxLength: 500,
+                    errorMessage: vm.fieldErrors["bankruptcyDetails"]
                 )
             }
 
@@ -80,7 +94,8 @@ struct DeclarationConsentView: View {
                     label: "Please provide details",
                     text: $vm.applicant.legalDetails,
                     placeholder: "Provide relevant details",
-                    maxLength: 500
+                    maxLength: 500,
+                    errorMessage: vm.fieldErrors["legalDetails"]
                 )
             }
 
@@ -143,7 +158,8 @@ struct DeclarationConsentView: View {
                         text: $vm.applicant.medicalDetails,
                         placeholder: "Describe any relevant conditions",
                         isMultiline: true,
-                        maxLength: 1000
+                        maxLength: 1000,
+                        errorMessage: vm.fieldErrors["medicalDetails"]
                     )
                 }
             }
@@ -153,12 +169,22 @@ struct DeclarationConsentView: View {
 
             SignatureField(signatureData: $vm.applicant.signatureData)
 
-            if !canSubmit {
-                Text("Please complete all required declarations and provide your signature to submit.")
+            if showSubmitGuidance && !canSubmit {
+                Text("Please complete all required fields: declaration checkbox, PDPA consent, and signature.")
                     .font(.system(size: 14))
-                    .foregroundColor(.mediumGray)
+                    .foregroundColor(.errorRed)
                     .padding(.top, 8)
-                    .accessibilityLabel("Please complete all required declarations and provide your signature to submit.")
+                    .accessibilityLabel("Please complete all required fields: declaration checkbox, PDPA consent, and signature.")
+            }
+        }
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                showSubmitGuidance = true
+            }
+        }
+        .onChange(of: canSubmit) { _, newValue in
+            if newValue {
+                showSubmitGuidance = false
             }
         }
         .toolbar {
@@ -240,6 +266,7 @@ struct ConsentBlock: View {
             .accessibilityHint("Double tap to \(isChecked ? "uncheck" : "check")")
         }
         .padding(.bottom, 16)
+        .accessibilityElement(children: .combine)
     }
 }
 

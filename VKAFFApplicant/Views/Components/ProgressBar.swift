@@ -68,14 +68,15 @@ struct ProgressBar: View {
 // MARK: - Pulse Animation
 
 struct PulseModifier: ViewModifier {
+    @Environment(\.accessibilityReduceMotion) var reduceMotion
     @State private var isPulsing = false
 
     func body(content: Content) -> some View {
         content
-            .scaleEffect(isPulsing ? 1.3 : 1.0)
-            .opacity(isPulsing ? 0.6 : 1.0)
+            .scaleEffect(isPulsing && !reduceMotion ? 1.3 : 1.0)
+            .opacity(isPulsing && !reduceMotion ? 0.6 : 1.0)
             .animation(
-                .easeInOut(duration: 1.2).repeatForever(autoreverses: true),
+                reduceMotion ? nil : .easeInOut(duration: 1.2).repeatForever(autoreverses: true),
                 value: isPulsing
             )
             .onAppear { isPulsing = true }

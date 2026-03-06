@@ -1,10 +1,11 @@
 import SwiftUI
 
 struct PositionAvailabilityView: View {
-    @EnvironmentObject var vm: RegistrationViewModel
+    @Environment(RegistrationViewModel.self) var vm
     @FocusState private var focusedField: PositionFocus?
 
     var body: some View {
+        @Bindable var vm = vm
         FormScreenLayout(
             title: "Position & Availability",
             stepIndex: 3,

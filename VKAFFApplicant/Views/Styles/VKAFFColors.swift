@@ -18,7 +18,7 @@ extension Color {
     static let purpleLight = Color(hex: "EDE8F5")
     static let purpleDeep = Color(hex: "2E1D5E")
     static let darkText = Color(hex: "1A1A1A")
-    static let mediumGray = Color(hex: "6B7280")
+    static let mediumGray = Color(hex: "4B5563")
     static let lightBackground = Color(hex: "FAFAF8")
     static let cream = Color(hex: "F5F0F8")
     static let cardWhite = Color.white

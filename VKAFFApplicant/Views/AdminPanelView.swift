@@ -2,7 +2,7 @@ import SwiftUI
 import Network
 
 struct AdminPanelView: View {
-    @EnvironmentObject var vm: RegistrationViewModel
+    @Environment(RegistrationViewModel.self) var vm
     @State private var pendingReferences: [String] = []
     @State private var backupMetadata: [String: BackupMetadata] = [:]
     @State private var isRetrying = false
@@ -334,6 +334,14 @@ struct AdminPanelView: View {
                         fileName: "\(ref).json",
                         mimeType: "application/json"
                     )
+                    for (index, doc) in data.documents.enumerated() {
+                        let docFileName = "\(ref)_Doc\(index + 1)_\(doc.fileName)"
+                        try await driveService.uploadFile(
+                            data: doc.fileData,
+                            fileName: docFileName,
+                            mimeType: doc.mimeType
+                        )
+                    }
                     backupService.removeBackup(for: ref)
                     success = true
                 } catch {
@@ -379,6 +387,14 @@ struct AdminPanelView: View {
                             fileName: "\(ref).json",
                             mimeType: "application/json"
                         )
+                        for (index, doc) in data.documents.enumerated() {
+                            let docFileName = "\(ref)_Doc\(index + 1)_\(doc.fileName)"
+                            try await driveService.uploadFile(
+                                data: doc.fileData,
+                                fileName: docFileName,
+                                mimeType: doc.mimeType
+                            )
+                        }
                         backupService.removeBackup(for: ref)
                         anySuccess = true
                     } catch {

@@ -1,7 +1,8 @@
 import SwiftUI
 
 struct WelcomeView: View {
-    @EnvironmentObject var vm: RegistrationViewModel
+    @Environment(RegistrationViewModel.self) var vm
+    @Environment(\.accessibilityReduceMotion) var reduceMotion
 
     // Stagger entrance states
     @State private var showLogo: Bool = false
@@ -14,6 +15,7 @@ struct WelcomeView: View {
     @State private var glowPulse: Bool = false
 
     var body: some View {
+        @Bindable var vm = vm
         GeometryReader { geo in
             ZStack {
                 // Deep navy background
@@ -42,7 +44,7 @@ struct WelcomeView: View {
                             endRadius: 300
                         )
                     )
-                    .frame(width: 600, height: 600)
+                    .frame(width: geo.size.width * 0.55, height: geo.size.width * 0.55)
                     .position(x: geo.size.width / 2, y: geo.size.height * 0.3)
                     .allowsHitTesting(false)
 
@@ -70,7 +72,7 @@ struct WelcomeView: View {
 
                     // Headline
                     VStack(spacing: 16) {
-                        Text("Registration")
+                        Text("Job Application")
                             .font(.system(size: 40, weight: .light))
                             .foregroundColor(.white)
                             .tracking(-0.5)
@@ -83,21 +85,20 @@ struct WelcomeView: View {
                     .opacity(showHeadline ? 1 : 0)
                     .offset(y: showHeadline ? 0 : 12)
                     .accessibilityAddTraits(.isHeader)
-                    .accessibilityLabel("Registration")
+                    .accessibilityLabel("Job Application")
 
                     Spacer()
                         .frame(height: 28)
 
                     // Subtext
-                    Text("Thank you for your interest in joining our team.\nTap below to begin your application.")
+                    Text("Tap Begin to start your job application.")
                         .font(.system(size: 17, weight: .light))
-                        .foregroundColor(.white.opacity(0.4))
+                        .foregroundColor(.white.opacity(0.7))
                         .multilineTextAlignment(.center)
-                        .lineSpacing(8)
                         .frame(maxWidth: 420)
                         .opacity(showSubtext ? 1 : 0)
                         .offset(y: showSubtext ? 0 : 8)
-                        .accessibilityLabel("Thank you for your interest in joining our team. Tap below to begin your application.")
+                        .accessibilityLabel("Tap Begin to start your job application.")
 
                     Spacer()
                         .frame(height: 48)
@@ -125,7 +126,7 @@ struct WelcomeView: View {
 
                         Text("Your information is collected in accordance with Singapore's PDPA.")
                             .font(.system(size: 12, weight: .light))
-                            .foregroundColor(.white.opacity(0.50))
+                            .foregroundColor(.white.opacity(0.65))
                             .accessibilityLabel("Your information is collected in accordance with Singapore's Personal Data Protection Act.")
 
                         Text("Advanced Flavors & Fragrances Pte. Ltd.")
@@ -162,25 +163,27 @@ struct WelcomeView: View {
     // MARK: - Staggered Entrance
 
     private func triggerStaggeredEntrance() {
-        withAnimation(.timingCurve(0.16, 1, 0.3, 1, duration: 0.8).delay(0.2)) {
+        withAnimation(.timingCurve(0.16, 1, 0.3, 1, duration: 0.5).delay(0.1)) {
             showLogo = true
         }
-        withAnimation(.timingCurve(0.16, 1, 0.3, 1, duration: 0.9).delay(0.6)) {
+        withAnimation(.timingCurve(0.16, 1, 0.3, 1, duration: 0.5).delay(0.25)) {
             showHeadline = true
         }
-        withAnimation(.timingCurve(0.16, 1, 0.3, 1, duration: 0.8).delay(0.9)) {
+        withAnimation(.timingCurve(0.16, 1, 0.3, 1, duration: 0.4).delay(0.35)) {
             showSubtext = true
         }
-        withAnimation(.timingCurve(0.16, 1, 0.3, 1, duration: 0.7).delay(1.2)) {
+        withAnimation(.timingCurve(0.16, 1, 0.3, 1, duration: 0.4).delay(0.4)) {
             showButton = true
         }
-        withAnimation(.easeOut(duration: 0.6).delay(1.5)) {
+        withAnimation(.easeOut(duration: 0.4).delay(0.6)) {
             showFooter = true
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            withAnimation(.easeInOut(duration: 4).repeatForever(autoreverses: true)) {
-                glowPulse = true
+        if !reduceMotion {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                withAnimation(.easeInOut(duration: 4).repeatForever(autoreverses: true)) {
+                    glowPulse = true
+                }
             }
         }
     }
@@ -188,7 +191,8 @@ struct WelcomeView: View {
     // MARK: - Admin PIN Overlay
 
     private var adminPINOverlay: some View {
-        ZStack {
+        @Bindable var vm = vm
+        return ZStack {
             Color.black.opacity(0.7)
                 .ignoresSafeArea()
                 .onTapGesture {

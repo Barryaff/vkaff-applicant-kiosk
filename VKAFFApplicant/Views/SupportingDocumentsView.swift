@@ -3,18 +3,20 @@ import PhotosUI
 import UniformTypeIdentifiers
 
 struct SupportingDocumentsView: View {
-    @EnvironmentObject var vm: RegistrationViewModel
+    @Environment(RegistrationViewModel.self) var vm
     @State private var showingSourcePicker = false
     @State private var showingPhotoPicker = false
     @State private var showingCamera = false
     @State private var showingFilePicker = false
     @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var showFileSizeAlert = false
 
     private var canAddMore: Bool {
         vm.supportingDocuments.count < AppConfig.maxSupportingDocuments
     }
 
     var body: some View {
+        @Bindable var vm = vm
         FormScreenLayout(
             title: "Supporting Documents",
             stepIndex: 4,
@@ -129,6 +131,11 @@ struct SupportingDocumentsView: View {
                 loadFile(from: url)
             }
         }
+        .alert("File Too Large", isPresented: $showFileSizeAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("The selected file exceeds the maximum size of \(AppConfig.maxDocumentSizeMB)MB. Please choose a smaller file.")
+        }
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
@@ -157,7 +164,10 @@ struct SupportingDocumentsView: View {
             jpegData = image.jpegData(compressionQuality: quality) ?? jpegData
         }
 
-        guard jpegData.count <= maxSize else { return }
+        guard jpegData.count <= maxSize else {
+            await MainActor.run { showFileSizeAlert = true }
+            return
+        }
 
         let fileName = "Photo_\(dateStamp()).jpg"
         let thumbnail = generateThumbnail(from: image)
@@ -187,7 +197,10 @@ struct SupportingDocumentsView: View {
             jpegData = image.jpegData(compressionQuality: quality) ?? jpegData
         }
 
-        guard jpegData.count <= maxSize else { return }
+        guard jpegData.count <= maxSize else {
+            showFileSizeAlert = true
+            return
+        }
 
         let thumbnail = generateThumbnail(from: image)
 
@@ -213,7 +226,10 @@ struct SupportingDocumentsView: View {
         guard let data = try? Data(contentsOf: url) else { return }
 
         let maxSize = AppConfig.maxDocumentSizeMB * 1024 * 1024
-        guard data.count <= maxSize else { return }
+        guard data.count <= maxSize else {
+            showFileSizeAlert = true
+            return
+        }
 
         let fileName = url.lastPathComponent
         let mimeType = mimeTypeFor(url: url)
@@ -239,6 +255,7 @@ struct SupportingDocumentsView: View {
     // MARK: - Helpers
 
     private func generateThumbnail(from image: UIImage) -> Data? {
+        guard image.size.width > 0, image.size.height > 0 else { return nil }
         let maxDimension: CGFloat = 120
         let scale = min(maxDimension / image.size.width, maxDimension / image.size.height)
         let newSize = CGSize(width: image.size.width * scale, height: image.size.height * scale)

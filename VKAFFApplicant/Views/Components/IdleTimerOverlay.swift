@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct IdleTimerOverlay: View {
-    @EnvironmentObject var vm: RegistrationViewModel
+    @Environment(RegistrationViewModel.self) var vm
 
     var body: some View {
         ZStack {

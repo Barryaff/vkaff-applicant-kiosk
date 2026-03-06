@@ -44,7 +44,7 @@ struct LabelStyle: ViewModifier {
 struct SectionLabelStyle: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .font(.system(size: 11, weight: .semibold, design: .default))
+            .font(.system(size: 13, weight: .semibold, design: .default))
             .foregroundColor(.gold)
             .tracking(3)
             .textCase(.uppercase)

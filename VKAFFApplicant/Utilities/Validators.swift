@@ -1,8 +1,10 @@
 import Foundation
 
 enum Validators {
-    // Cached regex patterns (avoid per-call compilation)
+    // Cached regex patterns (compile-time constant patterns — safe to force-try)
+    // swiftlint:disable:next force_try
     private static let nricRegex = try! NSRegularExpression(pattern: "^[STFGM]\\d{7}[A-Z]$")
+    // swiftlint:disable:next force_try
     private static let emailRegex = try! NSRegularExpression(pattern: "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
 
     // MARK: - NRIC / FIN

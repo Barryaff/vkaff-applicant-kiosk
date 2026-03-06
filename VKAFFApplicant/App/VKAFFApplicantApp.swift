@@ -3,7 +3,7 @@ import SwiftUI
 @main
 struct VKAFFApplicantApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    @StateObject private var registrationVM = RegistrationViewModel()
+    @State private var registrationVM = RegistrationViewModel()
     @Environment(\.scenePhase) private var scenePhase
 
     /// Tracks when the app last went to the background
@@ -15,7 +15,7 @@ struct VKAFFApplicantApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(registrationVM)
+                .environment(registrationVM)
                 .preferredColorScheme(.light)
                 .statusBarHidden(true)
                 .persistentSystemOverlays(.hidden)

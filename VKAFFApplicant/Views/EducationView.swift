@@ -1,10 +1,11 @@
 import SwiftUI
 
 struct EducationView: View {
-    @EnvironmentObject var vm: RegistrationViewModel
+    @Environment(RegistrationViewModel.self) var vm
     @FocusState private var focusedField: EducationFocus?
 
     var body: some View {
+        @Bindable var vm = vm
         FormScreenLayout(
             title: "Education & Qualifications",
             stepIndex: 1,

@@ -7,18 +7,18 @@ class SubmissionViewModel {
     private let slackService = SlackService()
     private let pdfGenerator = PDFGenerator()
     private let backupService = EncryptedBackupService()
+    private let networkCheckQueue = DispatchQueue(label: "com.vkaff.networkCheck")
 
     /// Checks current network connectivity using NWPathMonitor.
     /// Returns true if the device has a usable network path.
     private func isNetworkAvailable() async -> Bool {
         await withCheckedContinuation { continuation in
             let monitor = NWPathMonitor()
-            let queue = DispatchQueue(label: "com.vkaff.networkCheck")
             monitor.pathUpdateHandler = { path in
                 monitor.cancel()
                 continuation.resume(returning: path.status == .satisfied)
             }
-            monitor.start(queue: queue)
+            monitor.start(queue: networkCheckQueue)
         }
     }
 
@@ -45,6 +45,8 @@ class SubmissionViewModel {
         let sanitizedName = sanitizedApplicant.fullName
             .replacingOccurrences(of: " ", with: "")
             .replacingOccurrences(of: "/", with: "")
+            .replacingOccurrences(of: "\\", with: "")
+            .replacingOccurrences(of: "..", with: "")
 
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
@@ -57,7 +59,8 @@ class SubmissionViewModel {
             try backupService.saveBackup(
                 pdfData: pdfData,
                 jsonData: jsonData,
-                referenceNumber: sanitizedApplicant.referenceNumber
+                referenceNumber: sanitizedApplicant.referenceNumber,
+                supportingDocuments: supportingDocuments
             )
         } catch {
             // Backup failed — still attempt upload, but log the failure
@@ -156,14 +159,21 @@ class SubmissionViewModel {
                 print("[SubmissionVM] Drive upload attempt \(retryCount) failed: \(error.localizedDescription)")
                 #endif
 
-                // Don't retry auth errors - they won't resolve with retries
-                if case .authError = lastError {
+                // Allow one retry for auth errors (token may have been refreshed after 401),
+                // but break on repeated auth failures (config/credential issue)
+                if case .authError = lastError, retryCount > 1 {
                     break
                 }
 
                 if retryCount < AppConfig.maxRetryAttempts {
-                    // Exponential backoff with jitter: 1s, 2s, 4s + random 0-0.5s
-                    let baseDelay = pow(2.0, Double(retryCount - 1))
+                    let baseDelay: Double
+                    if case .rateLimited = lastError {
+                        // Google Drive 429s require a longer backoff (60s+)
+                        baseDelay = 60.0
+                    } else {
+                        // Exponential backoff: 1s, 2s, 4s
+                        baseDelay = pow(2.0, Double(retryCount - 1))
+                    }
                     let jitter = Double.random(in: 0...0.5)
                     let delay = UInt64((baseDelay + jitter) * 1_000_000_000)
                     try? await Task.sleep(nanoseconds: delay)
@@ -213,6 +223,7 @@ class SubmissionViewModel {
         case networkError(String)
         case authError(String)
         case serverError(String)
+        case rateLimited
         case timeout
         case unknown(String)
     }
@@ -230,6 +241,8 @@ class SubmissionViewModel {
                 if let code = statusCode {
                     if code == 401 || code == 403 {
                         return .authError(driveError.localizedDescription)
+                    } else if code == 429 {
+                        return .rateLimited
                     } else if code >= 500 {
                         return .serverError(driveError.localizedDescription)
                     }
@@ -276,6 +289,8 @@ class SubmissionViewModel {
             return "Authentication error with cloud storage. Your application has been saved securely. Please notify HR."
         case .serverError:
             return "The server is temporarily unavailable. Your application has been saved securely and will be uploaded later."
+        case .rateLimited:
+            return "Too many requests to cloud storage. Your application has been saved securely and will be uploaded later."
         case .timeout:
             return "The upload timed out. Your application has been saved securely and will be uploaded later."
         case .unknown(let detail):

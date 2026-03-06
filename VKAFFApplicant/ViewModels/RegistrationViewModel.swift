@@ -1,27 +1,29 @@
 import SwiftUI
+import UIKit
 import Combine
 
-@MainActor
-class RegistrationViewModel: ObservableObject {
-    // MARK: - Published State
-    @Published var currentScreen: AppScreen = .welcome
-    @Published var applicant = ApplicantData()
-    @Published var navigatingForward = true
-    @Published var showIdleWarning = false
-    @Published var supportingDocuments: [SupportingDocument] = []
-    @Published var isSubmitting = false
-    @Published var submissionError: String?
-    @Published var idleCountdown: Int = 30
+@MainActor @Observable
+class RegistrationViewModel {
+    // MARK: - State
+    var currentScreen: AppScreen = .welcome
+    var applicant = ApplicantData()
+    var navigatingForward = true
+    var showIdleWarning = false
+    var supportingDocuments: [SupportingDocument] = []
+    var isSubmitting = false
+    var submissionError: String?
+    var idleCountdown: Int = 30
 
     // MARK: - Validation State
-    @Published var fieldErrors: [String: String] = [:]
-    @Published var validFields: Set<String> = []
+    var fieldErrors: [String: String] = [:]
+    var validFields: Set<String> = []
+    var scrollToTopTrigger: Int = 0
 
     // MARK: - Admin
-    @Published var showAdminPIN = false
-    @Published var adminPINEntry = ""
-    @Published var welcomeTapCount = 0
-    @Published var adminLocked = false
+    var showAdminPIN = false
+    var adminPINEntry = ""
+    var welcomeTapCount = 0
+    var adminLocked = false
     private var adminFailedAttempts = 0
     private let maxAdminAttempts = 5
     private let adminLockoutSeconds: TimeInterval = 60
@@ -75,88 +77,14 @@ class RegistrationViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
-        setupFieldObservers()
-    }
-
-    // MARK: - Real-Time Field Validation Observers
-
-    /// Sets up observers on applicant fields so that:
-    /// - When a field changes, its error is cleared immediately (forgiving)
-    /// - If the new value is valid, a green checkmark appears right away
-    /// - Errors only appear when the user presses Continue
-    private func setupFieldObservers() {
-        // Single debounced subscription per field using struct key paths.
-        // With ApplicantData as a struct, $applicant emits on every mutation.
-        // .map(keyPath).removeDuplicates() ensures we only fire when THIS field changes.
-        // A short 100ms debounce clears errors quickly while avoiding per-keystroke storms.
-
-        func observe<T: Equatable>(
-            _ keyPath: KeyPath<ApplicantData, T>,
-            key: String,
-            validate: @escaping (T) -> Bool
-        ) {
-            $applicant
-                .map(keyPath)
-                .removeDuplicates()
-                .dropFirst()
-                .debounce(for: .milliseconds(100), scheduler: RunLoop.main)
-                .sink { [weak self] value in
-                    guard let self else { return }
-                    // Clear error if present
-                    if self.fieldErrors[key] != nil {
-                        self.fieldErrors.removeValue(forKey: key)
-                    }
-                    // Update valid state (guarded to prevent no-op objectWillChange)
-                    let isCurrentlyValid = validate(value)
-                    if isCurrentlyValid {
-                        if !self.validFields.contains(key) {
-                            self.validFields.insert(key)
-                        }
-                    } else {
-                        if self.validFields.contains(key) {
-                            self.validFields.remove(key)
-                        }
-                    }
-                }
-                .store(in: &cancellables)
-        }
-
-        observe(\.fullName, key: "fullName") { Validators.isNotEmpty($0) }
-        observe(\.preferredName, key: "preferredName") { Validators.isNotEmpty($0) }
-        observe(\.nricFIN, key: "nricFIN") { [weak self] value in
-            Validators.isValidNRIC(value) || Validators.isNotEmpty(self?.applicant.passportNumber ?? "")
-        }
-        observe(\.passportNumber, key: "passportNumber") { [weak self] value in
-            Validators.isNotEmpty(value) || Validators.isValidNRIC(self?.applicant.nricFIN ?? "")
-        }
-        observe(\.contactNumber, key: "contactNumber") { Validators.isValidPhone($0) }
-        observe(\.emailAddress, key: "emailAddress") { Validators.isValidEmail($0) }
-        observe(\.residentialAddress, key: "residentialAddress") { Validators.isNotEmpty($0) }
-        observe(\.postalCode, key: "postalCode") { Validators.isValidPostalCode($0) }
-        observe(\.fieldOfStudy, key: "fieldOfStudy") { [weak self] value in
-            !(self?.applicant.highestQualification.hasFieldOfStudy ?? true) || Validators.isNotEmpty(value)
-        }
-        observe(\.institutionName, key: "institutionName") { Validators.isNotEmpty($0) }
-        observe(\.expectedSalary, key: "expectedSalary") { Validators.isNotEmpty($0) }
-    }
-
-    /// Called when any field changes. Clears the error for that field immediately
-    /// and updates the valid checkmark status.
-    private func onFieldChanged(_ fieldKey: String, isValid: Bool) {
-        // Always clear the error when the user starts typing (forgiving behavior)
-        fieldErrors.removeValue(forKey: fieldKey)
-
-        // Show green checkmark if the current value is valid
-        if isValid {
-            validFields.insert(fieldKey)
-        } else {
-            validFields.remove(fieldKey)
-        }
     }
 
     // MARK: - Navigation
 
     func navigateForward() {
+        // Dismiss keyboard to flush any active FormField text buffers before validation
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+
         guard canProceed() else { return }
         navigatingForward = true
         let haptic = UIImpactFeedbackGenerator(style: .medium)
@@ -179,6 +107,7 @@ class RegistrationViewModel: ObservableObject {
                 currentScreen = .declaration
             case .declaration:
                 guard !isSubmitting else { return }
+                isSubmitting = true
                 submitApplication()
             case .confirmation, .admin:
                 break
@@ -213,6 +142,9 @@ class RegistrationViewModel: ObservableObject {
                 currentScreen = .welcome
             }
         }
+
+        // Clear valid fields so checkmarks re-evaluate when user returns to this screen
+        validFields.removeAll()
     }
 
     // MARK: - Validation
@@ -226,20 +158,28 @@ class RegistrationViewModel: ObservableObject {
         // Only clear errors (not valid fields) - errors are shown on Continue press
         fieldErrors.removeAll()
 
+        let result: Bool
         switch currentScreen {
         case .personalDetails:
-            return validatePersonalDetails()
+            result = validatePersonalDetails()
         case .education:
-            return validateEducation()
+            result = validateEducation()
         case .workExperience:
-            return true // Work experience fields are more flexible
+            result = true // Work experience fields are more flexible
         case .positionAvailability:
-            return validatePositionAvailability()
+            result = validatePositionAvailability()
         case .declaration:
-            return validateDeclaration()
+            result = validateDeclaration()
         default:
-            return true
+            result = true
         }
+
+        // Scroll to top on validation failure so the user sees the first error
+        if !result {
+            scrollToTopTrigger += 1
+        }
+
+        return result
     }
 
     private func validatePersonalDetails() -> Bool {
@@ -257,6 +197,15 @@ class RegistrationViewModel: ObservableObject {
             isValid = false
         } else {
             validFields.insert("preferredName")
+        }
+
+        // Minimum working age check (16 years)
+        let age = Calendar.current.dateComponents([.year], from: applicant.dateOfBirth, to: Date()).year ?? 0
+        if age < 16 {
+            fieldErrors["dateOfBirth"] = "Applicants must be at least 16 years old"
+            isValid = false
+        } else {
+            validFields.insert("dateOfBirth")
         }
 
         let hasValidNRIC = Validators.isValidNRIC(applicant.nricFIN)
@@ -404,15 +353,56 @@ class RegistrationViewModel: ObservableObject {
     }
 
     private func validateDeclaration() -> Bool {
-        return applicant.declarationAccuracy
-            && applicant.pdpaConsent
-            && applicant.signatureData != nil
+        var isValid = true
+
+        if !applicant.declarationAccuracy {
+            fieldErrors["declarationAccuracy"] = "You must accept the declaration of accuracy"
+            isValid = false
+        }
+
+        if !applicant.pdpaConsent {
+            fieldErrors["pdpaConsent"] = "PDPA consent is required"
+            isValid = false
+        }
+
+        if applicant.signatureData == nil {
+            fieldErrors["signature"] = "Please provide your signature"
+            isValid = false
+        }
+
+        // Validate conditional detail fields when the user answered "Yes"
+        if applicant.hasConnectionsAtAFF && !Validators.isNotEmpty(applicant.connectionsDetails) {
+            fieldErrors["connectionsDetails"] = "Please provide name(s) and relationship"
+            isValid = false
+        }
+
+        if applicant.hasConflictOfInterest && !Validators.isNotEmpty(applicant.conflictDetails) {
+            fieldErrors["conflictDetails"] = "Please provide conflict of interest details"
+            isValid = false
+        }
+
+        if applicant.hasBankruptcy && !Validators.isNotEmpty(applicant.bankruptcyDetails) {
+            fieldErrors["bankruptcyDetails"] = "Please provide bankruptcy details"
+            isValid = false
+        }
+
+        if applicant.hasLegalProceedings && !Validators.isNotEmpty(applicant.legalDetails) {
+            fieldErrors["legalDetails"] = "Please provide legal proceedings details"
+            isValid = false
+        }
+
+        if applicant.hasMedicalCondition == .yes && !Validators.isNotEmpty(applicant.medicalDetails) {
+            fieldErrors["medicalDetails"] = "Please provide medical condition details"
+            isValid = false
+        }
+
+        return isValid
     }
 
     // MARK: - Submission
 
     private func submitApplication() {
-        isSubmitting = true
+        // isSubmitting already set to true by navigateForward() to prevent double-submit race
         applicant.submissionDate = Date()
         applicant.referenceNumber = ReferenceNumberGenerator.generate()
 
@@ -445,6 +435,12 @@ class RegistrationViewModel: ObservableObject {
                 }
             }
         }
+    }
+
+    /// Retry a failed submission (triggered by "Try Again" in error alert)
+    func retrySubmission() {
+        guard !isSubmitting else { return }
+        submitApplication()
     }
 
     // MARK: - Idle Timer
@@ -514,6 +510,9 @@ class RegistrationViewModel: ObservableObject {
     // MARK: - Reset
 
     func resetToWelcome() {
+        // Idempotency guard: prevent duplicate reset calls (user tap + auto-return timer)
+        guard currentScreen != .welcome else { return }
+
         // Cancel any pending auto-return task from previous submission
         autoReturnTask?.cancel()
         autoReturnTask = nil
@@ -530,13 +529,14 @@ class RegistrationViewModel: ObservableObject {
         fieldErrors.removeAll()
         validFields.removeAll()
         submissionError = nil
+        isSubmitting = false
+        navigatingForward = true
+        welcomeTapCount = 0
+        showAdminPIN = false
+        adminPINEntry = ""
 
-        // Re-setup observers for the new struct value
+        // Re-bind idle timer publishers
         cancellables.removeAll()
-
-        setupFieldObservers()
-
-        // Re-bind idle timer publishers (no .receive needed — IdleTimer is @MainActor)
         idleTimer?.$isWarningShown
             .sink { [weak self] value in
                 guard self?.showIdleWarning != value else { return }

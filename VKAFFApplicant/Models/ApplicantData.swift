@@ -88,13 +88,13 @@ struct ApplicantData: Codable {
         case totalExperience, employmentHistory, isCurrentlyEmployed, noticePeriod
         case references
         case positionsAppliedFor, positionOther, preferredEmploymentType, earliestStartDate
-        case expectedSalary, willingToWorkShifts, willingToTravel
+        case expectedSalary, lastDrawnSalary, willingToWorkShifts, willingToTravel, hasOwnTransport
         case howDidYouHear, referrerName, openToOtherPositions
         case previouslyApplied, hasConnectionsAtAFF, connectionsDetails
         case hasConflictOfInterest, conflictDetails
         case hasBankruptcy, bankruptcyDetails, hasLegalProceedings, legalDetails
         case declarationAccuracy, pdpaConsent
-        case hasMedicalCondition, medicalDetails, submissionDate, referenceNumber
+        case hasMedicalCondition, medicalDetails, signatureData, submissionDate, referenceNumber
     }
 
     init() {}
@@ -137,8 +137,10 @@ struct ApplicantData: Codable {
         preferredEmploymentType = try container.decode(EmploymentType.self, forKey: .preferredEmploymentType)
         earliestStartDate = try container.decode(Date.self, forKey: .earliestStartDate)
         expectedSalary = try container.decode(String.self, forKey: .expectedSalary)
+        lastDrawnSalary = try container.decodeIfPresent(String.self, forKey: .lastDrawnSalary) ?? ""
         willingToWorkShifts = try container.decode(WillingnessOption.self, forKey: .willingToWorkShifts)
         willingToTravel = try container.decode(TravelOption.self, forKey: .willingToTravel)
+        hasOwnTransport = try container.decodeIfPresent(Bool.self, forKey: .hasOwnTransport) ?? false
         howDidYouHear = try container.decode(HearAboutUs.self, forKey: .howDidYouHear)
         referrerName = try container.decode(String.self, forKey: .referrerName)
         openToOtherPositions = try container.decodeIfPresent(Bool.self, forKey: .openToOtherPositions) ?? true
@@ -155,6 +157,7 @@ struct ApplicantData: Codable {
         pdpaConsent = try container.decode(Bool.self, forKey: .pdpaConsent)
         hasMedicalCondition = try container.decode(MedicalDeclaration.self, forKey: .hasMedicalCondition)
         medicalDetails = try container.decode(String.self, forKey: .medicalDetails)
+        signatureData = try container.decodeIfPresent(Data.self, forKey: .signatureData)
         submissionDate = try container.decode(Date.self, forKey: .submissionDate)
         referenceNumber = try container.decode(String.self, forKey: .referenceNumber)
     }
@@ -165,7 +168,9 @@ struct ApplicantData: Codable {
         // Encode with sanitized string values (trimmed, normalized)
         try container.encode(Validators.sanitizeInput(fullName), forKey: .fullName)
         try container.encode(Validators.sanitizeInput(preferredName), forKey: .preferredName)
-        try container.encode(nricFIN.trimmingCharacters(in: .whitespaces).uppercased(), forKey: .nricFIN)
+        // Mask NRIC in stored/uploaded JSON for PDPA compliance — full value only needed transiently for validation
+        let cleanNRIC = nricFIN.trimmingCharacters(in: .whitespaces).uppercased()
+        try container.encode(NRICMasker.mask(cleanNRIC), forKey: .nricFIN)
         try container.encode(dateOfBirth, forKey: .dateOfBirth)
         try container.encode(gender, forKey: .gender)
         try container.encode(nationality, forKey: .nationality)
@@ -199,8 +204,10 @@ struct ApplicantData: Codable {
         try container.encode(preferredEmploymentType, forKey: .preferredEmploymentType)
         try container.encode(earliestStartDate, forKey: .earliestStartDate)
         try container.encode(Validators.sanitizeInput(expectedSalary), forKey: .expectedSalary)
+        try container.encode(Validators.sanitizeInput(lastDrawnSalary), forKey: .lastDrawnSalary)
         try container.encode(willingToWorkShifts, forKey: .willingToWorkShifts)
         try container.encode(willingToTravel, forKey: .willingToTravel)
+        try container.encode(hasOwnTransport, forKey: .hasOwnTransport)
         try container.encode(howDidYouHear, forKey: .howDidYouHear)
         try container.encode(Validators.sanitizeInput(referrerName), forKey: .referrerName)
         try container.encode(openToOtherPositions, forKey: .openToOtherPositions)
@@ -217,6 +224,7 @@ struct ApplicantData: Codable {
         try container.encode(pdpaConsent, forKey: .pdpaConsent)
         try container.encode(hasMedicalCondition, forKey: .hasMedicalCondition)
         try container.encode(Validators.sanitizeInput(medicalDetails), forKey: .medicalDetails)
+        try container.encodeIfPresent(signatureData, forKey: .signatureData)
         try container.encode(submissionDate, forKey: .submissionDate)
         try container.encode(referenceNumber, forKey: .referenceNumber)
     }
@@ -226,6 +234,28 @@ struct ApplicantData: Codable {
     /// Sanitizes all string fields in-place. Called before submission to normalize data.
     /// This modifies the object directly for use in PDF generation and other non-Codable outputs.
     mutating func sanitizeAllFields() {
+        // Clear orphaned conditional fields before sanitization
+        if nationality != .others { nationalityOther = "" }
+        if race != .others { raceOther = "" }
+        if !positionsAppliedFor.contains(.others) { positionOther = "" }
+        if highestQualification != .others { highestQualificationOther = "" }
+        if !hasConnectionsAtAFF { connectionsDetails = "" }
+        if !hasConflictOfInterest { conflictDetails = "" }
+        if !hasBankruptcy { bankruptcyDetails = "" }
+        if !hasLegalProceedings { legalDetails = "" }
+        if hasMedicalCondition != .yes { medicalDetails = "" }
+        if howDidYouHear != .referral { referrerName = "" }
+        for i in emergencyContacts.indices {
+            if emergencyContacts[i].relationship != .others {
+                emergencyContacts[i].relationshipOther = ""
+            }
+        }
+        for i in employmentHistory.indices {
+            if employmentHistory[i].isCurrentPosition {
+                employmentHistory[i].toDate = Date()
+            }
+        }
+
         fullName = Validators.sanitizeInput(fullName)
         preferredName = Validators.sanitizeInput(preferredName)
         nricFIN = nricFIN.trimmingCharacters(in: .whitespaces).uppercased()

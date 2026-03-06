@@ -18,6 +18,7 @@ struct FormField: View {
     var errorMessage: String? = nil
     var isValid: Bool = false
     var isSalaryField: Bool = false
+    var autocapitalization: TextInputAutocapitalization = .characters
     var onCommit: (() -> Void)? = nil
     var focusBinding: FocusState<PersonalDetailsFocus?>.Binding? = nil
     var focusValue: PersonalDetailsFocus? = nil
@@ -31,6 +32,14 @@ struct FormField: View {
     @State private var glowOpacity: Double = 0
     @State private var errorVisible: Bool = false
     @State private var borderPulse: Bool = false
+
+    // Local text buffer — isolates per-keystroke re-renders to this view only.
+    // Syncs back to the binding on focus loss so the struct mutation (which
+    // triggers full view-hierarchy invalidation) is batched.
+    @State private var localText: String = ""
+    @State private var isShaking: Bool = false
+
+    @Environment(\.accessibilityReduceMotion) var reduceMotion
 
     private var accessibilityLabelText: String {
         var labelText = label
@@ -50,10 +59,10 @@ struct FormField: View {
 
             ZStack(alignment: .trailing) {
                 if isMultiline {
-                    TextEditor(text: $text)
+                    TextEditor(text: $localText)
                         .font(.system(size: 20))
                         .foregroundColor(.darkText)
-                        .textInputAutocapitalization(.characters)
+                        .textInputAutocapitalization(autocapitalization)
                         .scrollContentBackground(.hidden)
                         .frame(minHeight: 130)
                         .padding(12)
@@ -64,32 +73,34 @@ struct FormField: View {
                         .applyFocus(focusBinding: focusBinding, value: focusValue)
                         .applyEducationFocus(focusBinding: educationFocusBinding, value: educationFocusValue)
                         .applyPositionFocus(focusBinding: positionFocusBinding, value: positionFocusValue)
-                        .onChange(of: text) { _, newValue in
+                        .onChange(of: localText) { _, newValue in
                             if let max = maxLength, newValue.count > max {
-                                text = String(newValue.prefix(max))
+                                localText = String(newValue.prefix(max))
+                                return
                             }
+                            // No sync during typing — flush happens on focus loss
                         }
                         .accessibilityLabel(accessibilityLabelText)
                         .accessibilityHint(placeholder.isEmpty ? "Enter \(label.lowercased())" : placeholder)
-                        .accessibilityValue(text.isEmpty ? "empty" : text)
+                        .accessibilityValue(localText.isEmpty ? "empty" : localText)
 
                     if let max = maxLength {
-                        Text("\(text.count)/\(max)")
+                        Text("\(localText.count)/\(max)")
                             .font(.system(size: 12))
                             .foregroundColor(.mediumGray)
                             .padding(.trailing, 16)
                             .padding(.bottom, 8)
                             .frame(maxHeight: .infinity, alignment: .bottomTrailing)
-                            .accessibilityLabel("\(text.count) of \(max) characters used")
+                            .accessibilityLabel("\(localText.count) of \(max) characters used")
                     }
                 } else {
-                    TextField(placeholder, text: isSalaryField ? salaryBinding : $text, onCommit: {
+                    TextField(placeholder, text: isSalaryField ? localSalaryBinding : $localText, onCommit: {
                         onCommit?()
                     })
                     .font(.system(size: 20))
                     .foregroundColor(.darkText)
                     .keyboardType(keyboardType)
-                    .textInputAutocapitalization(.characters)
+                    .textInputAutocapitalization(autocapitalization)
                     .autocorrectionDisabled()
                     .padding(.horizontal, 16)
                     .padding(.vertical, 14)
@@ -102,10 +113,12 @@ struct FormField: View {
                     .accessibilityHint(placeholder.isEmpty ? "Enter \(label.lowercased())" : placeholder)
                     .applyEducationFocus(focusBinding: educationFocusBinding, value: educationFocusValue)
                     .applyPositionFocus(focusBinding: positionFocusBinding, value: positionFocusValue)
-                    .onChange(of: text) { _, newValue in
+                    .onChange(of: localText) { _, newValue in
                         if let max = maxLength, newValue.count > max {
-                            text = String(newValue.prefix(max))
+                            localText = String(newValue.prefix(max))
+                            return
                         }
+                        // No sync during typing — flush happens on focus loss
                     }
                 }
 
@@ -115,18 +128,16 @@ struct FormField: View {
                         .foregroundColor(.successGreen)
                         .font(.system(size: 20))
                         .padding(.trailing, 16)
-                        .transition(.opacity.animation(.easeIn(duration: 0.2)))
+                        .allowsHitTesting(false)
                         .accessibilityHidden(true)
                 }
             }
+            .contentShape(Rectangle())
             .offset(x: shakeOffset)
             .onChange(of: isFocused) { _, focused in
-                withAnimation(.easeInOut(duration: 0.15)) {
-                    glowOpacity = focused ? 1 : 0
-                }
-                if focused {
-                    let haptic = UIImpactFeedbackGenerator(style: .light)
-                    haptic.impactOccurred()
+                glowOpacity = focused ? 1 : 0
+                if !focused {
+                    flushToBinding()
                 }
             }
 
@@ -147,35 +158,53 @@ struct FormField: View {
                     .accessibilityHidden(true)
             }
         }
+        .onAppear { localText = text }
+        .onChange(of: text) { _, newValue in
+            if localText != newValue { localText = newValue }
+        }
+    }
+
+    // MARK: - Local Buffer Sync
+
+    private func flushToBinding() {
+        if text != localText { text = localText }
     }
 
     // MARK: - Error Animation
 
     private func triggerErrorAnimation() {
+        guard !isShaking else { return }
+        isShaking = true
+
         // Slide error text in from below
         withAnimation(.easeOut(duration: 0.2)) {
             errorVisible = true
         }
 
-        // Smooth spring shake: 3 cycles, 6pt amplitude
-        let shakeAnim = Animation.spring(response: 0.08, dampingFraction: 0.3)
-        withAnimation(shakeAnim) { shakeOffset = 6 }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
-            withAnimation(shakeAnim) { shakeOffset = -6 }
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) {
+        if !reduceMotion {
+            // Smooth spring shake: 3 cycles, 6pt amplitude
+            let shakeAnim = Animation.spring(response: 0.08, dampingFraction: 0.3)
             withAnimation(shakeAnim) { shakeOffset = 6 }
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.24) {
-            withAnimation(shakeAnim) { shakeOffset = -6 }
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.32) {
-            withAnimation(shakeAnim) { shakeOffset = 4 }
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.40) {
-            withAnimation(.spring(response: 0.12, dampingFraction: 0.5)) {
-                shakeOffset = 0
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
+                withAnimation(shakeAnim) { shakeOffset = -6 }
             }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) {
+                withAnimation(shakeAnim) { shakeOffset = 6 }
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.24) {
+                withAnimation(shakeAnim) { shakeOffset = -6 }
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.32) {
+                withAnimation(shakeAnim) { shakeOffset = 4 }
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.40) {
+                withAnimation(.spring(response: 0.12, dampingFraction: 0.5)) {
+                    shakeOffset = 0
+                }
+                isShaking = false
+            }
+        } else {
+            isShaking = false
         }
 
         // Red border pulse once
@@ -196,21 +225,22 @@ struct FormField: View {
     // MARK: - Phone binding (no auto-prefix — supports international numbers)
     // phoneAutoPrefix removed — use $text directly
 
-    // MARK: - Salary auto-formatting binding
-    private var salaryBinding: Binding<String> {
+    // MARK: - Salary auto-formatting binding (operates on local buffer)
+    private var localSalaryBinding: Binding<String> {
         Binding(
-            get: { text },
+            get: { localText },
             set: { newValue in
                 let newDigits = newValue.filter { $0.isNumber }
-                let oldDigits = text.filter { $0.isNumber }
+                let oldDigits = localText.filter { $0.isNumber }
                 guard newDigits != oldDigits else { return }
 
                 if let number = Int(newDigits) {
                     let formatted = salaryFormatter.string(from: NSNumber(value: number)) ?? newDigits
-                    if text != formatted { text = formatted }
-                } else if newDigits.isEmpty && !text.isEmpty {
-                    text = ""
+                    if localText != formatted { localText = formatted }
+                } else if newDigits.isEmpty && !localText.isEmpty {
+                    localText = ""
                 }
+                // No sync during typing — flush happens on focus loss
             }
         )
     }
@@ -261,12 +291,14 @@ struct FormField: View {
                     (isFocused ? Color.affOrange : Color.dividerSubtle),
                 lineWidth: errorMessage != nil ? (borderPulse ? 2.5 : 1.5) : 1
             )
+            .allowsHitTesting(false)
     }
 
     private var focusGlow: some View {
         RoundedRectangle(cornerRadius: 10)
             .stroke(Color.affOrange.opacity(0.3 * glowOpacity), lineWidth: 2)
             .opacity(glowOpacity)
+            .allowsHitTesting(false)
     }
 }
 
@@ -332,6 +364,12 @@ struct NRICField: View {
     @State private var errorVisible: Bool = false
     @State private var borderPulse: Bool = false
 
+    // Local text buffer for keystroke isolation
+    @State private var localText: String = ""
+    @State private var isShaking: Bool = false
+
+    @Environment(\.accessibilityReduceMotion) var reduceMotion
+
     private var accessibilityLabelText: String {
         var labelText = label
         if let error = errorMessage {
@@ -343,24 +381,24 @@ struct NRICField: View {
     }
 
     private var accessibilityValueText: String {
-        if text.isEmpty {
+        if localText.isEmpty {
             return "empty"
         }
         if isFocused {
-            return text
+            return localText
         }
         // When not focused, report the masked value
         if isValid {
-            return "Masked as \(NRICMasker.mask(text))"
+            return "Masked as \(NRICMasker.mask(localText))"
         }
-        return text
+        return localText
     }
 
     private var displayText: String {
-        if isFocused || text.isEmpty {
-            return text
+        if isFocused || localText.isEmpty {
+            return localText
         }
-        return NRICMasker.mask(text)
+        return NRICMasker.mask(localText)
     }
 
     var body: some View {
@@ -370,7 +408,7 @@ struct NRICField: View {
                 .accessibilityHidden(true)
 
             ZStack(alignment: .trailing) {
-                TextField("e.g., S1234567A", text: $text)
+                TextField("e.g., S1234567A", text: $localText)
                     .font(.system(size: 20))
                     .foregroundColor(.darkText)
                     .textInputAutocapitalization(.characters)
@@ -388,42 +426,63 @@ struct NRICField: View {
                                     (isFocused ? Color.affOrange : Color.dividerSubtle),
                                 lineWidth: errorMessage != nil ? (borderPulse ? 2.5 : 1.5) : 1
                             )
+                            .allowsHitTesting(false)
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 10)
                             .stroke(Color.affOrange.opacity(0.3 * glowOpacity), lineWidth: 2)
                             .opacity(glowOpacity)
+                            .allowsHitTesting(false)
                     )
                     .focused($isFocused)
                     .applyFocus(focusBinding: focusBinding, value: focusValue)
                     .accessibilityLabel(accessibilityLabelText)
                     .accessibilityValue(accessibilityValueText)
                     .accessibilityHint("Enter your NRIC or FIN number, for example S1234567A. It will be masked when not editing.")
+                    .onChange(of: localText) { _, _ in
+                        // No sync during typing — flush happens on focus loss
+                    }
+                    .opacity(isFocused || localText.isEmpty ? 1 : 0)
+
+                // Masked overlay — covers TextField when unfocused to hide raw NRIC on public kiosk
+                if !isFocused && !localText.isEmpty {
+                    Text(displayText)
+                        .font(.system(size: 20))
+                        .foregroundColor(.darkText)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 14)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Color.lightBackground)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(
+                                    errorMessage != nil ? Color.errorRed : Color.dividerSubtle,
+                                    lineWidth: errorMessage != nil ? (borderPulse ? 2.5 : 1.5) : 1
+                                )
+                                .allowsHitTesting(false)
+                        )
+                        .onTapGesture { isFocused = true }
+                }
 
                 if isValid && !isFocused {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(.successGreen)
                         .font(.system(size: 20))
                         .padding(.trailing, 16)
+                        .allowsHitTesting(false)
                         .accessibilityHidden(true)
                 }
             }
+            .contentShape(Rectangle())
             .offset(x: shakeOffset)
             .onChange(of: isFocused) { _, focused in
-                withAnimation(.easeInOut(duration: 0.15)) {
-                    glowOpacity = focused ? 1 : 0
+                glowOpacity = focused ? 1 : 0
+                if !focused {
+                    flushToBinding()
                 }
-                if focused {
-                    let haptic = UIImpactFeedbackGenerator(style: .light)
-                    haptic.impactOccurred()
-                }
-            }
-
-            if !isFocused && !text.isEmpty && isValid {
-                Text("Displayed as: \(NRICMasker.mask(text))")
-                    .font(.system(size: 12))
-                    .foregroundColor(.mediumGray)
-                    .accessibilityHidden(true)
             }
 
             if let error = errorMessage {
@@ -442,35 +501,53 @@ struct NRICField: View {
                     .accessibilityHidden(true)
             }
         }
+        .onAppear { localText = text }
+        .onChange(of: text) { _, newValue in
+            if localText != newValue { localText = newValue }
+        }
+    }
+
+    // MARK: - Local Buffer Sync
+
+    private func flushToBinding() {
+        if text != localText { text = localText }
     }
 
     // MARK: - Error Animation
 
     private func triggerNRICErrorAnimation() {
+        guard !isShaking else { return }
+        isShaking = true
+
         // Slide error text in from below
         withAnimation(.easeOut(duration: 0.2)) {
             errorVisible = true
         }
 
-        // Smooth spring shake: 3 cycles, 6pt amplitude
-        let shakeAnim = Animation.spring(response: 0.08, dampingFraction: 0.3)
-        withAnimation(shakeAnim) { shakeOffset = 6 }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
-            withAnimation(shakeAnim) { shakeOffset = -6 }
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) {
+        if !reduceMotion {
+            // Smooth spring shake: 3 cycles, 6pt amplitude
+            let shakeAnim = Animation.spring(response: 0.08, dampingFraction: 0.3)
             withAnimation(shakeAnim) { shakeOffset = 6 }
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.24) {
-            withAnimation(shakeAnim) { shakeOffset = -6 }
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.32) {
-            withAnimation(shakeAnim) { shakeOffset = 4 }
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.40) {
-            withAnimation(.spring(response: 0.12, dampingFraction: 0.5)) {
-                shakeOffset = 0
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
+                withAnimation(shakeAnim) { shakeOffset = -6 }
             }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) {
+                withAnimation(shakeAnim) { shakeOffset = 6 }
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.24) {
+                withAnimation(shakeAnim) { shakeOffset = -6 }
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.32) {
+                withAnimation(shakeAnim) { shakeOffset = 4 }
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.40) {
+                withAnimation(.spring(response: 0.12, dampingFraction: 0.5)) {
+                    shakeOffset = 0
+                }
+                isShaking = false
+            }
+        } else {
+            isShaking = false
         }
 
         // Red border pulse once

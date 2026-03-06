@@ -37,7 +37,31 @@ struct BackupMetadata {
     let totalSize: Int64
 }
 
+// MARK: - Document Backup Manifest
+
+struct BackupDocumentManifestEntry: Codable {
+    let index: Int
+    let fileName: String
+    let mimeType: String
+    let documentType: String
+}
+
 class EncryptedBackupService {
+
+    /// Sanitizes a filename to prevent path traversal attacks.
+    /// Strips directory separators, parent references, and null bytes.
+    private func sanitizedFileName(_ name: String) -> String {
+        var sanitized = name
+            .replacingOccurrences(of: "..", with: "_")
+            .replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: "\\", with: "_")
+            .replacingOccurrences(of: "\0", with: "")
+        // Ensure non-empty after sanitization
+        if sanitized.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            sanitized = "unnamed_file"
+        }
+        return sanitized
+    }
 
     private var backupDirectory: URL {
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
@@ -48,13 +72,34 @@ class EncryptedBackupService {
 
     // MARK: - Save Backup
 
-    func saveBackup(pdfData: Data, jsonData: Data, referenceNumber: String) throws {
+    func saveBackup(pdfData: Data, jsonData: Data, referenceNumber: String, supportingDocuments: [SupportingDocument] = []) throws {
         let pdfURL = backupDirectory.appendingPathComponent("\(referenceNumber).pdf")
         let jsonURL = backupDirectory.appendingPathComponent("\(referenceNumber).json")
 
         do {
             try pdfData.write(to: pdfURL, options: .completeFileProtection)
             try jsonData.write(to: jsonURL, options: .completeFileProtection)
+
+            // Save supporting documents alongside main backup
+            for (index, doc) in supportingDocuments.enumerated() {
+                let docURL = backupDirectory.appendingPathComponent("\(referenceNumber)_doc\(index)_\(sanitizedFileName(doc.fileName))")
+                try doc.fileData.write(to: docURL, options: .completeFileProtection)
+            }
+
+            // Save document manifest so we can reconstruct on retry
+            if !supportingDocuments.isEmpty {
+                let manifest = supportingDocuments.enumerated().map { (index, doc) in
+                    BackupDocumentManifestEntry(
+                        index: index,
+                        fileName: doc.fileName,
+                        mimeType: doc.mimeType,
+                        documentType: doc.documentType.rawValue
+                    )
+                }
+                let manifestData = try JSONEncoder().encode(manifest)
+                let manifestURL = backupDirectory.appendingPathComponent("\(referenceNumber)_docs_manifest.json")
+                try manifestData.write(to: manifestURL, options: .completeFileProtection)
+            }
         } catch {
             throw BackupError.saveFailed(reference: referenceNumber, underlying: error)
         }
@@ -73,7 +118,7 @@ class EncryptedBackupService {
         UserDefaults.standard.stringArray(forKey: "pendingUploadReferences") ?? []
     }
 
-    func getPendingData(for reference: String) -> (pdf: Data, json: Data)? {
+    func getPendingData(for reference: String) -> (pdf: Data, json: Data, documents: [SupportingDocument])? {
         let pdfURL = backupDirectory.appendingPathComponent("\(reference).pdf")
         let jsonURL = backupDirectory.appendingPathComponent("\(reference).json")
 
@@ -82,7 +127,26 @@ class EncryptedBackupService {
             return nil
         }
 
-        return (pdfData, jsonData)
+        // Restore supporting documents from backup
+        var documents: [SupportingDocument] = []
+        let manifestURL = backupDirectory.appendingPathComponent("\(reference)_docs_manifest.json")
+        if let manifestData = try? Data(contentsOf: manifestURL),
+           let manifest = try? JSONDecoder().decode([BackupDocumentManifestEntry].self, from: manifestData) {
+            for entry in manifest {
+                let docURL = backupDirectory.appendingPathComponent("\(reference)_doc\(entry.index)_\(sanitizedFileName(entry.fileName))")
+                if let docData = try? Data(contentsOf: docURL) {
+                    let docType = DocumentType(rawValue: entry.documentType) ?? .others
+                    documents.append(SupportingDocument(
+                        documentType: docType,
+                        fileName: entry.fileName,
+                        fileData: docData,
+                        mimeType: entry.mimeType
+                    ))
+                }
+            }
+        }
+
+        return (pdfData, jsonData, documents)
     }
 
     // MARK: - Backup Metadata
@@ -162,11 +226,23 @@ class EncryptedBackupService {
     // MARK: - Remove Completed
 
     func removeBackup(for reference: String) {
+        let fm = FileManager.default
         let pdfURL = backupDirectory.appendingPathComponent("\(reference).pdf")
         let jsonURL = backupDirectory.appendingPathComponent("\(reference).json")
+        let manifestURL = backupDirectory.appendingPathComponent("\(reference)_docs_manifest.json")
 
-        try? FileManager.default.removeItem(at: pdfURL)
-        try? FileManager.default.removeItem(at: jsonURL)
+        // Remove supporting document files
+        if let manifestData = try? Data(contentsOf: manifestURL),
+           let manifest = try? JSONDecoder().decode([BackupDocumentManifestEntry].self, from: manifestData) {
+            for entry in manifest {
+                let docURL = backupDirectory.appendingPathComponent("\(reference)_doc\(entry.index)_\(sanitizedFileName(entry.fileName))")
+                try? fm.removeItem(at: docURL)
+            }
+        }
+
+        try? fm.removeItem(at: pdfURL)
+        try? fm.removeItem(at: jsonURL)
+        try? fm.removeItem(at: manifestURL)
 
         var pending = getPendingReferences()
         pending.removeAll { $0 == reference }
@@ -180,10 +256,7 @@ class EncryptedBackupService {
         let count = pending.count
 
         for ref in pending {
-            let pdfURL = backupDirectory.appendingPathComponent("\(ref).pdf")
-            let jsonURL = backupDirectory.appendingPathComponent("\(ref).json")
-            try? FileManager.default.removeItem(at: pdfURL)
-            try? FileManager.default.removeItem(at: jsonURL)
+            removeBackup(for: ref)
         }
 
         UserDefaults.standard.set([String](), forKey: "pendingUploadReferences")
@@ -205,6 +278,10 @@ class EncryptedBackupService {
                 let jsonURL = exportDir.appendingPathComponent("\(ref).json")
                 try? data.pdf.write(to: pdfURL, options: .completeFileProtection)
                 try? data.json.write(to: jsonURL, options: .completeFileProtection)
+                for (index, doc) in data.documents.enumerated() {
+                    let docURL = exportDir.appendingPathComponent("\(ref)_Doc\(index + 1)_\(sanitizedFileName(doc.fileName))")
+                    try? doc.fileData.write(to: docURL, options: .completeFileProtection)
+                }
             }
         }
 

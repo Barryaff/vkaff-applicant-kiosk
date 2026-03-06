@@ -1,10 +1,11 @@
 import SwiftUI
 
 struct ConfirmationView: View {
-    @EnvironmentObject var vm: RegistrationViewModel
+    @Environment(RegistrationViewModel.self) var vm
     @State private var countdownProgress: CGFloat = 1.0
     @State private var showConfetti: Bool = false
     @State private var showContent: Bool = false
+    @State private var secondsRemaining: Int = Int(AppConfig.confirmationAutoReturnSeconds)
 
     private var thankYouMessage: String {
         let name = vm.applicant.preferredName.isEmpty ? vm.applicant.fullName : vm.applicant.preferredName
@@ -80,6 +81,24 @@ struct ConfirmationView: View {
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel("Application Reference: \(vm.applicant.referenceNumber)")
 
+                Button {
+                    UIPasteboard.general.string = vm.applicant.referenceNumber
+                    // Brief haptic feedback
+                    let haptic = UINotificationFeedbackGenerator()
+                    haptic.notificationOccurred(.success)
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "doc.on.doc")
+                            .font(.system(size: 12))
+                        Text("Copy")
+                            .font(.system(size: 12, weight: .medium))
+                    }
+                    .foregroundColor(.gold.opacity(0.6))
+                }
+                .padding(.top, 8)
+                .opacity(showContent ? 1 : 0)
+                .accessibilityLabel("Copy reference number to clipboard")
+
                 // Logos
                 VStack(spacing: 16) {
                     Image("vka_logo_white")
@@ -103,13 +122,13 @@ struct ConfirmationView: View {
                 // Done button with countdown ring
                 ZStack {
                     Circle()
-                        .stroke(Color.white.opacity(0.1), lineWidth: 1.5)
+                        .stroke(Color.white.opacity(0.25), lineWidth: 1.5)
                         .frame(width: 72, height: 72)
                         .accessibilityHidden(true)
 
                     Circle()
                         .trim(from: 0, to: countdownProgress)
-                        .stroke(Color.gold, style: StrokeStyle(lineWidth: 1.5, lineCap: .round))
+                        .stroke(Color.gold, style: StrokeStyle(lineWidth: 2.0, lineCap: .round))
                         .frame(width: 72, height: 72)
                         .rotationEffect(.degrees(-90))
                         .accessibilityHidden(true)
@@ -127,26 +146,41 @@ struct ConfirmationView: View {
                     .accessibilityLabel("Done")
                     .accessibilityHint("Returns to the welcome screen")
                 }
-                .padding(.bottom, 48)
-                .onAppear {
-                    withAnimation(.linear(duration: AppConfig.confirmationAutoReturnSeconds)) {
-                        countdownProgress = 0
-                    }
+                .padding(.bottom, 8)
 
-                    // Content reveal after checkmark
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                        withAnimation(.timingCurve(0.16, 1, 0.3, 1, duration: 0.8)) {
-                            showContent = true
+                Text("Returning in \(secondsRemaining)s")
+                    .font(.system(size: 12, weight: .light))
+                    .foregroundColor(.white.opacity(0.4))
+                    .padding(.top, 8)
+                    .padding(.bottom, 48)
+                    .onAppear {
+                        withAnimation(.linear(duration: AppConfig.confirmationAutoReturnSeconds)) {
+                            countdownProgress = 0
+                        }
+
+                        // Content reveal after checkmark
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                            withAnimation(.timingCurve(0.16, 1, 0.3, 1, duration: 0.8)) {
+                                showContent = true
+                            }
+                        }
+
+                        // Confetti after checkmark draw
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.4) {
+                            withAnimation(.easeOut(duration: 0.3)) {
+                                showConfetti = true
+                            }
+                        }
+
+                        // Countdown text timer
+                        Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
+                            if secondsRemaining > 0 {
+                                secondsRemaining -= 1
+                            } else {
+                                timer.invalidate()
+                            }
                         }
                     }
-
-                    // Confetti after checkmark draw
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.4) {
-                        withAnimation(.easeOut(duration: 0.3)) {
-                            showConfetti = true
-                        }
-                    }
-                }
             }
         }
         .dynamicTypeSize(.large ... .accessibility3)

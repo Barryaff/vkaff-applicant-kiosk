@@ -1,7 +1,20 @@
 import SwiftUI
 
+// MARK: - Animation Tokens
+
+extension Animation {
+    /// Quick interactive feedback (buttons, toggles)
+    static let snappy = Animation.spring(response: 0.25, dampingFraction: 0.7)
+    /// Smooth transitions (screen changes, reveals)
+    static let smooth = Animation.easeOut(duration: 0.3)
+    /// Dramatic emphasis (success states, celebrations)
+    static let dramatic = Animation.spring(response: 0.5, dampingFraction: 0.6)
+}
+
 // MARK: - Primary Button (Orange)
 
+// TODO: Add focus indicator for accessibility — @Environment(\.isFocused) is not available
+// in ButtonStyle context. Implement focus ring overlay at the call site or via a wrapper view.
 struct PrimaryButtonStyle: ButtonStyle {
     var isEnabled: Bool = true
 
@@ -15,11 +28,11 @@ struct PrimaryButtonStyle: ButtonStyle {
             .padding(.vertical, 16)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(isEnabled ? (configuration.isPressed ? Color.orangePress : Color.affOrange) : Color.mediumGray.opacity(0.3))
+                    .fill(isEnabled ? (configuration.isPressed ? Color.orangePress : Color.affOrange) : Color.mediumGray.opacity(0.5))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(isEnabled ? Color.affOrange : Color.mediumGray.opacity(0.2), lineWidth: 1.5)
+                    .stroke(isEnabled ? Color.affOrange : Color.mediumGray.opacity(0.4), lineWidth: 1.5)
             )
             .offset(y: configuration.isPressed ? 0 : -1)
             .animation(.timingCurve(0.16, 1, 0.3, 1, duration: 0.4), value: configuration.isPressed)
@@ -28,6 +41,7 @@ struct PrimaryButtonStyle: ButtonStyle {
 
 // MARK: - Secondary Button (Outlined)
 
+// TODO: Add focus indicator for accessibility — same constraint as PrimaryButtonStyle.
 struct SecondaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
