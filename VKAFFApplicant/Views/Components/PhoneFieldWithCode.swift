@@ -196,3 +196,12 @@ struct PhoneFieldWithCode: View {
         UINotificationFeedbackGenerator().notificationOccurred(.warning)
     }
 }
+
+extension PhoneFieldWithCode: Equatable {
+    static func == (lhs: PhoneFieldWithCode, rhs: PhoneFieldWithCode) -> Bool {
+        lhs.label == rhs.label &&
+        lhs.placeholder == rhs.placeholder &&
+        lhs.errorMessage == rhs.errorMessage &&
+        lhs.isValid == rhs.isValid
+    }
+}

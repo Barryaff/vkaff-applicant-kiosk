@@ -35,7 +35,7 @@ struct PrimaryButtonStyle: ButtonStyle {
                     .stroke(isEnabled ? Color.affOrange : Color.mediumGray.opacity(0.4), lineWidth: 1.5)
             )
             .offset(y: configuration.isPressed ? 0 : -1)
-            .animation(.timingCurve(0.16, 1, 0.3, 1, duration: 0.4), value: configuration.isPressed)
+            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
     }
 }
 
@@ -58,7 +58,7 @@ struct SecondaryButtonStyle: ButtonStyle {
                 RoundedRectangle(cornerRadius: 8)
                     .stroke(configuration.isPressed ? Color.affOrange : Color.dividerSubtle, lineWidth: 1.5)
             )
-            .animation(.timingCurve(0.16, 1, 0.3, 1, duration: 0.4), value: configuration.isPressed)
+            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
     }
 }
 
@@ -76,7 +76,7 @@ struct DestructiveButtonStyle: ButtonStyle {
                 RoundedRectangle(cornerRadius: 8)
                     .stroke(configuration.isPressed ? Color.errorRed.opacity(0.5) : Color.dividerSubtle, lineWidth: 1)
             )
-            .animation(.timingCurve(0.16, 1, 0.3, 1, duration: 0.4), value: configuration.isPressed)
+            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
     }
 }
 
@@ -100,6 +100,6 @@ struct LargeCTAButtonStyle: ButtonStyle {
                     .stroke(Color.white.opacity(0.15), lineWidth: 1)
             )
             .offset(y: configuration.isPressed ? 0 : -2)
-            .animation(.timingCurve(0.16, 1, 0.3, 1, duration: 0.4), value: configuration.isPressed)
+            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
     }
 }

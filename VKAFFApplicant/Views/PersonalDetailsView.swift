@@ -366,7 +366,7 @@ struct FormScreenLayout<Content: View>: View {
             )
             .padding(.bottom, bottomSafeArea)
         }
-        .ignoresSafeArea([.container, .keyboard], edges: .bottom)
+        .ignoresSafeArea(edges: .bottom)
         .onAppear {
             bottomSafeArea = UIApplication.shared.connectedScenes
                 .compactMap { ($0 as? UIWindowScene)?.keyWindow?.safeAreaInsets.bottom }

@@ -332,10 +332,12 @@ struct FormField: View {
             .applyFocus(focusBinding: focusBinding, value: focusValue)
             .applyEducationFocus(focusBinding: educationFocusBinding, value: educationFocusValue)
             .applyPositionFocus(focusBinding: positionFocusBinding, value: positionFocusValue)
-            .onChange(of: localText) { _, newValue in
-                if let max = maxLength, newValue.count > max {
-                    localText = String(newValue.prefix(max))
-                }
+            .onChange(of: localText) { oldValue, newValue in
+                guard let max = maxLength, newValue.count > max else { return }
+                // Avoid re-triggering onChange by only truncating when actually over limit
+                let truncated = String(newValue.prefix(max))
+                guard truncated != oldValue else { return }
+                localText = truncated
             }
             .onChange(of: isTextEditorFocused) { _, focused in
                 isFieldFocused = focused
@@ -388,6 +390,28 @@ struct FormField: View {
             .stroke(Color.affOrange.opacity(0.3 * glowOpacity), lineWidth: 2)
             .opacity(glowOpacity)
             .allowsHitTesting(false)
+    }
+}
+
+// MARK: - Equatable (skip body re-evaluation when visible props unchanged)
+
+extension FormField: Equatable {
+    static func == (lhs: FormField, rhs: FormField) -> Bool {
+        lhs.label == rhs.label &&
+        lhs.placeholder == rhs.placeholder &&
+        lhs.isMultiline == rhs.isMultiline &&
+        lhs.maxLength == rhs.maxLength &&
+        lhs.errorMessage == rhs.errorMessage &&
+        lhs.isValid == rhs.isValid &&
+        lhs.isSalaryField == rhs.isSalaryField
+    }
+}
+
+extension NRICField: Equatable {
+    static func == (lhs: NRICField, rhs: NRICField) -> Bool {
+        lhs.label == rhs.label &&
+        lhs.errorMessage == rhs.errorMessage &&
+        lhs.isValid == rhs.isValid
     }
 }
 

@@ -22,6 +22,9 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         // Monitor for screenshot and screen recording events
         setupScreenCaptureObservers()
 
+        // Pre-warm the keyboard so it appears instantly on first text field tap
+        preWarmKeyboard()
+
         return true
     }
 
@@ -58,6 +61,29 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         view.isMultipleTouchEnabled = false
         for subview in view.subviews {
             disableMultitouchRecursively(in: subview)
+        }
+    }
+
+    // MARK: - Keyboard Pre-warming
+
+    /// Forces iOS to load the keyboard process at launch so it appears
+    /// instantly when the user first taps a text field.
+    private func preWarmKeyboard() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                  let window = scene.windows.first else { return }
+
+            let tf = UITextField(frame: CGRect(x: -100, y: -100, width: 1, height: 1))
+            tf.autocorrectionType = .no
+            tf.autocapitalizationType = .none
+            tf.spellCheckingType = .no
+            window.addSubview(tf)
+            tf.becomeFirstResponder()
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                tf.resignFirstResponder()
+                tf.removeFromSuperview()
+            }
         }
     }
 

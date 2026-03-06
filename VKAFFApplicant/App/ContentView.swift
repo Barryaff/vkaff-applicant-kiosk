@@ -74,11 +74,10 @@ struct ContentView: View {
         } message: {
             Text(vm.submissionError ?? "")
         }
-        // Reset idle timer on user interaction (simultaneous — does not block child gestures)
-        .simultaneousGesture(
-            TapGesture()
-                .onEnded { DispatchQueue.main.async { vm.resetIdleTimer() } }
-        )
+        // Reset idle timer on user interaction via UIKit touch detection.
+        // Using a UIKit overlay instead of simultaneousGesture(TapGesture()) because
+        // SwiftUI TapGesture adds ~300ms delay to UITextField first-responder resolution.
+        .background(IdleResetTouchView { vm.resetIdleTimer() })
         .onAppear {
             setupKeyboardObservers()
         }
@@ -156,6 +155,40 @@ struct ContentView: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Submitting your application. Please wait.")
         .accessibilityAddTraits(.isModal)
+    }
+}
+
+// MARK: - UIKit Touch Interceptor (zero-delay idle reset)
+
+/// Detects touches via UIKit hit-test without adding a gesture recognizer.
+/// Unlike SwiftUI's TapGesture, this has zero impact on UITextField responsiveness.
+struct IdleResetTouchView: UIViewRepresentable {
+    let onTouch: () -> Void
+
+    func makeUIView(context: Context) -> TouchPassthroughView {
+        let view = TouchPassthroughView()
+        view.onTouch = onTouch
+        return view
+    }
+
+    func updateUIView(_ uiView: TouchPassthroughView, context: Context) {
+        uiView.onTouch = onTouch
+    }
+}
+
+/// Transparent UIView that detects touches via hitTest but always returns nil
+/// so touches pass through to the SwiftUI views underneath.
+class TouchPassthroughView: UIView {
+    var onTouch: (() -> Void)?
+
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        // Fire idle reset on every touch, then pass through
+        if event?.type == .touches {
+            DispatchQueue.main.async { [weak self] in
+                self?.onTouch?()
+            }
+        }
+        return nil // Always pass through — never captures the touch
     }
 }
 
