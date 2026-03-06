@@ -252,9 +252,9 @@ struct FormField: View {
             .offset(x: shakeOffset)
             .onChange(of: isFieldFocused) { _, focused in
                 glowOpacity = focused ? 1 : 0
-                if !focused && isMultiline {
+                if !focused && isMultiline && text != localText {
                     // Flush multiline local buffer on focus loss
-                    if text != localText { text = localText }
+                    text = localText
                 }
             }
 
@@ -296,6 +296,7 @@ struct FormField: View {
             textColor: UIColor(named: "DarkText") ?? .label,
             onTextCommit: { newValue in
                 localValue = newValue
+                guard text != newValue else { return }
                 text = newValue
             },
             onReturn: onCommit,
@@ -307,6 +308,7 @@ struct FormField: View {
         .background(fieldBackground)
         .overlay(fieldBorder)
         .overlay(focusGlow)
+        .compositingGroup()
         .accessibilityLabel(accessibilityLabelText)
         .accessibilityHint(placeholder.isEmpty ? "Enter \(label.lowercased())" : placeholder)
     }
@@ -325,6 +327,7 @@ struct FormField: View {
             .background(fieldBackground)
             .overlay(fieldBorder)
             .overlay(focusGlow)
+            .compositingGroup()
             .focused($isTextEditorFocused)
             .applyFocus(focusBinding: focusBinding, value: focusValue)
             .applyEducationFocus(focusBinding: educationFocusBinding, value: educationFocusValue)
@@ -485,6 +488,7 @@ struct NRICField: View {
                     textColor: UIColor(named: "DarkText") ?? .label,
                     onTextCommit: { newValue in
                         localValue = newValue
+                        guard text != newValue else { return }
                         text = newValue
                     },
                     onFocusChange: { focused in
@@ -512,6 +516,7 @@ struct NRICField: View {
                         .opacity(glowOpacity)
                         .allowsHitTesting(false)
                 )
+                .compositingGroup()
                 .accessibilityLabel(accessibilityLabelText)
                 .accessibilityHint("Enter your NRIC or FIN number. It will be masked when not editing.")
 

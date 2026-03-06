@@ -59,7 +59,7 @@ struct ContentView: View {
                 submissionOverlay
             }
         }
-        .ignoresSafeArea(.container, edges: .all)
+        .ignoresSafeArea([.container, .keyboard], edges: .all)
         .alert("Submission Issue", isPresented: Binding(
             get: { vm.submissionError != nil },
             set: { if !$0 { vm.submissionError = nil } }

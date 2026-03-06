@@ -91,6 +91,7 @@ struct PhoneFieldWithCode: View {
                         textInsets: UIEdgeInsets(top: 14, left: 12, bottom: 14, right: 12),
                         onTextCommit: { newValue in
                             localPhone = newValue
+                            guard phoneNumber != newValue else { return }
                             phoneNumber = newValue
                         },
                         onFocusChange: { focused in
@@ -118,6 +119,7 @@ struct PhoneFieldWithCode: View {
                             .opacity(glowOpacity)
                             .allowsHitTesting(false)
                     )
+                    .compositingGroup()
                     .accessibilityLabel("\(label), phone number")
 
                     if isValid && !isFieldFocused {
