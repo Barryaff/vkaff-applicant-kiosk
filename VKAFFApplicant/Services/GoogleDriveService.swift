@@ -77,10 +77,10 @@ class GoogleDriveService {
 
             // If we got a 401, invalidate the cached token so the next attempt refreshes it
             if httpResponse.statusCode == 401 {
-                GoogleDriveService.tokenLock.lock()
-                GoogleDriveService.cachedToken = nil
-                GoogleDriveService.tokenExpiry = nil
-                GoogleDriveService.tokenLock.unlock()
+                GoogleDriveService.tokenLock.withLock {
+                    GoogleDriveService.cachedToken = nil
+                    GoogleDriveService.tokenExpiry = nil
+                }
             }
 
             throw DriveError.uploadFailed(statusCode: httpResponse.statusCode, message: errorMessage)
@@ -143,10 +143,9 @@ class GoogleDriveService {
 
     private func getAccessToken() async throws -> String {
         // Return cached token if still valid (thread-safe read)
-        GoogleDriveService.tokenLock.lock()
-        let existingToken = GoogleDriveService.cachedToken
-        let existingExpiry = GoogleDriveService.tokenExpiry
-        GoogleDriveService.tokenLock.unlock()
+        let (existingToken, existingExpiry) = GoogleDriveService.tokenLock.withLock {
+            (GoogleDriveService.cachedToken, GoogleDriveService.tokenExpiry)
+        }
 
         if let token = existingToken,
            let expiry = existingExpiry,
@@ -261,12 +260,12 @@ class GoogleDriveService {
         #endif
 
         // Cache the token with a refresh margin (thread-safe write)
-        GoogleDriveService.tokenLock.lock()
-        GoogleDriveService.cachedToken = tokenResponse.accessToken
-        GoogleDriveService.tokenExpiry = now.addingTimeInterval(
-            TimeInterval(tokenResponse.expiresIn) - GoogleDriveService.tokenRefreshMargin
-        )
-        GoogleDriveService.tokenLock.unlock()
+        GoogleDriveService.tokenLock.withLock {
+            GoogleDriveService.cachedToken = tokenResponse.accessToken
+            GoogleDriveService.tokenExpiry = now.addingTimeInterval(
+                TimeInterval(tokenResponse.expiresIn) - GoogleDriveService.tokenRefreshMargin
+            )
+        }
 
         return tokenResponse.accessToken
     }
