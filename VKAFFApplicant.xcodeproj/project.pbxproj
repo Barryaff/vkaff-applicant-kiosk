@@ -10,6 +10,8 @@
 		05019D8B2F765979AC97AB21 /* FormDropdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C964766EE4EDD12BB823058 /* FormDropdown.swift */; };
 		1FAC174EB29BC6A3B0248D88 /* ReferenceNumberGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CB4E34498DF9DF96C851BE5 /* ReferenceNumberGenerator.swift */; };
 		25E32C6E2B2E4E971CD5462C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CEEC421861DE9D6DB4162742 /* Assets.xcassets */; };
+		2B3C4D5E6F7A8B9C0D1E2F3A /* service-account-key.json in Resources */ = {isa = PBXBuildFile; fileRef = 7A8B9C0D1E2F3A4B5C6D7E8F /* service-account-key.json */; };
+		3A4B5C6D7E8F9A0B1C2D3E4F /* ReferenceRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B5C6D7E8F9A0B1C2D3E4F5A /* ReferenceRecord.swift */; };
 		3E61855EBFCA08BA17134B1A /* EmploymentRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84796D9B7C7E159A3FDEA19E /* EmploymentRecord.swift */; };
 		3FD02A4F4E8A31754246EC13 /* NRICMaskerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 978E023413EC7B6B3E3E0B5C /* NRICMaskerTests.swift */; };
 		443E87FF8FE4B04011AD477B /* FormSegmented.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2E4E61C1E5C032DAC0C4E19 /* FormSegmented.swift */; };
@@ -17,6 +19,7 @@
 		501A06CD8E76C78DD5A2C40D /* IdleTimerOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9582FED866714EF582607539 /* IdleTimerOverlay.swift */; };
 		55F59C7F88F02881FB81EC67 /* EncryptedBackupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E1801E46E6CCC0357E98A26 /* EncryptedBackupService.swift */; };
 		58B45C383D51B69F3EF43F86 /* EncryptedBackupServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B818E6845ED065C0D487CE8F /* EncryptedBackupServiceTests.swift */; };
+		5C6D7E8F9A0B1C2D3E4F5A6B /* CountryCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D7E8F9A0B1C2D3E4F5A6B7C /* CountryCode.swift */; };
 		5F8BB6B6295B431F1D2DC5DC /* ConfirmationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 339FBECB964C0FEABF6E79D4 /* ConfirmationView.swift */; };
 		6AD30A293C52B4150ADAEDC4 /* RegistrationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21D1A366F7044B891C1B0342 /* RegistrationViewModel.swift */; };
 		6E02EE4BE338B15144EF3AC8 /* ProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9501CDF6CA34761BD48E94EB /* ProgressBar.swift */; };
@@ -26,6 +29,7 @@
 		7906D77E68483CCE72A63AD6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FD5A321A43934F1D21DD238 /* ContentView.swift */; };
 		7AD17FE62EDE76D0A9AF5B2C /* AnimatedCheckmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = 156DFF3BCBB149F0DB8F1882 /* AnimatedCheckmark.swift */; };
 		7DF722E4BBDC05B80DAB582A /* PositionAvailabilityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAA27C88D2F2FBA39B20A4F3 /* PositionAvailabilityView.swift */; };
+		7E8F9A0B1C2D3E4F5A6B7C8D /* PhoneFieldWithCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F9A0B1C2D3E4F5A6B7C8D9E /* PhoneFieldWithCode.swift */; };
 		8C2AF886210E8113F4B72BD6 /* DeclarationConsentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726232589EF5CBEC76C626C1 /* DeclarationConsentView.swift */; };
 		8D37CF180B8B6006ED9E4A94 /* ValidatorsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A854FE5627D42C76703EC6A6 /* ValidatorsTests.swift */; };
 		8F0B9B83A26A0A7F1FA92242 /* VKAFFApplicantApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E0BD016938B51449904B765 /* VKAFFApplicantApp.swift */; };
@@ -35,14 +39,17 @@
 		9590C3BBDE56AC658185D7FE /* GoogleDriveService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01F8CBC5A3C5E877650E4F71 /* GoogleDriveService.swift */; };
 		9637D8454E66456D5A0E4C14 /* AdminPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BB533A6F69F0C504845C5B3 /* AdminPanelView.swift */; };
 		979B16FA050B29F00205D4E5 /* FormCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = C81920E787291E763827F9D9 /* FormCard.swift */; };
+		9A0B1C2D3E4F5A6B7C8D9E0F /* secrets.plist in Resources */ = {isa = PBXBuildFile; fileRef = A0B1C2D3E4F5A6B7C8D9E0F1 /* secrets.plist */; };
 		A0DB31E76BC7ABDBEB1D32F7 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5C9B88E69590F453BC07FDA /* AppDelegate.swift */; };
 		A23D42A2CEE747C7DF0D76BB /* Validators.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2ABD18D2D98CFC641859BD2 /* Validators.swift */; };
 		A27A7024574CD994183E79C4 /* LanguageChipSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D4F1006BC0C673B940DFF4A /* LanguageChipSelector.swift */; };
 		A5485C09DD6085DA40952AAF /* PersonalDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D6A544B3902AB86F6CC958C /* PersonalDetailsView.swift */; };
 		A5D3D551A11321C3BB607153 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4A0FC92BE33ECC8C600E7A6 /* WelcomeView.swift */; };
 		A6E85D967809B0464B69D7F1 /* VKAFFButtonStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = C845F9C319BA460A572ABB52 /* VKAFFButtonStyles.swift */; };
+		A7D4E5F6182930415B6C7D8E /* SupportingDocumentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6C3D4E5071829304A5B6C7D /* SupportingDocumentsView.swift */; };
 		A9CA68B3497485EA21C88102 /* QualificationRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF8B45D4F40AD4BE40714609 /* QualificationRecord.swift */; };
 		AD1F13309B556C031E740DC1 /* WorkExperienceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0AC19EF4ACCD14FE504F5C4 /* WorkExperienceView.swift */; };
+		B1C2D3E4F5A6B7C8D9E0F1A2 /* EmergencyContact.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2D3E4F5A6B7C8D9E0F1A2B3 /* EmergencyContact.swift */; };
 		B23D404C71E54D8817A595DD /* GoogleDriveConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30C2C0581237420A748C5FC0 /* GoogleDriveConfig.swift */; };
 		B5C459304F1BDE41061B4128 /* VKAFFTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 706DD31C0A342891EBCAAF25 /* VKAFFTypography.swift */; };
 		BA75A7C49B73F4B12BC30CF9 /* SignatureCanvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E7854E7B7C5E8EFD8E8DE66 /* SignatureCanvas.swift */; };
@@ -53,19 +60,12 @@
 		DA6D8FCFD04493C489CE4581 /* RepeatableCardSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBB2E636BD3EB3C0E40BDFF /* RepeatableCardSection.swift */; };
 		DA99AAF0AFEA4C8F45047C4B /* IdleTimerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F37544EDD55EC904C4F85B92 /* IdleTimerTests.swift */; };
 		DDBB24031902E5183EB721F5 /* ApplicantDataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9EC628FEB1F138E5CDA3BD1 /* ApplicantDataTests.swift */; };
+		E5B2C3D4F6071829304A5B6C /* SupportingDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A1B2C3E5F6071829304A5B /* SupportingDocument.swift */; };
 		E6815CC59BE003FD5F90E7CA /* SlackConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C0FDD59A2849806114DE73C /* SlackConfig.swift */; };
 		E7A40DE97A0436BA00493866 /* SubmissionResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE2AC29C3703A43E073C8A44 /* SubmissionResult.swift */; };
 		F19EE5A8FCD9157AE5CEA13A /* VKAFFColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0C79DA68B567063F9530D4C /* VKAFFColors.swift */; };
 		F91AB82FF0424D385D89EE1D /* LanguageProficiency.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC05F8C52588E0E3DBE863ED /* LanguageProficiency.swift */; };
 		FF8E1914AB0B8AFBA5A3A84F /* SubmissionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 002C58853F04A85E9021D9CB /* SubmissionViewModel.swift */; };
-		2B3C4D5E6F7A8B9C0D1E2F3A /* service-account-key.json in Resources */ = {isa = PBXBuildFile; fileRef = 7A8B9C0D1E2F3A4B5C6D7E8F /* service-account-key.json */; };
-		3A4B5C6D7E8F9A0B1C2D3E4F /* ReferenceRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B5C6D7E8F9A0B1C2D3E4F5A /* ReferenceRecord.swift */; };
-		5C6D7E8F9A0B1C2D3E4F5A6B /* CountryCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D7E8F9A0B1C2D3E4F5A6B7C /* CountryCode.swift */; };
-		B1C2D3E4F5A6B7C8D9E0F1A2 /* EmergencyContact.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2D3E4F5A6B7C8D9E0F1A2B3 /* EmergencyContact.swift */; };
-		9A0B1C2D3E4F5A6B7C8D9E0F /* secrets.plist in Resources */ = {isa = PBXBuildFile; fileRef = A0B1C2D3E4F5A6B7C8D9E0F1 /* secrets.plist */; };
-		7E8F9A0B1C2D3E4F5A6B7C8D /* PhoneFieldWithCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F9A0B1C2D3E4F5A6B7C8D9E /* PhoneFieldWithCode.swift */; };
-		E5B2C3D4F6071829304A5B6C /* SupportingDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A1B2C3E5F6071829304A5B /* SupportingDocument.swift */; };
-		A7D4E5F6182930415B6C7D8E /* SupportingDocumentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6C3D4E5071829304A5B6C7D /* SupportingDocumentsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -94,25 +94,30 @@
 		3CB4E34498DF9DF96C851BE5 /* ReferenceNumberGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceNumberGenerator.swift; sourceTree = "<group>"; };
 		4A34E739525725A803F1B13C /* BrandButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrandButton.swift; sourceTree = "<group>"; };
 		4B308AD6BF945C7817336355 /* VKAFFApplicant.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VKAFFApplicant.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4B5C6D7E8F9A0B1C2D3E4F5A /* ReferenceRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceRecord.swift; sourceTree = "<group>"; };
 		4FA24492AB1FA017648F0014 /* PDFGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFGenerator.swift; sourceTree = "<group>"; };
 		51C6171C956899E2F7707A7A /* SlackService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlackService.swift; sourceTree = "<group>"; };
 		5EBB2E636BD3EB3C0E40BDFF /* RepeatableCardSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepeatableCardSection.swift; sourceTree = "<group>"; };
 		607C7F12741474176131E476 /* NRICMasker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NRICMasker.swift; sourceTree = "<group>"; };
 		6C964766EE4EDD12BB823058 /* FormDropdown.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormDropdown.swift; sourceTree = "<group>"; };
+		6D7E8F9A0B1C2D3E4F5A6B7C /* CountryCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountryCode.swift; sourceTree = "<group>"; };
 		706DD31C0A342891EBCAAF25 /* VKAFFTypography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VKAFFTypography.swift; sourceTree = "<group>"; };
 		726232589EF5CBEC76C626C1 /* DeclarationConsentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeclarationConsentView.swift; sourceTree = "<group>"; };
+		7A8B9C0D1E2F3A4B5C6D7E8F /* service-account-key.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "service-account-key.json"; sourceTree = "<group>"; };
 		7D4F1006BC0C673B940DFF4A /* LanguageChipSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguageChipSelector.swift; sourceTree = "<group>"; };
 		7D6A544B3902AB86F6CC958C /* PersonalDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalDetailsView.swift; sourceTree = "<group>"; };
 		7E0BD016938B51449904B765 /* VKAFFApplicantApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VKAFFApplicantApp.swift; sourceTree = "<group>"; };
 		7F47CADCA9961633A664C30E /* ApplicantData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicantData.swift; sourceTree = "<group>"; };
 		84796D9B7C7E159A3FDEA19E /* EmploymentRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmploymentRecord.swift; sourceTree = "<group>"; };
 		8C8B2B5124FD8D348067A366 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
+		8F9A0B1C2D3E4F5A6B7C8D9E /* PhoneFieldWithCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneFieldWithCode.swift; sourceTree = "<group>"; };
 		9501CDF6CA34761BD48E94EB /* ProgressBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressBar.swift; sourceTree = "<group>"; };
 		9582FED866714EF582607539 /* IdleTimerOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdleTimerOverlay.swift; sourceTree = "<group>"; };
 		978E023413EC7B6B3E3E0B5C /* NRICMaskerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NRICMaskerTests.swift; sourceTree = "<group>"; };
 		97AB50B2FF80BB93D74C5F6C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		984DC097CA26D525E147BBD1 /* VKAFFApplicantTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = VKAFFApplicantTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9FD5A321A43934F1D21DD238 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A0B1C2D3E4F5A6B7C8D9E0F1 /* secrets.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = secrets.plist; sourceTree = "<group>"; };
 		A854FE5627D42C76703EC6A6 /* ValidatorsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidatorsTests.swift; sourceTree = "<group>"; };
 		AE2AC29C3703A43E073C8A44 /* SubmissionResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubmissionResult.swift; sourceTree = "<group>"; };
 		B5C9B88E69590F453BC07FDA /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -120,10 +125,12 @@
 		B9EC628FEB1F138E5CDA3BD1 /* ApplicantDataTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicantDataTests.swift; sourceTree = "<group>"; };
 		BB22863A5D1EB9E5C9B6BB5E /* BrandedSpinner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrandedSpinner.swift; sourceTree = "<group>"; };
 		C0AC19EF4ACCD14FE504F5C4 /* WorkExperienceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkExperienceView.swift; sourceTree = "<group>"; };
+		C2D3E4F5A6B7C8D9E0F1A2B3 /* EmergencyContact.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmergencyContact.swift; sourceTree = "<group>"; };
 		C81920E787291E763827F9D9 /* FormCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormCard.swift; sourceTree = "<group>"; };
 		C845F9C319BA460A572ABB52 /* VKAFFButtonStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VKAFFButtonStyles.swift; sourceTree = "<group>"; };
 		CBB43DE7074A8651C9E93B22 /* IdleTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdleTimer.swift; sourceTree = "<group>"; };
 		CEEC421861DE9D6DB4162742 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		D4A1B2C3E5F6071829304A5B /* SupportingDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportingDocument.swift; sourceTree = "<group>"; };
 		DAA27C88D2F2FBA39B20A4F3 /* PositionAvailabilityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PositionAvailabilityView.swift; sourceTree = "<group>"; };
 		DC05F8C52588E0E3DBE863ED /* LanguageProficiency.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguageProficiency.swift; sourceTree = "<group>"; };
 		E0C79DA68B567063F9530D4C /* VKAFFColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VKAFFColors.swift; sourceTree = "<group>"; };
@@ -132,15 +139,8 @@
 		F2ABD18D2D98CFC641859BD2 /* Validators.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Validators.swift; sourceTree = "<group>"; };
 		F2E4E61C1E5C032DAC0C4E19 /* FormSegmented.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormSegmented.swift; sourceTree = "<group>"; };
 		F37544EDD55EC904C4F85B92 /* IdleTimerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdleTimerTests.swift; sourceTree = "<group>"; };
-		FF8B45D4F40AD4BE40714609 /* QualificationRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QualificationRecord.swift; sourceTree = "<group>"; };
-		7A8B9C0D1E2F3A4B5C6D7E8F /* service-account-key.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "service-account-key.json"; sourceTree = "<group>"; };
-		4B5C6D7E8F9A0B1C2D3E4F5A /* ReferenceRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceRecord.swift; sourceTree = "<group>"; };
-		6D7E8F9A0B1C2D3E4F5A6B7C /* CountryCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountryCode.swift; sourceTree = "<group>"; };
-		8F9A0B1C2D3E4F5A6B7C8D9E /* PhoneFieldWithCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneFieldWithCode.swift; sourceTree = "<group>"; };
-		A0B1C2D3E4F5A6B7C8D9E0F1 /* secrets.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = secrets.plist; sourceTree = "<group>"; };
-		C2D3E4F5A6B7C8D9E0F1A2B3 /* EmergencyContact.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmergencyContact.swift; sourceTree = "<group>"; };
-		D4A1B2C3E5F6071829304A5B /* SupportingDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportingDocument.swift; sourceTree = "<group>"; };
 		F6C3D4E5071829304A5B6C7D /* SupportingDocumentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportingDocumentsView.swift; sourceTree = "<group>"; };
+		FF8B45D4F40AD4BE40714609 /* QualificationRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QualificationRecord.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -362,7 +362,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1500;
+				LastUpgradeCheck = 2630;
 				TargetAttributes = {
 					3B8E8D44A02F4FDF52AAE83D = {
 						ProvisioningStyle = Automatic;
@@ -520,6 +520,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -537,6 +538,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.9;
@@ -568,7 +570,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = S4BH78RG28;
+				DEVELOPMENT_TEAM = QC4HB7A4V6;
 				INFOPLIST_FILE = VKAFFApplicant/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "VKAFF Registration";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business";
@@ -620,6 +622,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -644,6 +647,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.9;
@@ -675,7 +679,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = S4BH78RG28;
+				DEVELOPMENT_TEAM = QC4HB7A4V6;
 				INFOPLIST_FILE = VKAFFApplicant/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "VKAFF Registration";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business";
