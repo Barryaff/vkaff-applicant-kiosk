@@ -40,6 +40,7 @@ struct ContentView: View {
                         .transition(screenTransition)
                 case .confirmation:
                     ConfirmationView()
+                        .id(vm.applicant.referenceNumber)
                         .transition(.asymmetric(
                             insertion: .opacity.animation(.easeOut(duration: 0.3)),
                             removal: .opacity.animation(.easeIn(duration: 0.2))

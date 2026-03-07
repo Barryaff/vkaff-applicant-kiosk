@@ -40,6 +40,7 @@ class RegistrationViewModel {
     private var cancellables = Set<AnyCancellable>()
     private let submissionVM = SubmissionViewModel()
     private var autoReturnTask: Task<Void, Never>?
+    private var submissionTask: Task<Void, Never>?
 
     private static let adminLockoutEndTimeKey = "adminLockoutEndTime"
 
@@ -408,9 +409,10 @@ class RegistrationViewModel {
 
         let haptic = UINotificationFeedbackGenerator()
 
-        Task { @MainActor in
+        submissionTask = Task { @MainActor in
             let result = await submissionVM.submit(applicant: applicant, supportingDocuments: supportingDocuments)
 
+            guard !Task.isCancelled else { return }
             isSubmitting = false
 
             if result.success {
@@ -440,6 +442,7 @@ class RegistrationViewModel {
     /// Retry a failed submission (triggered by "Try Again" in error alert)
     func retrySubmission() {
         guard !isSubmitting else { return }
+        isSubmitting = true
         submitApplication()
     }
 
@@ -513,7 +516,9 @@ class RegistrationViewModel {
         // Idempotency guard: prevent duplicate reset calls (user tap + auto-return timer)
         guard currentScreen != .welcome else { return }
 
-        // Cancel any pending auto-return task from previous submission
+        // Cancel any pending submission or auto-return tasks
+        submissionTask?.cancel()
+        submissionTask = nil
         autoReturnTask?.cancel()
         autoReturnTask = nil
 

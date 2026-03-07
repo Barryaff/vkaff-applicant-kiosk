@@ -6,6 +6,7 @@ struct ConfirmationView: View {
     @State private var showConfetti: Bool = false
     @State private var showContent: Bool = false
     @State private var secondsRemaining: Int = Int(AppConfig.confirmationAutoReturnSeconds)
+    @State private var countdownTimer: Timer?
 
     private var thankYouMessage: String {
         let name = vm.applicant.preferredName.isEmpty ? vm.applicant.fullName : vm.applicant.preferredName
@@ -173,7 +174,7 @@ struct ConfirmationView: View {
                         }
 
                         // Countdown text timer
-                        Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
+                        countdownTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
                             if secondsRemaining > 0 {
                                 secondsRemaining -= 1
                             } else {
@@ -182,6 +183,10 @@ struct ConfirmationView: View {
                         }
                     }
             }
+        }
+        .onDisappear {
+            countdownTimer?.invalidate()
+            countdownTimer = nil
         }
         .dynamicTypeSize(.large ... .accessibility3)
     }

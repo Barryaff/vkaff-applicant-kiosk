@@ -2,6 +2,7 @@ import Foundation
 import UIKit
 import Network
 
+@MainActor
 class SubmissionViewModel {
     private let driveService = GoogleDriveService()
     private let slackService = SlackService()
@@ -14,8 +15,11 @@ class SubmissionViewModel {
     private func isNetworkAvailable() async -> Bool {
         await withCheckedContinuation { continuation in
             let monitor = NWPathMonitor()
+            var resumed = false
             monitor.pathUpdateHandler = { path in
                 monitor.cancel()
+                guard !resumed else { return }
+                resumed = true
                 continuation.resume(returning: path.status == .satisfied)
             }
             monitor.start(queue: networkCheckQueue)

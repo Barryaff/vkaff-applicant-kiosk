@@ -136,6 +136,15 @@ struct SupportingDocumentsView: View {
         } message: {
             Text("The selected file exceeds the maximum size of \(AppConfig.maxDocumentSizeMB)MB. Please choose a smaller file.")
         }
+        .onDisappear {
+            // Reset all presentation states to prevent stale sheets on view teardown
+            showingSourcePicker = false
+            showingPhotoPicker = false
+            showingCamera = false
+            showingFilePicker = false
+            showFileSizeAlert = false
+            selectedPhotoItem = nil
+        }
     }
 
     // MARK: - Photo Loading
@@ -210,8 +219,9 @@ struct SupportingDocumentsView: View {
     // MARK: - File Loading
 
     private func loadFile(from url: URL) {
-        guard url.startAccessingSecurityScopedResource() else { return }
-        defer { url.stopAccessingSecurityScopedResource() }
+        // With asCopy: true the URL may not be security-scoped; access it regardless
+        let didAccess = url.startAccessingSecurityScopedResource()
+        defer { if didAccess { url.stopAccessingSecurityScopedResource() } }
 
         guard let data = try? Data(contentsOf: url) else { return }
 
@@ -249,11 +259,13 @@ struct SupportingDocumentsView: View {
         let maxDimension: CGFloat = 120
         let scale = min(maxDimension / image.size.width, maxDimension / image.size.height)
         let newSize = CGSize(width: image.size.width * scale, height: image.size.height * scale)
-        UIGraphicsBeginImageContextWithOptions(newSize, false, 2.0)
-        image.draw(in: CGRect(origin: .zero, size: newSize))
-        let thumbnail = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        return thumbnail?.jpegData(compressionQuality: 0.6)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 2.0
+        let renderer = UIGraphicsImageRenderer(size: newSize, format: format)
+        let thumbnail = renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: newSize))
+        }
+        return thumbnail.jpegData(compressionQuality: 0.6)
     }
 
     private func dateStamp() -> String {
@@ -396,7 +408,6 @@ struct DocumentCard: View {
 
 struct CameraCaptureView: UIViewControllerRepresentable {
     let onCapture: (UIImage) -> Void
-    @Environment(\.dismiss) private var dismiss
 
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
@@ -408,27 +419,25 @@ struct CameraCaptureView: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(onCapture: onCapture, dismiss: dismiss)
+        Coordinator(onCapture: onCapture)
     }
 
     class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
         let onCapture: (UIImage) -> Void
-        let dismiss: DismissAction
 
-        init(onCapture: @escaping (UIImage) -> Void, dismiss: DismissAction) {
+        init(onCapture: @escaping (UIImage) -> Void) {
             self.onCapture = onCapture
-            self.dismiss = dismiss
         }
 
         func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
             if let image = info[.originalImage] as? UIImage {
                 onCapture(image)
             }
-            dismiss()
+            picker.dismiss(animated: true)
         }
 
         func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-            dismiss()
+            picker.dismiss(animated: true)
         }
     }
 }
@@ -437,7 +446,6 @@ struct CameraCaptureView: UIViewControllerRepresentable {
 
 struct DocumentFilePicker: UIViewControllerRepresentable {
     let onPick: (URL) -> Void
-    @Environment(\.dismiss) private var dismiss
 
     func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
         let supportedTypes: [UTType] = [.pdf, .jpeg, .png, .heic]
@@ -450,16 +458,14 @@ struct DocumentFilePicker: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: UIDocumentPickerViewController, context: Context) {}
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(onPick: onPick, dismiss: dismiss)
+        Coordinator(onPick: onPick)
     }
 
     class Coordinator: NSObject, UIDocumentPickerDelegate {
         let onPick: (URL) -> Void
-        let dismiss: DismissAction
 
-        init(onPick: @escaping (URL) -> Void, dismiss: DismissAction) {
+        init(onPick: @escaping (URL) -> Void) {
             self.onPick = onPick
-            self.dismiss = dismiss
         }
 
         func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
@@ -468,7 +474,7 @@ struct DocumentFilePicker: UIViewControllerRepresentable {
         }
 
         func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
-            dismiss()
+            // UIDocumentPickerViewController dismisses itself automatically
         }
     }
 }
