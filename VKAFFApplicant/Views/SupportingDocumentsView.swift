@@ -34,9 +34,16 @@ struct SupportingDocumentsView: View {
                 .padding(.bottom, 8)
 
             // Document cards
-            ForEach($vm.supportingDocuments) { $doc in
+            ForEach(vm.supportingDocuments) { doc in
                 DocumentCard(
-                    document: $doc,
+                    document: Binding(
+                        get: { vm.supportingDocuments.first { $0.id == doc.id } ?? doc },
+                        set: { newValue in
+                            if let idx = vm.supportingDocuments.firstIndex(where: { $0.id == doc.id }) {
+                                vm.supportingDocuments[idx] = newValue
+                            }
+                        }
+                    ),
                     onRemove: {
                         withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                             vm.supportingDocuments.removeAll { $0.id == doc.id }
